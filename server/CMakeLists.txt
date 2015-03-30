@@ -13,3 +13,5 @@ install (TARGETS xfired xfire
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	)
+
+include (tests/bitops/bitops-test.cmake)

@@ -1,5 +1,5 @@
 /*
- *  XFire client
+ *  Binary operations
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,23 +16,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XFIRE_CLIENT_H_
-#define __XFIRE_CLIENT_H_
+#ifndef __BITOPS_H__
+#define __BITOPS_H__
 
-#ifdef __cplusplus
-class XFire {
-public:
-	explicit XFire(const char *addr, int port);
-	virtual ~XFire();
-};
+#include <xfire/xfire.h>
+
+#if defined(__x86_64) || defined(__x86_64__)
+#define X86_64
 #endif
 
-#ifdef __cplusplus
-#define CDECL extern "C" {
-#define CDECL_END }
-#else
-#define CDECL
-#define CDECL_END
-#endif
+CDECL
+extern int test_bit(int nr, void *addr);
+extern void set_bit(int nr, void *addr);
+extern void clear_bit(int nr, void *addr);
+extern int test_and_clear_bit(int nr, void *addr);
+extern int test_and_set_bit(int nr, void *addr);
+CDECL_END
 
 #endif
