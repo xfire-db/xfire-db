@@ -19,10 +19,12 @@
 #ifndef __XFIRE_CLIENT_H_
 #define __XFIRE_CLIENT_H_
 
+#ifdef __cplusplus
 class XFire {
 public:
 	explicit XFire(const char *addr, int port);
 	virtual ~XFire();
 };
+#endif
 
 #endif
