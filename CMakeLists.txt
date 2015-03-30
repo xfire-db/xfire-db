@@ -3,6 +3,7 @@ project (XFire)
 
 include(scripts/options.cmake)
 include(scripts/directories.cmake)
+include(scripts/flags.cmake)
 
 include_directories(${XFIRE_INCLUDE_DIR})
 
