@@ -89,24 +89,6 @@ template <typename K, typename V> void BinaryTree<K,V>::insert(K& key, V& val)
 }
 
 /*
- * Delete support
- */
-
-template <typename K, typename V> BinaryTreeNode<K,V> *BinaryTree<K,V>::remove(
-		K& key
-		)
-{
-	return this->remove(this->find(key));
-}
-
-template <typename K, typename V> BinaryTreeNode<K,V> *BinaryTree<K,V>::remove(
-		BinaryTreeNode<K,V> *node
-		)
-{
-	return node;
-}
-
-/*
  * Search support
  */
 template <typename K, typename V> BinaryTreeNode<K,V> *BinaryTree<K,V>::find(

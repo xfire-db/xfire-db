@@ -30,8 +30,8 @@ template <class K, class V> class BinaryTree {
 		void insert(BinaryTreeNode<K,V> *node);
 		void insert(K& v, V& val);
 
-		BinaryTreeNode<K,V> *remove(K& key);
-		BinaryTreeNode<K,V> *remove(BinaryTreeNode<K,V> *node);
+		virtual BinaryTreeNode<K,V> *remove(K& key) = 0;
+		virtual BinaryTreeNode<K,V> *remove(BinaryTreeNode<K,V> *node) = 0;
 
 		BinaryTreeNode<K,V> *find(K& key);
 
