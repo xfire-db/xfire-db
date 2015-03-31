@@ -5,6 +5,8 @@ add_library (xfire SHARED
 	bitops.c
 	)
 
+include (storage/storage.cmake)
+
 add_executable (xfired
 		xfired.cc)
 target_link_libraries (xfired LINK_PUBLIC xfire)
