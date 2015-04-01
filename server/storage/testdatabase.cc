@@ -1,5 +1,5 @@
 /*
- *  Binary search data
+ *  Base database
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,20 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BST_VALUE_H_
-#define __BST_VALUE_H_
+#include <stdlib.h>
+#include <string.h>
 
-template <typename V> class BinaryTreeValue {
-	public:
-		explicit BinaryTreeValue(V key);
-		virtual ~BinaryTreeValue();
+#include <xfire/database.h>
+#include <xfire/testdatabase.h>
 
-		V get_value();
+BSTDatabase::BSTDatabase()
+{
+	this->tree = new TestBST<int, std::string>();
+}
 
-	private:
-		V value;
-};
+BSTDatabase::~BSTDatabase()
+{
+	delete this->tree;
+}
 
-#include <xfire/bstinstances.h>
+void BSTDatabase::insert(int key, std::string& value)
+{
+}
 
-#endif
+void BSTDatabase::remove(int key)
+{
+}
+

@@ -1,5 +1,5 @@
 /*
- *  Binary search data
+ *  BST template instances
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,20 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BST_VALUE_H_
-#define __BST_VALUE_H_
-
-template <typename V> class BinaryTreeValue {
-	public:
-		explicit BinaryTreeValue(V key);
-		virtual ~BinaryTreeValue();
-
-		V get_value();
-
-	private:
-		V value;
-};
-
-#include <xfire/bstinstances.h>
-
+#ifndef __BST_TEMPLATE_INSTANCES__H
+#define __BST_TEMPLATE_INSTANCES__H
+#include <string.h>
 #endif

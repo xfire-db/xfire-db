@@ -1,5 +1,5 @@
 /*
- *  Binary search tree
+ *  Base database
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,37 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BINARY_TREE_H_
-#define __BINARY_TREE_H_
+#ifndef __DATA_BASE_H__
+#define __DATA_BASE_H__
 
-#include <xfire/binarytreenode.h>
-
-template <class K, class V> class BinaryTree {
+template <typename K, typename V> class Database {
 	public:
-		explicit BinaryTree();
-		virtual ~BinaryTree();
-
-		BinaryTreeNode<K,V> *root();
-		void set_root(BinaryTreeNode<K,V> *node);
-
-		void insert(BinaryTreeNode<K,V> *node);
-		void insert(K v, V& val);
-
-		virtual BinaryTreeNode<K,V> *remove(K& key) = 0;
-
-		BinaryTreeNode<K,V> *find(K& key);
-
-	protected:
-		unsigned long _height;
-		virtual BinaryTreeNode<K,V> *remove(BinaryTreeNode<K,V> *node) = 0;
-
-	private:
-		void insert_key(BinaryTreeNode<K,V> *node);
-		BinaryTreeNode<K,V> *find(BinaryTreeNode<K,V> *node, K& key);
-
-		BinaryTreeNode<K,V> *_root;
+		virtual void insert(K k, V& v) = 0;
+		virtual void remove(K k) = 0;
 };
 
-#include <xfire/bstinstances.h>
 #endif
-

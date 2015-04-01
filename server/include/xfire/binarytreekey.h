@@ -30,4 +30,5 @@ template <typename K> class BinaryTreeKey {
 		K key;
 };
 
+#include <xfire/bstinstances.h>
 #endif

@@ -1,7 +1,7 @@
 set(CXX_COMPILE_FLAGS
-	"-Wall -Os -std=gnu++98")
+	"-Wall -O2 -std=gnu++98")
 set(C_COMPILE_FLAGS
-	"-Wall -Os -std=gnu89")
+	"-Wall -O2 -std=gnu89")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COMPILE_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_COMPILE_FLAGS}")

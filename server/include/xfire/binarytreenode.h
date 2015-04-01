@@ -24,30 +24,34 @@
 
 template <typename K, typename V> class BinaryTreeNode {
 	public:
-		explicit BinaryTreeNode(BinaryTreeKey<K> &key, 
-				BinaryTreeValue<V> &value);
+		explicit BinaryTreeNode(K &key, V& value);
 		explicit BinaryTreeNode();
 		virtual ~BinaryTreeNode();
 
-		void set_value(BinaryTreeValue<V> &value);
+		void set_value(V& value);
 
-		BinaryTreeKey<K> &get_key();
-		BinaryTreeValue<V> &get_value();
+		K& get_key();
+		V& get_value();
 
 		BinaryTreeNode<K,V> *left();
 		BinaryTreeNode<K,V> *right();
 		BinaryTreeNode<K,V> *parent();
+		BinaryTreeNode<K,V> *grandparent();
+		BinaryTreeNode<K,V> *sibling();
 
 		void set_left(BinaryTreeNode<K,V> *node);
 		void set_parent(BinaryTreeNode<K,V> *node);
 		void set_right(BinaryTreeNode<K,V> *node);
 
 	private:
-		BinaryTreeKey<K> key;
-		BinaryTreeValue<V> value;
+		K key;
+		V value;
 
 		BinaryTreeNode<K,V> *_parent;
 		BinaryTreeNode<K,V> *_left;
 		BinaryTreeNode<K,V> *_right;
 };
+
+#include <xfire/bstinstances.h>
 #endif
+

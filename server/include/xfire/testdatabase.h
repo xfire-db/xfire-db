@@ -1,5 +1,5 @@
 /*
- *  Binary search tree
+ *  Base database
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,37 +16,47 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BINARY_TREE_H_
-#define __BINARY_TREE_H_
+#ifndef __TEST_DB__
+#define __TEST_DB__
 
-#include <xfire/binarytreenode.h>
+#include <string.h>
 
-template <class K, class V> class BinaryTree {
+#include <xfire/database.h>
+#include <xfire/binarytree.h>
+
+template <typename K, typename V> class TestBST : public BinaryTree<K,V> {
 	public:
-		explicit BinaryTree();
-		virtual ~BinaryTree();
+	explicit TestBST(){}
+	virtual ~TestBST(){}
 
-		BinaryTreeNode<K,V> *root();
-		void set_root(BinaryTreeNode<K,V> *node);
+	void insert(K v, V& val)
+	{
+		BinaryTree<K,V>::insert(v, val);
+	}
 
-		void insert(BinaryTreeNode<K,V> *node);
-		void insert(K v, V& val);
-
-		virtual BinaryTreeNode<K,V> *remove(K& key) = 0;
-
-		BinaryTreeNode<K,V> *find(K& key);
+	BinaryTreeNode<K,V> *remove(K& key)
+	{
+		return NULL;
+	}
 
 	protected:
-		unsigned long _height;
-		virtual BinaryTreeNode<K,V> *remove(BinaryTreeNode<K,V> *node) = 0;
+	BinaryTreeNode<K,V> *remove(BinaryTreeNode<K,V> *node)
+	{
+		return NULL;
+	}
 
-	private:
-		void insert_key(BinaryTreeNode<K,V> *node);
-		BinaryTreeNode<K,V> *find(BinaryTreeNode<K,V> *node, K& key);
-
-		BinaryTreeNode<K,V> *_root;
 };
 
-#include <xfire/bstinstances.h>
-#endif
+class BSTDatabase : public Database<int,std::string> {
+	public:
+		explicit BSTDatabase();
+		virtual ~BSTDatabase();
 
+		void insert(int key, std::string& value);
+		void remove(int key);
+
+	private:
+		TestBST<int,std::string> *tree;
+};
+
+#endif

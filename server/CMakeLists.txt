@@ -5,11 +5,11 @@ add_library (xfire SHARED
 	bitops.c
 	)
 
+# bst
 include (storage/storage.cmake)
 
 add_executable (xfired
 		xfired.cc)
-target_link_libraries (xfired LINK_PUBLIC xfire)
 
 install (TARGETS xfired xfire
 	RUNTIME DESTINATION bin
@@ -17,3 +17,4 @@ install (TARGETS xfired xfire
 	)
 
 include (tests/bitops/bitops-test.cmake)
+include (tests/bst/bst.cmake)

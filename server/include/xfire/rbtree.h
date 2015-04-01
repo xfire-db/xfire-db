@@ -1,5 +1,5 @@
 /*
- *  Binary search tree
+ *  Red-black tree
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,35 +16,35 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BINARY_TREE_H_
-#define __BINARY_TREE_H_
+#ifndef __RBTREE_H__
+#define __RBTREE_H__
 
-#include <xfire/binarytreenode.h>
+#include <xfire/rbtreenode.h>
+#include <xfire/binarytree.h>
 
-template <class K, class V> class BinaryTree {
+#define rb_method(__k, __v, args...) \
+	template <typename __k, typename __v> args RBTree<__k,__v>
+#define rb_constructor(__k, __v) \
+	template <typename __k, typename __v> RBTree<__k,__v>
+#define rb_deconstructor(__k, __v) rb_constructor(__k,__v)
+
+template <typename K, typename V> class RBTree : public BinaryTree<K,V> {
 	public:
-		explicit BinaryTree();
-		virtual ~BinaryTree();
+	explicit RBTree();
+	virtual ~RBTree();
 
-		BinaryTreeNode<K,V> *root();
-		void set_root(BinaryTreeNode<K,V> *node);
+	RBTreeNode<K,V> *root();
 
-		void insert(BinaryTreeNode<K,V> *node);
-		void insert(K v, V& val);
-
-		virtual BinaryTreeNode<K,V> *remove(K& key) = 0;
-
-		BinaryTreeNode<K,V> *find(K& key);
+	int insert(RBTreeNode<K,V> *node);
+	int insert(K key, V& value);
+	RBTreeNode<K,V> *remove(K key);
 
 	protected:
-		unsigned long _height;
-		virtual BinaryTreeNode<K,V> *remove(BinaryTreeNode<K,V> *node) = 0;
+	RBTreeNode<K,V> *remove(RBTreeNode<K,V> *node);
+	unsigned long nodes;
 
 	private:
-		void insert_key(BinaryTreeNode<K,V> *node);
-		BinaryTreeNode<K,V> *find(BinaryTreeNode<K,V> *node, K& key);
-
-		BinaryTreeNode<K,V> *_root;
+	double balance(RBTreeNode<K,V> *node);
 };
 
 #include <xfire/bstinstances.h>

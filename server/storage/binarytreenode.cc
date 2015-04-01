@@ -16,12 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <xfire/binarytreenode.h>
+#include <stdlib.h>
+
 #include <xfire/binarytreekey.h>
 #include <xfire/binarytreevalue.h>
+#include <xfire/binarytreenode.h>
 
 template <typename K, typename V> BinaryTreeNode<K,V>::BinaryTreeNode(
-		BinaryTreeKey<K> &key, BinaryTreeValue<V> &value)
+			K& key, V& value)
 {
 	this->key = key;
 	this->value = value;
@@ -36,16 +38,14 @@ template <typename K, typename V> BinaryTreeNode<K,V>::~BinaryTreeNode()
 }
 
 
-template <typename K, typename V> BinaryTreeKey<K>&
-	BinaryTreeNode<K,V>::get_key()
+template <typename K, typename V> K& BinaryTreeNode<K,V>::get_key()
 {
 	return this->key;
 }
 
-template <typename K, typename V> BinaryTreeValue<V>&
-	BinaryTreeNode<K,V>::get_value()
+template <typename K, typename V> V& BinaryTreeNode<K,V>::get_value()
 {
-	return this->key;
+	return this->value;
 }
 
 /* setters */
@@ -83,8 +83,35 @@ BinaryTreeNode<K,V>::right()
 }
 
 template <typename K, typename V> BinaryTreeNode<K,V> *
+BinaryTreeNode<K,V>::sibling()
+{
+	BinaryTreeNode<K,V> *parent;
+
+	parent = this->parent();
+	if(parent) {
+		if(this == parent->left())
+			return parent->right();
+		else
+			return parent->left();
+	}
+
+	return NULL;
+}
+
+template <typename K, typename V> BinaryTreeNode<K,V> *
+BinaryTreeNode<K,V>::grandparent()
+{
+	if(this->_parent)
+		return this->_parent->parent();
+	else
+		return NULL;
+}
+
+template <typename K, typename V> BinaryTreeNode<K,V> *
 BinaryTreeNode<K,V>::parent()
 {
 	return this->_parent;
 }
+
+template class BinaryTreeNode<int,std::string>;
 
