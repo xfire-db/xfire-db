@@ -131,17 +131,17 @@ rb_node_method(K,V,RBTreeNode<K,V>*)::rotate_right(RBTree<K,V> *tree)
 
 rb_node_method(K,V,void)::rotate_swap_parent(RBTree<K,V> *tree)
 {
-	RBTreeNode<K,V> *parent = dynamic_cast
-		<RBTreeNode<K,V>*>(this->parent());
-	bool colour = parent->colour();
+	RBTreeNode<K,V> *parent = this->parent();
 
 	if(parent->right() == this)
 		parent->rotate_left(tree);
 	else
 		parent->rotate_right(tree);
 
-	parent->set_colour(this->colour());
-	this->set_colour(colour);
+	if(parent->test_and_set_colour(this->colour()))
+		this->set_colour(RB_RED);
+	else
+		this->set_colour(RB_BLACK);
 }
 
 rb_node_method(K,V,RBTreeNode<K,V>*)::left()

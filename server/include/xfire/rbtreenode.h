@@ -19,8 +19,6 @@
 #ifndef __RB_NODE_H__
 #define __RB_NODE_H__
 
-#include <xfire/binarytreekey.h>
-#include <xfire/binarytreevalue.h>
 #include <xfire/binarytreenode.h>
 
 #define RB_READ_LOCK_FLAG  0

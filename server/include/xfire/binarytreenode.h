@@ -19,9 +19,6 @@
 #ifndef __BST_NODE_H__
 #define __BST_NODE_H__
 
-#include <xfire/binarytreekey.h>
-#include <xfire/binarytreevalue.h>
-
 template <typename K, typename V> class BinaryTreeNode {
 	public:
 		explicit BinaryTreeNode(K &key, V& value);
