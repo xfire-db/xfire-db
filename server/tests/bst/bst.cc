@@ -18,9 +18,22 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
+#include <xfire/testdatabase.h>
 
 int main(int argc, char **argv)
 {
+	BSTDatabase *db = new BSTDatabase();
+	std::string data("Hello World");
+	std::string rv;
+
+	db->insert(10, data);
+	rv = db->find(10);
+
+	printf("Found value 10::%s\n", rv.c_str());
+
+	delete db;
 	return -EXIT_SUCCESS;
 }
 

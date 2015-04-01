@@ -54,6 +54,7 @@ class BSTDatabase : public Database<int,std::string> {
 
 		void insert(int key, std::string& value);
 		void remove(int key);
+		std::string& find(int key);
 
 	private:
 		TestBST<int,std::string> *tree;

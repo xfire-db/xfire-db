@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <xfire/xfire.h>
 #include <xfire/database.h>
 #include <xfire/testdatabase.h>
 
@@ -34,6 +35,16 @@ BSTDatabase::~BSTDatabase()
 
 void BSTDatabase::insert(int key, std::string& value)
 {
+	this->tree->insert(key, value);
+}
+
+std::string& BSTDatabase::find(int key)
+{
+	BinaryTreeNode<int,std::string> *node;
+
+	node = this->tree->find(key);
+
+	return node->get_value();
 }
 
 void BSTDatabase::remove(int key)

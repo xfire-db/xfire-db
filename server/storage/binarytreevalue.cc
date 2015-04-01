@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <xfire/xfire.h>
 #include <xfire/binarytreevalue.h>
 
 template <typename V> BinaryTreeValue<V>::BinaryTreeValue(V value)

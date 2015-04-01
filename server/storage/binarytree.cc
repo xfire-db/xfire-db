@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 
+#include <xfire/xfire.h>
 #include <xfire/binarytreenode.h>
 #include <xfire/binarytree.h>
 
@@ -122,5 +123,7 @@ template <typename K, typename V> void BinaryTree<K,V>::set_root(
 	this->_root = node;
 }
 
+#ifdef HAVE_DBG
 template class BinaryTree<int,std::string>;
+#endif
 

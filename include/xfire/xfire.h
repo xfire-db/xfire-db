@@ -19,6 +19,8 @@
 #ifndef __XFIRE_CLIENT_H_
 #define __XFIRE_CLIENT_H_
 
+#include <config.h>
+
 #ifdef __cplusplus
 class XFire {
 public:

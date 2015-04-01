@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <xfire/xfire.h>
 #include <xfire/bitops.h>
 #include <xfire/rbtreenode.h>
 #include <xfire/rbtree.h>
@@ -181,5 +182,7 @@ rb_node_method(K,V,RBTreeNode<K,V>*)::parent()
 	return dynamic_cast<RBTreeNode<K,V>*>(BinaryTreeNode<K,V>::parent());
 }
 
+#ifdef HAVE_DBG
 template class RBTreeNode<int,std::string>;
+#endif
 

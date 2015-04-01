@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <xfire/xfire.h>
 #include <xfire/binarytreekey.h>
 
 template <typename K> BinaryTreeKey<K>::BinaryTreeKey(K key)

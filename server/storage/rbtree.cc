@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <xfire/xfire.h>
 #include <xfire/binarytree.h>
 #include <xfire/rbtreenode.h>
 #include <xfire/rbtree.h>
@@ -116,5 +117,7 @@ rb_method(K,V,double)::balance(RBTreeNode<K,V> *node)
 	return (log10(this->nodes) / log10(2));
 }
 
+#ifdef HAVE_DBG
 template class RBTree<int,std::string>;
+#endif
 

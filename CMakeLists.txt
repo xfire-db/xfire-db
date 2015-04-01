@@ -1,8 +1,15 @@
 cmake_minimum_required (VERSION 2.6)
 project (XFire)
 
-include(scripts/options.cmake)
 include(scripts/directories.cmake)
+include(scripts/options.cmake)
+
+# configure file
+configure_file(
+	"${XFIRE_INCLUDE_DIR}/config.h.in"
+	"${XFIRE_INCLUDE_DIR}/config.h"
+	)
+
 include(scripts/flags.cmake)
 include(scripts/link.cmake)
 

@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 
+#include <xfire/xfire.h>
 #include <xfire/binarytreekey.h>
 #include <xfire/binarytreevalue.h>
 #include <xfire/binarytreenode.h>
@@ -113,5 +114,7 @@ BinaryTreeNode<K,V>::parent()
 	return this->_parent;
 }
 
+#ifdef HAVE_DBG
 template class BinaryTreeNode<int,std::string>;
+#endif
 
