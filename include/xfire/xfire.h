@@ -37,4 +37,15 @@ public:
 #define CDECL_END
 #endif
 
+#ifndef __cplusplus
+#ifndef true
+#define true 1
+#endif
+
+#ifndef false
+#define false !true
+#endif
+
+#endif
+
 #endif

@@ -38,6 +38,20 @@ int test_bit(int nr, void *addr)
 	return __test_bit(bit, p);
 }
 
+void swap_bit(int nr, void *addr1, void *addr2)
+{
+	unsigned long *p1 = addr1,
+		      *p2 = addr2;
+	int bit = 1 << (nr % BITS_PER_LONG);
+
+	p1 += nr / (BITS_PER_LONG - 1);
+	p2 += nr / (BITS_PER_LONG - 1);
+
+	*p1 = *p1 ^ (*p2 & bit);
+	*p2 = *p2 ^ (*p1 & bit);
+	*p1 = *p1 ^ (*p2 & bit);
+}
+
 void set_bit(int nr, void *addr)
 {
 	unsigned long *p = addr;

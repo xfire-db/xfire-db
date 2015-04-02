@@ -31,6 +31,7 @@ extern void set_bit(int nr, void *addr);
 extern void clear_bit(int nr, void *addr);
 extern int test_and_clear_bit(int nr, void *addr);
 extern int test_and_set_bit(int nr, void *addr);
+extern void swap_bit(int nr, void*, void*);
 CDECL_END
 
 #endif

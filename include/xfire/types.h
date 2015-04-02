@@ -1,5 +1,5 @@
 /*
- *  BST test
+ *  Red-black tree header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,24 +16,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#ifndef __XFIRE_TYPES_H__
+#define __XFIRE_TYPES_H__
 
-#include <xfire/testdatabase.h>
+#include <stdint.h>
 
-int main(int argc, char **argv)
-{
-	BSTDatabase *db = new BSTDatabase();
-	std::string data("Hello World");
-	std::string rv;
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t  u8;
 
-	db->insert(10, data);
-	rv = db->find(10);
+typedef int64_t  s64;
+typedef int32_t  s32;
+typedef int16_t  s16;
+typedef int8_t   s8;
 
-	printf("Found value 10::%s\n", rv.c_str());
+typedef u8	 bool;
 
-	delete db;
-	return -EXIT_SUCCESS;
-}
-
+#endif

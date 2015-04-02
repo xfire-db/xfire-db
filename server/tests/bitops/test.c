@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <xfire/types.h>
 #include <xfire/bitops.h>
 #include <asm/bitsperlong.h>
 
@@ -102,6 +103,69 @@ static void test_bit_test(int *bits, unsigned long *flags, int bit_num)
 	printf("[%s] test_bit\n", result ? RESULT_OK : RESULT_ERROR);
 }
 
+static unsigned long x1 = 9UL,
+		     y1 = 14UL,
+		     x2 = 14UL,
+		     y2 = 9UL,
+		     x3 = 11UL,
+		     y3 = 6UL,
+		     x4 = 9UL,
+		     y4 = 8UL;
+#define SWAP_BIT_BIT 1
+
+#define X1_RESULT 11UL
+#define Y1_RESULT 12UL
+
+#define X2_RESULT 12UL
+#define Y2_RESULT 11UL
+
+#define X3_RESULT 11UL
+#define Y3_RESULT 6UL
+
+#define X4_RESULT 9UL
+#define Y4_RESULT 8UL
+
+static void swap_bit_test(void)
+{
+	bool result = true;
+
+	swap_bit(SWAP_BIT_BIT, &x1, &y1);
+	swap_bit(SWAP_BIT_BIT, &x2, &y2);
+	swap_bit(SWAP_BIT_BIT, &x3, &y3);
+	swap_bit(SWAP_BIT_BIT, &x4, &y4);
+
+	if(x1 != X1_RESULT || y1 != Y1_RESULT) {
+		printf("[ERROR]: x1 %lu ?= %lu :: y1 %lu ?= %lu\n",
+				x1, X1_RESULT,
+				y1, Y1_RESULT);
+		result = false;
+	}
+
+	if(x2 != X2_RESULT || y2 != Y2_RESULT) {
+		printf("[ERROR]swap_bit: x2 %lu ?= %lu :: y2 %lu ?= %lu\n",
+				x2, X2_RESULT,
+				y2, Y2_RESULT);
+		result = false;
+	}
+
+	if(x3 != X3_RESULT || y3 != Y3_RESULT) {
+		printf("[ERROR]swap_bit: x3 %lu ?= %lu :: y3 %lu ?= %lu\n",
+				x3, X3_RESULT,
+				y3, Y3_RESULT);
+		result = false;
+	}
+
+	if(x4 != X4_RESULT || y4 != Y4_RESULT) {
+		printf("[ERROR]swap_bit: x4 %lu ?= %lu :: y4 %lu ?= %lu\n",
+				x4, X4_RESULT,
+				y4, Y4_RESULT);
+		result = false;
+	}
+
+	if(result)
+		printf("[OK] swap_bit\n");
+}
+
 int main(int argc, char **argv)
 {
 	unsigned long flags[2] = {0UL, 0UL};
@@ -112,6 +176,7 @@ int main(int argc, char **argv)
 	test_and_clear_bit_test(bits, flags, num);
 	test_and_set_bit_test(bits, flags, num);
 	clear_bit_test(bits, flags, num);
+	swap_bit_test();
 
 	putc('\n', stdout);
 	printf("All tests executed!\n");

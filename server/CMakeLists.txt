@@ -17,4 +17,4 @@ install (TARGETS xfired xfire
 	)
 
 include (tests/bitops/bitops-test.cmake)
-include (tests/bst/bst.cmake)
+include (tests/rbtree/rb-test.cmake)

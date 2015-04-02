@@ -1,7 +1,12 @@
 set(CXX_COMPILE_FLAGS
 	"-Wall -O2 -std=gnu++98")
 set(C_COMPILE_FLAGS
-	"-Wall -O2 -std=gnu89")
+	"-Wall -O2 -std=gnu89 -lm")
+
+set(DEBUG_FLAGS "")
+if(XFIRE_DEBUG)
+	set(DEBUG_FLAGS -g)
+endif(XFIRE_DEBUG)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COMPILE_FLAGS}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_COMPILE_FLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_COMPILE_FLAGS} ${DEBUG_FLAGS}")

@@ -1,5 +1,5 @@
 /*
- *  Red-black tree
+ *  Red-black tree header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,34 +19,48 @@
 #ifndef __RBTREE_H__
 #define __RBTREE_H__
 
-#include <xfire/rbtreenode.h>
-#include <xfire/binarytree.h>
+#include <stdio.h>
 
-#define rb_method(__k, __v, args...) \
-	template <typename __k, typename __v> args RBTree<__k,__v>
-#define rb_constructor(__k, __v) \
-	template <typename __k, typename __v> RBTree<__k,__v>
-#define rb_deconstructor(__k, __v) rb_constructor(__k,__v)
+#include <xfire/xfire.h>
+#include <xfire/types.h>
 
-template <typename K, typename V> class RBTree : public BinaryTree<K,V> {
-	public:
-	explicit RBTree();
-	virtual ~RBTree();
+typedef struct rbtree {
+	struct rbtree *parent,
+		      *left,
+		      *right,
+		      *root;
+	u64 key;
+	unsigned long flags;
+} RBTREE;
 
-	RBTreeNode<K,V> *root();
+typedef struct rbtree_root {
+	struct rbtree *tree;
+	u32 height;
+	u64 num;
+} RBTREE_ROOT;
 
-	int insert(RBTreeNode<K,V> *node);
-	int insert(K key, V& value);
-	RBTreeNode<K,V> *remove(K key);
+#define RBTREE_IS_ROOT_FLAG 	0
+#define RBTREE_READ_LOCK_FLAG 	1
+#define RBTREE_WRITE_LOCK_FLAG 	2
+#define RBTREE_RED_FLAG 	3
 
-	protected:
-	RBTreeNode<K,V> *remove(RBTreeNode<K,V> *node);
-	unsigned long nodes;
+#define RB_RED 		true
+#define RB_BLACK 	false
 
-	private:
-	double balance(RBTreeNode<K,V> *node);
-};
+CDECL
 
-#include <xfire/bstinstances.h>
+extern struct rbtree *rbtree_insert(struct rbtree_root *, struct rbtree*);
+extern struct rbtree *rbtree_find(struct rbtree_root *root, u64 key);
+extern void rbtree_dump(struct rbtree_root *root, FILE *stream);
+
+static inline void rbtree_set_key(struct rbtree *tree, u64 key)
+{
+	if(!tree)
+		return;
+
+	tree->key = key;
+}
+
+CDECL_END
+
 #endif
-

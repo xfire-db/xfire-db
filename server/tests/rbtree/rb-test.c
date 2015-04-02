@@ -1,5 +1,5 @@
 /*
- *  Base database
+ *  RBTree test
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,48 +16,36 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TEST_DB__
-#define __TEST_DB__
-
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <math.h>
 
-#include <xfire/database.h>
-#include <xfire/binarytree.h>
+#include <xfire/rbtree.h>
 
-template <typename K, typename V> class TestBST : public BinaryTree<K,V> {
-	public:
-	explicit TestBST(){}
-	virtual ~TestBST(){}
-
-	void insert(K v, V& val)
-	{
-		BinaryTree<K,V>::insert(v, val);
-	}
-
-	BinaryTreeNode<K,V> *remove(K& key)
-	{
-		return NULL;
-	}
-
-	protected:
-	BinaryTreeNode<K,V> *remove(BinaryTreeNode<K,V> *node)
-	{
-		return NULL;
-	}
-
+struct rbtree_node {
+	struct rbtree node;
+	const char *data;
 };
 
-class BSTDatabase : public Database<int,std::string> {
-	public:
-		explicit BSTDatabase();
-		virtual ~BSTDatabase();
+int main(int argc, char **argv)
+{
+	struct rbtree_root root;
+	struct rbtree_node *node;
+	int i = 1;
 
-		void insert(int key, std::string& value);
-		void remove(int key);
-		std::string& find(int key);
+	memset(&root, 0, sizeof(root));
 
-	private:
-		TestBST<int,std::string> *tree;
-};
+	for(; i <= 9; i++) {
+		node = malloc(sizeof(*node));
+		rbtree_set_key(&node->node, i);
+		node->data = "Hello World!";
+		rbtree_insert(&root, &node->node);
+	}
 
-#endif
+	printf("Tree height: %u\n", (unsigned int)root.height);
+
+	rbtree_dump(&root, stdout);
+
+	return -EXIT_SUCCESS;
+}
