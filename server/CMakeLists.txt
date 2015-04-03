@@ -1,19 +1,18 @@
 include_directories(${XFIRE_SERVER_INCLUDE_DIR})
 
 # standard functions
-add_library (xfire SHARED
-	bitops.c
-	)
 
 # bst
 include (storage/storage.cmake)
 
+# libs
+include (lib/lib.cmake)
+
 add_executable (xfired
 		xfired.cc)
 
-install (TARGETS xfired xfire
+install (TARGETS xfired
 	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
 	)
 
 include (tests/bitops/bitops-test.cmake)
