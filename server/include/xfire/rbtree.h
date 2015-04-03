@@ -29,6 +29,11 @@ typedef struct rbtree {
 		      *left,
 		      *right,
 		      *root;
+
+	struct list_head {
+		struct list_head *next,
+				 *prev;
+	} duplicates;
 	u64 key;
 	unsigned long flags;
 } RBTREE;
@@ -37,6 +42,9 @@ typedef struct rbtree_root {
 	struct rbtree *tree;
 	u32 height;
 	u64 num;
+
+	bool (*iterate_duplicates)(struct rbtree *node);
+
 } RBTREE_ROOT;
 
 #define RBTREE_IS_ROOT_FLAG 	0
@@ -48,10 +56,18 @@ typedef struct rbtree_root {
 #define RB_BLACK 	false
 
 CDECL
-
+extern struct rbtree *rbtree_insert_duplicate(struct rbtree_root *root,
+					      struct rbtree      *node);
 extern struct rbtree *rbtree_insert(struct rbtree_root *, struct rbtree*);
 extern struct rbtree *rbtree_find(struct rbtree_root *root, u64 key);
 extern void rbtree_dump(struct rbtree_root *root, FILE *stream);
+extern void rbtree_iterate(struct rbtree_root *root,
+		void (*fn)(struct rbtree *));
+extern struct rbtree *rbtree_find_leftmost(struct rbtree *tree);
+extern struct rbtree *rbtree_find_rightmost(struct rbtree *tree);
+
+extern struct rbtree *rbtree_find_duplicate(struct rbtree_root *root, u64 key,
+				     bool (*cmp)(struct rbtree*));
 
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {

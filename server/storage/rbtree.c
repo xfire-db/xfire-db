@@ -64,7 +64,8 @@ static struct rbtree *__rbtree_insert(struct rbtree_root *root,
 	return node;
 }
 
-static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key)
+#ifndef HAVE_NO_RECURSION
+static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
 {
 	if(!tree)
 		return NULL;
@@ -73,14 +74,95 @@ static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key)
 		return tree;
 
 	if(key < tree->key)
-		return __rbtree_search(tree->left, key);
+		return __rbtree_search(tree->left, key, h);
 	else
-		return __rbtree_search(tree->right, key);
+		return __rbtree_search(tree->right, key, h);
 }
+#else
+static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
+{
+	u32 depth;
+	struct rbtree *rv = NULL;
+
+	if(!tree)
+		return NULL;
+
+	for(depth = 0UL; depth < h; depth++) {
+		if(tree->key == key) {
+			rv = tree;
+			break;
+		}
+
+		if(key < tree->key)
+			tree = tree->left;
+		else
+			tree = tree->right;
+	}
+
+	return rv;
+}
+#endif
 
 struct rbtree *rbtree_find(struct rbtree_root *root, u64 key)
 {
-	return __rbtree_search(root->tree, key);
+	return __rbtree_search(root->tree, key, root->height);
+}
+
+struct rbtree *rbtree_find_duplicate(struct rbtree_root *root, u64 key,
+				     bool (*cmp)(struct rbtree*))
+{
+	struct rbtree *node;
+	struct list_head *c;
+
+	node = __rbtree_search(root->tree, key, root->height);
+
+	if(cmp(node))
+		return node;
+
+	for(c = node->duplicates.next; c; c = c->next) {
+		node = container_of(c, struct rbtree, duplicates);
+		if(cmp(node))
+			return node;
+	}
+
+	return NULL;
+}
+
+static void rbtree_lpush(struct rbtree *head, struct rbtree *node)
+{
+	struct list_head *hdups,
+			 *ndups;
+
+	if(!head->duplicates.next) {
+		head->duplicates.next = &node->duplicates;
+		node->duplicates.prev = &head->duplicates;
+		node->duplicates.next = NULL;
+	} else {
+		/* head already has duplicates */
+		hdups = &head->duplicates;
+		ndups = &node->duplicates;
+
+		ndups->next = hdups->next;
+		hdups->next->prev = ndups;
+
+		hdups->next = ndups;
+		ndups->prev = hdups;
+	}
+}
+
+static void rbtree_pop(struct rbtree *node)
+{
+	struct list_head *dnode;
+
+	dnode = &node->duplicates;
+
+	if(dnode->prev)
+		dnode->prev->next = dnode->next;
+	if(dnode->next)
+		dnode->next->prev = dnode->prev;
+
+	dnode->next = NULL;
+	dnode->prev = NULL;
 }
 
 struct rbtree *rbtree_insert(struct rbtree_root *root, struct rbtree *node)
@@ -99,6 +181,18 @@ struct rbtree *rbtree_insert(struct rbtree_root *root, struct rbtree *node)
 	__rbtree_insert(root, node);
 	root->height = rbtree_insert_balance(root, node);
 	return node;
+}
+
+struct rbtree *rbtree_insert_duplicate(struct rbtree_root *root,
+				       struct rbtree      *node)
+{
+	struct rbtree *entry;
+
+	entry = rbtree_insert(root, node);
+	if(entry != node)
+		rbtree_lpush(entry, node);
+
+	return entry;
 }
 
 static void rbtree_rotate_right(struct rbtree_root *root, struct rbtree *node)
@@ -151,18 +245,6 @@ static void rbtree_rotate_left(struct rbtree_root *root, struct rbtree *node)
 	}
 }
 
-static void rbtree_rotate_swap_parent(struct rbtree_root *root,
-				      struct rbtree *current)
-{
-	struct rbtree *parent = current->parent;
-
-	if(parent->right == current)
-		rbtree_rotate_left(root, parent);
-	else
-		rbtree_rotate_right(root, parent);
-
-	swap_bit(RBTREE_RED_FLAG, &parent->flags, &current->flags);
-}
 
 static inline struct rbtree *rbtree_grandparent(struct rbtree *node)
 {
@@ -202,14 +284,16 @@ static inline bool rbtree_node_is_right(struct rbtree *node)
 				!test_bit(RBTREE_RED_FLAG, &__n->left->flags)
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node)
 {
-	struct rbtree *sibling;
+	struct rbtree *sibling,
+		      *parent;
 	double height;
 
-	if(node == root->tree)
+	if(test_bit(RBTREE_IS_ROOT_FLAG, &node->flags))
 		return root->height;
 
 	node = node->parent;
-	while(node != root->tree && test_bit(RBTREE_RED_FLAG, &node->flags)) {
+	while(!test_bit(RBTREE_IS_ROOT_FLAG, &node->flags) && 
+			test_bit(RBTREE_RED_FLAG, &node->flags)) {
 		sibling = rbtree_sibling(node);
 		if(sibling) {
 			if(test_and_clear_bit(RBTREE_RED_FLAG, 
@@ -232,11 +316,15 @@ static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node)
 				rbtree_rotate_right(root, node);
 				node = node->parent;
 			}
-
-			rbtree_rotate_swap_parent(root, node);
-		} else {
-			rbtree_rotate_swap_parent(root, node);
 		}
+
+		parent = node->parent;
+		if(parent->right == node)
+			rbtree_rotate_left(root, parent);
+		else
+			rbtree_rotate_right(root, parent);
+
+		swap_bit(RBTREE_RED_FLAG, &node->flags, &parent->flags);
 	}
 
 	clear_bit(RBTREE_RED_FLAG, &root->tree->flags);
@@ -259,6 +347,181 @@ typedef enum {
 	
 	BLACK_OR_NO_FAR_NEPHEW,
 } rbtree_delete_balance_t;
+
+static inline struct rbtree *rbtree_far_nephew(struct rbtree *node)
+{
+	struct rbtree *parent,
+		      *rv = NULL;
+
+	if(node && rbtree_sibling(node)) {
+		parent = node->parent;
+		if(parent->left == node)
+			rv = parent->right->right;
+		else
+			rv = parent->left->left;
+	}
+
+	return rv;
+}
+
+struct rbtree *rbtree_find_leftmost(struct rbtree *tree)
+{
+	if(!tree)
+		return NULL;
+
+	for(;;) {
+		if(!tree->left)
+			return tree;
+		tree = tree->left;
+	}
+}
+
+struct rbtree *rbtree_find_rightmost(struct rbtree *tree)
+{
+	if(!tree)
+		return NULL;
+
+	for(;;) {
+		if(!tree->right)
+			return tree;
+		tree = tree->right;
+	}
+}
+
+static struct rbtree *rbtree_find_successor(struct rbtree *tree)
+{
+	struct rbtree *tmp,
+		      *carriage;
+
+	if(!tree)
+		return NULL;
+
+	if(!tree->right) {
+		tmp = tree;
+		carriage = tree->parent;
+
+		while(carriage && carriage->left != tmp) {
+			tmp = carriage;
+			carriage = carriage->parent;
+		}
+
+		return carriage;
+	}
+
+	return rbtree_find_leftmost(tree->right);
+}
+
+static struct rbtree *rbtree_find_predecessor(struct rbtree *tree)
+{
+	struct rbtree *tmp,
+		      *carriage;
+
+	if(!tree)
+		return NULL;
+
+	if(!tree->left) {
+		tmp = tree;
+		carriage = tree->parent;
+
+		while(carriage && carriage->right != tmp) {
+			tmp = carriage;
+			carriage = carriage->parent;
+		}
+
+		return carriage;
+	}
+
+	return rbtree_find_rightmost(tree->left);
+}
+
+static struct rbtree *rbtree_find_replacement(struct rbtree *tree)
+{
+	struct rbtree *successor;
+
+	if((successor = rbtree_find_successor(tree)) == NULL)
+		return NULL;
+
+	if(test_bit(RBTREE_RED_FLAG, &successor->flags) ||
+			!(!test_bit(RBTREE_RED_FLAG, &successor->flags) &&
+			successor->left == NULL && successor->right == NULL))
+		return successor;
+	else
+		return rbtree_find_predecessor(tree);
+}
+
+static void rbtree_replace_node(struct rbtree_root *root,
+				struct rbtree      *orig,
+				struct rbtree      *replacement)
+{
+	replacement->left = orig->left;
+	replacement->right = orig->right;
+	replacement->parent = orig->parent;
+
+	if(orig->left)
+		orig->left->parent = replacement;
+
+	if(orig->right)
+		orig->right->parent = replacement;
+
+	if(orig->parent) {
+		if(orig->parent->left == orig)
+			orig->parent->left = replacement;
+		else
+			orig->parent->right = replacement;
+	} else if(test_bit(RBTREE_IS_ROOT_FLAG, &orig->flags)) {
+		root->tree = replacement;
+		set_bit(RBTREE_IS_ROOT_FLAG, &replacement->flags);
+	}
+
+	swap_bit(RBTREE_RED_FLAG, &orig->flags, &replacement->flags);
+}
+
+static void __rbtree_iterate(struct rbtree *node,
+			     void (*fn)(struct rbtree *))
+{
+	if(!node)
+		return;
+
+	fn(node);
+	__rbtree_iterate(node->left, fn);
+	__rbtree_iterate(node->right, fn);
+}
+
+void rbtree_iterate(struct rbtree_root *root, void (*fn)(struct rbtree *))
+{
+	if(!root->tree)
+		return;
+
+	__rbtree_iterate(root->tree->left, fn);
+	__rbtree_iterate(root->tree->right, fn);
+
+	fn(root->tree);
+}
+
+static void __rbtree_remove_duplicate(struct rbtree_root *root,
+				      struct rbtree      *node)
+{
+	struct list_head *c;
+	struct rbtree *replacement;
+
+	if(root->iterate_duplicates(node)) {
+		/* replace *node* with node::duplicates::next */
+		replacement = container_of(node->duplicates.next,
+				struct rbtree, duplicates);
+		replacement->duplicates.prev = NULL;
+		node->duplicates.next = NULL;
+		rbtree_replace_node(root, node, replacement);
+		return;
+	}
+
+	for(c = node->duplicates.next; c; c = c->next) {
+		node = container_of(c, struct rbtree, duplicates);
+		if(root->iterate_duplicates(node)) {
+			rbtree_pop(node);
+			break;
+		}
+	}
+}
 
 static void rbtree_dump_node(struct rbtree *tree, FILE *stream)
 {
