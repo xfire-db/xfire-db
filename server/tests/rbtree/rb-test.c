@@ -28,18 +28,18 @@ struct rbtree_node {
 	const char *data;
 };
 
-static bool duplicate_compare(struct rbtree *node)
+static bool duplicate_compare(struct rbtree *node, void *arg)
 {
 	struct rbtree_node *container;
 
 	container = container_of(node, struct rbtree_node, node);
-	if(!strcmp(container->data, "Hello World 2!"))
+	if(!strcmp(container->data, arg))
 		return true;
 
 	return false;
 }
 
-int main(int argc, char **argv)
+static void test_tree_increasing(void)
 {
 	struct rbtree_root root;
 	struct rbtree_node *node;
@@ -62,15 +62,56 @@ int main(int argc, char **argv)
 		}
 	}
 
-	find = rbtree_find_duplicate(&root, 5, &duplicate_compare);
-	node = container_of(find, struct rbtree_node, node);
-	if(find)
+	find = rbtree_find_duplicate(&root, 5, &duplicate_compare,
+			"Hello World 2!");
+	if(find) {
+		node = container_of(find, struct rbtree_node, node);
 		printf("Found node %llu::%s\n", (unsigned long long)find->key,
 				node->data);
+	}
 
 	printf("Tree height: %u\n", (unsigned int)root.height);
-
 	rbtree_dump(&root, stdout);
+}
+
+static void test_rbtree_insert(struct rbtree_root *root, int key)
+{
+	struct rbtree_node *node;
+
+	node = malloc(sizeof(*node));
+	if(!node)
+		return;
+
+	rbtree_set_key(&node->node, key);
+	node->data = "Hello World!";
+	rbtree_insert(root, &node->node);
+}
+
+static void test_tree_random(void)
+{
+	struct rbtree_root root;
+
+	memset(&root, 0, sizeof(root));
+
+	test_rbtree_insert(&root, 20);;
+	test_rbtree_insert(&root, 10);
+	test_rbtree_insert(&root, 30);
+	test_rbtree_insert(&root, 40);
+	test_rbtree_insert(&root, 27);
+	test_rbtree_insert(&root, 25);
+	test_rbtree_insert(&root, 28);
+	test_rbtree_insert(&root, 26);
+
+	printf("Tree height: %u\n", (unsigned int)root.height);
+	rbtree_dump(&root, stdout);
+}
+
+int main(int argc, char **argv)
+{
+	test_tree_increasing();
+	putc('\n', stdout);
+	test_tree_random();
 
 	return -EXIT_SUCCESS;
 }
+

@@ -64,7 +64,7 @@ static struct rbtree *__rbtree_insert(struct rbtree_root *root,
 	return node;
 }
 
-#ifndef HAVE_NO_RECURSION
+#ifdef HAVE_NO_RECURSION
 static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
 {
 	if(!tree)
@@ -87,7 +87,12 @@ static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
 	if(!tree)
 		return NULL;
 
-	for(depth = 0UL; depth < h; depth++) {
+	for(depth = 0UL; depth < (h+1); depth++) {
+		if(!tree) {
+			rv = NULL;
+			break;
+		}
+
 		if(tree->key == key) {
 			rv = tree;
 			break;
@@ -109,19 +114,20 @@ struct rbtree *rbtree_find(struct rbtree_root *root, u64 key)
 }
 
 struct rbtree *rbtree_find_duplicate(struct rbtree_root *root, u64 key,
-				     bool (*cmp)(struct rbtree*))
+				     bool (*cmp)(struct rbtree*,void*),
+				     void *arg)
 {
 	struct rbtree *node;
 	struct list_head *c;
 
 	node = __rbtree_search(root->tree, key, root->height);
 
-	if(cmp(node))
+	if(cmp(node, arg))
 		return node;
 
 	for(c = node->duplicates.next; c; c = c->next) {
 		node = container_of(c, struct rbtree, duplicates);
-		if(cmp(node))
+		if(cmp(node, arg))
 			return node;
 	}
 
@@ -278,10 +284,10 @@ static inline bool rbtree_node_is_right(struct rbtree *node)
 		return false;
 }
 
-#define should_rotate_left(__n) rbtree_node_is_right(__n) && \
-				test_bit(RBTREE_RED_FLAG, &__n->left->flags)
-#define should_rotate_right(__n) !rbtree_node_is_right(__n) && \
+#define should_rotate_left(__n) !rbtree_node_is_right(__n) && \
 				!test_bit(RBTREE_RED_FLAG, &__n->left->flags)
+#define should_rotate_right(__n) rbtree_node_is_right(__n) && \
+				test_bit(RBTREE_RED_FLAG, &__n->left->flags)
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node)
 {
 	struct rbtree *sibling,

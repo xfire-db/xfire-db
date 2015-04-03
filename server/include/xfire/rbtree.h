@@ -67,7 +67,7 @@ extern struct rbtree *rbtree_find_leftmost(struct rbtree *tree);
 extern struct rbtree *rbtree_find_rightmost(struct rbtree *tree);
 
 extern struct rbtree *rbtree_find_duplicate(struct rbtree_root *root, u64 key,
-				     bool (*cmp)(struct rbtree*));
+		bool (*cmp)(struct rbtree*,void*), void *arg);
 
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {
