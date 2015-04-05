@@ -61,19 +61,25 @@ static void test_tree_increasing(void)
 			rbtree_set_key(&node->node, i);
 			node->data = "Hello World 2!";
 			rbtree_insert_duplicate(&root, &node->node);
+
+			node = malloc(sizeof(*node));
+			rbtree_set_key(&node->node, i);
+			node->data = "Hello World 3!";
+			rbtree_insert_duplicate(&root, &node->node);
 		}
 	}
 
 	rbtree_remove(&root, 6, "Hello World!");
 	rbtree_remove(&root, 7, "Hello World!");
 
-	find = rbtree_find_duplicate(&root, 7, &compare_node, "Hello World 2!");
+	find = rbtree_find_duplicate(&root, 7, &compare_node, "Hello World 3!");
 
-	if(find)
+	if(find) {
 		printf("[OK] Duplicate has been replaced!\n");
+		if(find->left->key == 5ULL && find->right->key == 8ULL)
+			printf("[OK] RBTree structure OK\n");
+	}
 
-	if(find->left->key == 5ULL && find->right->key == 8ULL)
-		printf("[OK] RBTree structure OK\n");
 
 	printf("Tree height: %u\n", (unsigned int)root.height);
 	rbtree_dump(&root, stdout);
