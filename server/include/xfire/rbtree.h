@@ -43,14 +43,15 @@ typedef struct rbtree_root {
 	u32 height;
 	u64 num;
 
-	bool (*iterate_duplicates)(struct rbtree *node);
+	bool (*iterate)(struct rbtree *node,void*);
 
 } RBTREE_ROOT;
 
-#define RBTREE_IS_ROOT_FLAG 	0
-#define RBTREE_READ_LOCK_FLAG 	1
-#define RBTREE_WRITE_LOCK_FLAG 	2
-#define RBTREE_RED_FLAG 	3
+#define RBTREE_IS_ROOT_FLAG	   0
+#define RBTREE_READ_LOCK_FLAG	   1
+#define RBTREE_WRITE_LOCK_FLAG	   2
+#define RBTREE_RED_FLAG		   3
+#define RBTREE_HAS_DUPLICATES_FLAG 4
 
 #define RB_RED 		true
 #define RB_BLACK 	false
@@ -68,6 +69,8 @@ extern struct rbtree *rbtree_find_rightmost(struct rbtree *tree);
 
 extern struct rbtree *rbtree_find_duplicate(struct rbtree_root *root, u64 key,
 		bool (*cmp)(struct rbtree*,void*), void *arg);
+extern struct rbtree *rbtree_remove(struct rbtree_root *root,
+				    u64 key,void *arg);
 
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {
