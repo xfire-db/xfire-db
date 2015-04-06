@@ -23,7 +23,7 @@
 #include <xfire/xfire.h>
 #include <xfire/os.h>
 
-pthread_t *xfire_create_thread(const char *name, const pthread_attr_t *attr,
+struct thread *xfire_create_thread(const char *name, const pthread_attr_t *attr,
 				void* (*fn)(void*),
 				void* arg)
 {
@@ -41,15 +41,11 @@ pthread_t *xfire_create_thread(const char *name, const pthread_attr_t *attr,
 	tp->name = mzalloc(strlen(name) + 1);
 	memcpy(tp->name, name, strlen(name) + 1);
 
-	return &tp->thread;
+	return tp;
 }
 
-int xfire_destroy_thread(pthread_t *tid)
+int xfire_destroy_thread(struct thread *tp)
 {
-	struct thread *tp;
-
-	tp = container_of(tid, struct thread, thread);
-	
 	/*
 	 * free the allocated memory inside `tp'
 	 */
@@ -59,11 +55,11 @@ int xfire_destroy_thread(pthread_t *tid)
 	return -EXIT_SUCCESS;
 }
 
-void *xfire_thread_join(pthread_t *tid)
+void *xfire_thread_join(struct thread *tp)
 {
 	void *rv;
 
-	if(pthread_join(*tid, &rv))
+	if(pthread_join(tp->thread, &rv))
 		rv = NULL;
 
 	return rv;

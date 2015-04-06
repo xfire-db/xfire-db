@@ -26,19 +26,21 @@
 #include <xfire/xfire.h>
 
 struct thread {
+#ifdef HAVE_LINUX
 	pthread_t thread;
 	pthread_attr_t attr;
+#endif
 
 	char *name;
 };
 
 CDECL
-extern pthread_t *xfire_create_thread(const char *name,
+extern struct thread *xfire_create_thread(const char *name,
 				      const pthread_attr_t *attr, 
 				      void* (*fn)(void*),
 				      void* arg);
-extern void *xfire_thread_join(pthread_t *tp);
-extern int xfire_destroy_thread(pthread_t *tp);
+extern void *xfire_thread_join(struct thread *tp);
+extern int xfire_destroy_thread(struct thread *tp);
 
 static inline void *mzalloc(size_t size)
 {

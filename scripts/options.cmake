@@ -13,3 +13,8 @@ set(HAVE_DBG "")
 if(XFIRE_DEBUG)
 	set(HAVE_DBG "#define HAVE_DBG")
 endif(XFIRE_DEBUG)
+
+
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+	set(HAVE_LINUX "#define HAVE_LINUX")
+endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
