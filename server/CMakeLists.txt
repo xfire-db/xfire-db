@@ -7,6 +7,7 @@ add_library (xfire SHARED
 
 # bst
 include (storage/storage.cmake)
+include (os/os.cmake)
 
 add_executable (xfired
 		xfired.cc)
