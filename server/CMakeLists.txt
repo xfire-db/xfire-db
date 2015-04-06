@@ -2,8 +2,8 @@ include_directories(${XFIRE_SERVER_INCLUDE_DIR})
 
 # standard functions
 
-# bst
 include (storage/storage.cmake)
+include (os/os.cmake)
 
 # libs
 include (lib/lib.cmake)

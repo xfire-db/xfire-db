@@ -6,5 +6,6 @@
 #define __CONFIG_H__
 
 ${HAVE_DBG}
+${HAVE_LINUX}
 
 #endif

@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include <xfire/xfire.h>
+#include <xfire/os.h>
 #include <xfire/types.h>
 
 typedef struct rbtree {
@@ -36,6 +37,9 @@ typedef struct rbtree {
 	} duplicates;
 	u64 key;
 	unsigned long flags;
+	
+	xfire_mutex_t lock;
+	xfire_cond_t condi;
 } RBTREE;
 
 typedef struct rbtree_root {
@@ -48,10 +52,9 @@ typedef struct rbtree_root {
 } RBTREE_ROOT;
 
 #define RBTREE_IS_ROOT_FLAG	   0
-#define RBTREE_READ_LOCK_FLAG	   1
-#define RBTREE_WRITE_LOCK_FLAG	   2
+#define RBTREE_HAS_DUPLICATES_FLAG 1
+#define RBTREE_LOCK_FLAG	   2
 #define RBTREE_RED_FLAG		   3
-#define RBTREE_HAS_DUPLICATES_FLAG 4
 
 #define RB_RED 		true
 #define RB_BLACK 	false
