@@ -12,7 +12,7 @@ add_library(bststorage SHARED
 	include/xfire/hashmap.h
 	)
 
-target_link_libraries(bststorage LINK_PUBLIC xfire)
+target_link_libraries(bststorage LINK_PUBLIC xfire xfire-os)
 
 install (TARGETS bststorage
 	LIBRARY DESTINATION lib

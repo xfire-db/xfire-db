@@ -5,7 +5,6 @@ add_library (xfire SHARED
 	bitops.c
 	)
 
-# bst
 include (storage/storage.cmake)
 include (os/os.cmake)
 

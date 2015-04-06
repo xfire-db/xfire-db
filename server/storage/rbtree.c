@@ -25,8 +25,31 @@
 #include <xfire/types.h>
 #include <xfire/bitops.h>
 #include <xfire/rbtree.h>
+#include <xfire/os.h>
 
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node);
+
+static void rbtree_lock_node(struct rbtree *node)
+{
+	xfire_mutex_lock(&node->lock);
+
+	/* wait for the lock bit to be unset */
+	while(test_bit(RBTREE_LOCK_FLAG, &node->flags))
+		xfire_cond_wait(&node->condi, &node->lock);
+
+	set_bit(RBTREE_LOCK_FLAG, &node->flags);
+	xfire_mutex_unlock(&node->lock);
+
+	return;
+}
+
+static void rbtree_unlock_node(struct rbtree *node)
+{
+	xfire_mutex_lock(&node->lock);
+	clear_bit(RBTREE_LOCK_FLAG, &node->flags);
+	xfire_cond_signal(&node->condi);
+	xfire_mutex_unlock(&node->lock);
+}
 
 static struct rbtree *__rbtree_insert(struct rbtree_root *root,
 				      struct rbtree *node)

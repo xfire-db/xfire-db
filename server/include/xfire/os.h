@@ -26,7 +26,7 @@
 #include <xfire/xfire.h>
 
 #ifdef HAVE_LINUX
-#define xfire_cond_t phtread_cond_t
+#define xfire_cond_t pthread_cond_t
 #define xfire_mutex_t pthread_mutex_t
 
 #define xfire_mutex_lock(__l) pthread_mutex_lock(__l)
@@ -37,7 +37,7 @@
 #define xfire_cond_init(__c) pthread_cond_init(__m, NULL)
 #define xfire_cond_destroy(__c) pthread_cond_destroy(__m)
 #define xfire_cond_wait(__m, __c) pthread_cond_wait(__m, __c)
-#define xfire_cond_signal(__m, __c) pthread_cond_signal(__m, __c)
+#define xfire_cond_signal(__c) pthread_cond_signal(__c)
 #endif
 
 struct thread {
