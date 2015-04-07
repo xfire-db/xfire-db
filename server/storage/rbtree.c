@@ -29,6 +29,16 @@
 
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node);
 
+static inline void rbtree_lock_root(struct rbtree_root *root)
+{
+	xfire_spin_lock(&root->lock);
+}
+
+static inline void rbtree_unlock_root(struct rbtree_root *root)
+{
+	xfire_spin_unlock(&root->lock);
+}
+
 static void rbtree_lock_node(struct rbtree *node)
 {
 	xfire_mutex_lock(&node->lock);

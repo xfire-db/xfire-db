@@ -46,6 +46,7 @@ typedef struct rbtree_root {
 	struct rbtree *tree;
 	u32 height;
 	u64 num;
+	xfire_spinlock_t lock;
 
 	bool (*iterate_duplicates)(struct rbtree *node);
 
