@@ -34,9 +34,9 @@
 #define xfire_mutex_destroy(__l) pthread_mutex_destroy(__l)
 #define xfire_mutex_init(__l) pthread_mutex_init(__l, NULL)
 
-#define xfire_cond_init(__c) pthread_cond_init(__m, NULL)
-#define xfire_cond_destroy(__c) pthread_cond_destroy(__m)
-#define xfire_cond_wait(__m, __c) pthread_cond_wait(__m, __c)
+#define xfire_cond_init(__c) pthread_cond_init(__c, NULL)
+#define xfire_cond_destroy(__c) pthread_cond_destroy(__c)
+#define xfire_cond_wait(__c, __m) pthread_cond_wait(__c, __m)
 #define xfire_cond_signal(__c) pthread_cond_signal(__c)
 #endif
 

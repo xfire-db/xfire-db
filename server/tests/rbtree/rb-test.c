@@ -52,17 +52,20 @@ static void test_tree_increasing(void)
 
 	for(; i <= 9; i++) {
 		node = malloc(sizeof(*node));
+		rbtree_init_node(&node->node);
 		rbtree_set_key(&node->node, i);
 		node->data = "Hello World!";
 		rbtree_insert_duplicate(&root, &node->node);
 
 		if(i == 7) {
 			node = malloc(sizeof(*node));
+			rbtree_init_node(&node->node);
 			rbtree_set_key(&node->node, i);
 			node->data = "Hello World 2!";
 			rbtree_insert_duplicate(&root, &node->node);
 
 			node = malloc(sizeof(*node));
+			rbtree_init_node(&node->node);
 			rbtree_set_key(&node->node, i);
 			node->data = "Hello World 3!";
 			rbtree_insert_duplicate(&root, &node->node);

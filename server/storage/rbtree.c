@@ -29,6 +29,12 @@
 
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node);
 
+void rbtree_init_node(struct rbtree *node)
+{
+	xfire_mutex_init(&node->lock);
+	xfire_cond_init(&node->condi);
+}
+
 static void rbtree_lock_node(struct rbtree *node)
 {
 	xfire_mutex_lock(&node->lock);
@@ -319,15 +325,9 @@ static void **rbtree_acquire_insert_locks(struct rbtree *node)
 {
 	struct rbtree *sibling = rbtree_sibling(node);
 	struct rbtree *parent = node->parent,
-		      *gparent = rbtree_grandparent(node),
-		      *ggparent = (gparent) ? gparent->parent : NULL;
+		      *gparent = rbtree_grandparent(node);
 	void **locks = mzalloc(sizeof(*locks)*NUM_LOCKS_MAX);
 	int idx = NUM_LOCKS_MAX - 1;
-
-	if(sibling && !test_bit(RBTREE_RED_FLAG, &sibling->flags)) {
-		rbtree_lock_node(ggparent);
-		locks[idx--] = ggparent;
-	}
 
 	if(gparent) {
 		rbtree_lock_node(gparent);
@@ -373,7 +373,9 @@ static void rbtree_release_insert_locks(void **locks)
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node)
 {
 	struct rbtree *sibling,
-		      *parent;
+		      *parent,
+		      *tmp;
+	void **locks;
 	double height;
 
 	if(test_bit(RBTREE_IS_ROOT_FLAG, &node->flags))
@@ -382,14 +384,17 @@ static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node)
 	node = node->parent;
 	while(!test_bit(RBTREE_IS_ROOT_FLAG, &node->flags) && 
 			test_bit(RBTREE_RED_FLAG, &node->flags)) {
+		locks = rbtree_acquire_insert_locks(node);
 		sibling = rbtree_sibling(node);
+
 		if(sibling) {
 			if(test_and_clear_bit(RBTREE_RED_FLAG, 
 						&sibling->flags)) {
 				clear_bit(RBTREE_RED_FLAG, &node->flags);
 				set_bit(RBTREE_RED_FLAG, &node->parent->flags);
 				node = rbtree_grandparent(node);
-				
+				rbtree_release_insert_locks(locks);
+
 				if(!node)
 					break;
 				continue;
@@ -407,12 +412,20 @@ static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node)
 		}
 
 		parent = node->parent;
-		if(parent->right == node)
+		if(parent->right == node) {
+			tmp = parent->right;
+			rbtree_lock_node(tmp);
 			rbtree_rotate_left(root, parent);
-		else
+			rbtree_unlock_node(tmp);
+		} else {
+			tmp = parent->left;
+			rbtree_lock_node(tmp);
 			rbtree_rotate_right(root, parent);
+			rbtree_unlock_node(tmp);
+		}
 
 		swap_bit(RBTREE_RED_FLAG, &node->flags, &parent->flags);
+		rbtree_release_insert_locks(locks);
 	}
 
 	clear_bit(RBTREE_RED_FLAG, &root->tree->flags);

@@ -74,6 +74,7 @@ extern struct rbtree *rbtree_find_duplicate(struct rbtree_root *root, u64 key,
 		bool (*cmp)(struct rbtree*,void*), void *arg);
 extern struct rbtree *rbtree_remove(struct rbtree_root *root,
 				    u64 key,void *arg);
+extern void rbtree_init_node(struct rbtree *node);
 
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {
