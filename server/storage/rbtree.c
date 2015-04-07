@@ -29,6 +29,11 @@
 
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node);
 
+void rbtree_init_root(struct rbtree_root *root)
+{
+	xfire_spinlock_init(&root->lock);
+}
+
 static inline void rbtree_lock_root(struct rbtree_root *root)
 {
 	xfire_spin_lock(&root->lock);
@@ -68,25 +73,35 @@ static struct rbtree *__rbtree_insert(struct rbtree_root *root,
 
 	root->num += 1ULL;
 	if(!tree) {
+		rbtree_lock_root(root);
 		root->tree = node;
 		set_bit(RBTREE_IS_ROOT_FLAG, &node->flags);
 		clear_bit(RBTREE_RED_FLAG, &node->flags);
+		rbtree_unlock_root(root);
 		return root->tree;
 	}
 
 	for(;;) {
 		if(node->key <= tree->key) {
 			if(tree->left == NULL) {
+				rbtree_lock_node(tree);
+				rbtree_lock_node(node);
 				tree->left = node;
 				node->parent = tree;
+				rbtree_unlock_node(node);
+				rbtree_unlock_node(tree);
 				break;
 			}
 
 			tree = tree->left;
 		} else {
 			if(tree->right == NULL) {
+				rbtree_lock_node(tree);
+				rbtree_lock_node(node);
 				tree->right = node;
 				node->parent = tree;
+				rbtree_unlock_node(node);
+				rbtree_unlock_node(tree);
 				break;
 			}
 
