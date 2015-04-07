@@ -69,17 +69,19 @@ static void rbtree_unlock_node(struct rbtree *node)
 static struct rbtree *__rbtree_insert(struct rbtree_root *root,
 				      struct rbtree *node)
 {
-	struct rbtree *tree = root->tree;
+	struct rbtree *tree;
 
 	root->num += 1ULL;
+	rbtree_lock_root(root);
+	tree = root->tree;
 	if(!tree) {
-		rbtree_lock_root(root);
 		root->tree = node;
 		set_bit(RBTREE_IS_ROOT_FLAG, &node->flags);
 		clear_bit(RBTREE_RED_FLAG, &node->flags);
 		rbtree_unlock_root(root);
 		return root->tree;
 	}
+	rbtree_unlock_root(root);
 
 	for(;;) {
 		if(node->key <= tree->key) {
