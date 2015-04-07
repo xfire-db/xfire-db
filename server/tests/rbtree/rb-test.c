@@ -49,6 +49,7 @@ static void test_tree_increasing(void)
 
 	memset(&root, 0, sizeof(root));
 	root.iterate = &compare_node;
+	rbtree_init_root(&root);
 
 	for(; i <= 9; i++) {
 		node = malloc(sizeof(*node));
@@ -106,6 +107,7 @@ static void test_tree_random(void)
 	struct rbtree_root root;
 
 	memset(&root, 0, sizeof(root));
+	rbtree_init_root(&root);
 
 	test_rbtree_insert(&root, 20);;
 	test_rbtree_insert(&root, 10);

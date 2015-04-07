@@ -46,6 +46,7 @@ typedef struct rbtree_root {
 	struct rbtree *tree;
 	u32 height;
 	u64 num;
+	xfire_spinlock_t lock;
 
 	bool (*iterate)(struct rbtree *node,void*);
 
@@ -60,6 +61,7 @@ typedef struct rbtree_root {
 #define RB_BLACK 	false
 
 CDECL
+extern void rbtree_init_root(struct rbtree_root *root);
 extern struct rbtree *rbtree_insert_duplicate(struct rbtree_root *root,
 					      struct rbtree      *node);
 extern struct rbtree *rbtree_insert(struct rbtree_root *, struct rbtree*);

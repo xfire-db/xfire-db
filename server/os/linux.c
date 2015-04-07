@@ -21,6 +21,7 @@
 #include <pthread.h>
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
 #include <xfire/os.h>
 
 struct thread *xfire_create_thread(const char *name, const pthread_attr_t *attr,
@@ -63,5 +64,55 @@ void *xfire_thread_join(struct thread *tp)
 		rv = NULL;
 
 	return rv;
+}
+
+void atomic_add(atomic_t *atom, s32 val)
+{
+	xfire_spin_lock(&atom->lock);
+	atom->val += val;
+	xfire_spin_unlock(&atom->lock);
+}
+
+void atomic_sub(atomic_t *atom, s32 val)
+{
+	xfire_spin_lock(&atom->lock);
+	atom->val -= val;
+	xfire_spin_unlock(&atom->lock);
+}
+
+s32 atomic_get(atomic_t *atom)
+{
+	s32 tmp;
+
+	xfire_spin_lock(&atom->lock);
+	tmp = atom->val;
+	xfire_spin_unlock(&atom->lock);
+
+	return tmp;
+}
+
+void atomic64_add(atomic64_t *atom, s64 val)
+{
+	xfire_spin_lock(&atom->lock);
+	atom->val += val;
+	xfire_spin_unlock(&atom->lock);
+}
+
+void atomic64_sub(atomic64_t *atom, s64 val)
+{
+	xfire_spin_lock(&atom->lock);
+	atom->val -= val;
+	xfire_spin_unlock(&atom->lock);
+}
+
+s64 atomic64_get(atomic64_t *atom)
+{
+	s64 tmp;
+
+	xfire_spin_lock(&atom->lock);
+	tmp = atom->val;
+	xfire_spin_unlock(&atom->lock);
+
+	return tmp;
 }
 
