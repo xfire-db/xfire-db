@@ -602,6 +602,8 @@ static void __rbtree_remove_duplicate(struct rbtree_root *root,
 		/* replace *node* with node::duplicates::next */
 		replacement = container_of(node->duplicates.next,
 				struct rbtree, duplicates);
+
+		rbtree_lock_node(replacement);
 		replacement->duplicates.prev = NULL;
 		node->duplicates.next = NULL;
 		rbtree_replace_node(root, node, replacement);
@@ -611,6 +613,8 @@ static void __rbtree_remove_duplicate(struct rbtree_root *root,
 				&replacement->flags);
 			clear_bit(RBTREE_HAS_DUPLICATES_FLAG, &node->flags);
 		}
+
+		rbtree_unlock_node(replacement);
 		return;
 	}
 
@@ -855,10 +859,13 @@ struct rbtree *rbtree_remove(struct rbtree_root *root,
 	if(!find)
 		return NULL;
 
+	rbtree_lock_node(find);
 	if(test_bit(RBTREE_HAS_DUPLICATES_FLAG, &find->flags)) {
 		__rbtree_remove_duplicate(root, find, arg);
+		rbtree_unlock_node(find);
 		return find;
 	}
+	rbtree_unlock_node(find);
 
 
 	return __rbtree_remove(root, find);
