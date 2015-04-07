@@ -28,6 +28,13 @@
 #ifdef HAVE_LINUX
 #define xfire_cond_t pthread_cond_t
 #define xfire_mutex_t pthread_mutex_t
+#define xfire_spinlock_t pthread_spinlock_t
+
+#define xfire_spinlock_init(__s) pthread_spin_init(__s, PTHREAD_PROCESS_PRIVATE)
+#define xfire_spinlock_destroy(__s) pthread_spin_destroy(__s)
+#define xfire_spin_lock(__s) pthread_spin_lock(__s)
+#define xfire_spin_trylock(__s) pthread_spin_trylock(__s)
+#define xfire_spin_unlock(__s) pthread_spin_unlock(__s)
 
 #define xfire_mutex_lock(__l) pthread_mutex_lock(__l)
 #define xfire_mutex_unlock(__l) pthread_mutex_unlock(__l)
