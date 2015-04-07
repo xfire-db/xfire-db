@@ -85,6 +85,8 @@ extern void atomic_add(atomic_t *atom, s32 val);
 extern void atomic_sub(atomic_t *atom, s32 val);
 extern void atomic64_add(atomic64_t *atom, s64 val);
 extern void atomic64_sub(atomic64_t *atom, s64 val);
+extern s32 atomic_get(atomic_t *atom);
+extern s64 atomic64_get(atomic64_t *atom);
 
 static inline void atomic_init(atomic_t *atom)
 {
