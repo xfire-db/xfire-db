@@ -347,14 +347,14 @@ static inline bool rbtree_node_is_right(struct rbtree *node)
 #define should_rotate_right(__n) rbtree_node_is_right(__n) && \
 				test_bit(RBTREE_RED_FLAG, &__n->left->flags)
 
-#define NUM_LOCKS_MAX 4
+#define NUM_INSERT_LOCKS_MAX 4
 static void **rbtree_acquire_insert_locks(struct rbtree *node)
 {
 	struct rbtree *sibling = rbtree_sibling(node);
 	struct rbtree *parent = node->parent,
 		      *gparent = rbtree_grandparent(node);
-	void **locks = mzalloc(sizeof(*locks)*NUM_LOCKS_MAX);
-	int idx = NUM_LOCKS_MAX - 1;
+	void **locks = mzalloc(sizeof(*locks)*NUM_INSERT_LOCKS_MAX);
+	int idx = NUM_INSERT_LOCKS_MAX - 1;
 
 	if(gparent) {
 		rbtree_lock_node(gparent);
@@ -388,7 +388,7 @@ static void rbtree_release_insert_locks(void **locks)
 	struct rbtree *node;
 	int idx;
 
-	for(idx = 0; idx < NUM_LOCKS_MAX; idx++) {
+	for(idx = 0; idx < NUM_INSERT_LOCKS_MAX; idx++) {
 		node = locks[idx];
 		if(!node)
 			continue;
@@ -686,30 +686,95 @@ typedef enum {
 	(!test_bit(RBTREE_RED_FLAG, &__s->flags)) && \
 	((__s->left && is_red(__s->left)) || (__s->right && is_red(__s->right)))
 
+#define NUM_REMOVE_LOCKS_MAX 6
+static void **rbtree_acquire_remove_locks(struct rbtree *node,
+					struct rbtree *sibling,
+					struct rbtree *fn)
+{
+	struct rbtree *parent = node->parent,
+		      *gparent = parent->parent;
+	int idx = NUM_REMOVE_LOCKS_MAX - 1;
+
+	void **locks = mzalloc(sizeof(*locks)*NUM_REMOVE_LOCKS_MAX);
+
+	if(gparent) {
+		rbtree_lock_node(gparent);
+		locks[idx--] = gparent;
+	}
+
+	if(parent) {
+		rbtree_lock_node(parent);
+		locks[idx--] = parent;
+	}
+
+	if(sibling) {
+		rbtree_lock_node(sibling);
+		locks[idx--] = sibling;
+	}
+
+	rbtree_lock_node(node);
+	locks[idx--] = node;
+
+	if(fn) {
+		rbtree_lock_node(fn);
+		locks[idx--] = fn;
+	}
+
+	if(sibling_has_red_child(sibling) && (!fn || 
+				!test_bit(RBTREE_RED_FLAG, &fn->flags))) {
+		if(fn == sibling->left && sibling->left != node) {
+			rbtree_lock_node(sibling->right);
+			locks[idx--] = sibling->right;
+		} else if(sibling->right != node) {
+			rbtree_lock_node(sibling->left);
+			locks[idx--] = sibling->left;
+		}
+	}
+
+	return locks;
+}
+
+static void rbtree_release_remove_locks(void **locks)
+{
+	struct rbtree *node;
+	int idx;
+
+	for(idx = 0; idx < NUM_REMOVE_LOCKS_MAX; idx++) {
+		node = locks[idx];
+		if(!node)
+			continue;
+
+		rbtree_unlock_node(node);
+	}
+}
+
 static void rbtree_remove_balance(struct rbtree_root *root,
 				  struct rbtree *current)
 {
+	void **locks;
 	rbtree_delete_balance_t action = REMOVE_BALANCE_TERMINATE;
 	struct rbtree *sibling = rbtree_sibling(current),
 		      *fn = rbtree_far_nephew(current),
 		      *parent;
 
+	rbtree_lock_node(current->parent);
 	if(current->parent->left == current)
 		current->parent->left = NULL;
 	else
 		current->parent->right = NULL;
+	rbtree_unlock_node(current->parent);
 
 	if(!sibling)
 		return;
 
 	do {
+		locks = rbtree_acquire_remove_locks(current, sibling, fn);
+
 		if(test_bit(RBTREE_RED_FLAG, &sibling->flags)) {
 			action = RED_SIBLING;
-		}
-		else if(sibling_has_black_children(sibling)) {
+		} else if(sibling_has_black_children(sibling)) {
 			action = BLACK_SIBLING_WITH_BLACK_CHILDREN;
-		}
-		else if(sibling_has_red_child(sibling)) {
+		} else if(sibling_has_red_child(sibling)) {
 			if(!fn || !test_bit(RBTREE_RED_FLAG, &fn->flags))
 				action = BLACK_SIBLING_ONE_RED_CHILD;
 			else
@@ -776,6 +841,8 @@ static void rbtree_remove_balance(struct rbtree_root *root,
 			action = REMOVE_BALANCE_TERMINATE;
 			break;
 		}
+
+		rbtree_release_remove_locks(locks);
 	} while(action);
 }
 
@@ -784,25 +851,37 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 					rbtree_delete_t action)
 {
 	struct rbtree *parent = current->parent,
-		      *node;
+		      *node = NULL;
 
 	switch(action) {
 	case BLACK_ONE_CHILD:
 		if(parent) {
+			rbtree_lock_node(parent);
 			if(parent->left == current) {
 				parent->left = (current->left) ?
 						current->left : current->right;
-				parent->left->parent = parent;
-				node = parent->left;
+				if(parent->left) {
+					rbtree_lock_node(parent->left);
+					parent->left->parent = parent;
+					node = parent->left;
+				}
 			} else {
 				/* current is the right child of its parent */
 				parent->right = (current->left) ?
 						current->left : current->right;
-				parent->right->parent = parent;
-				node = parent->right;
+				if(parent->right) {
+					rbtree_lock_node(parent->right);
+					parent->right->parent = parent;
+					node = parent->right;
+				}
 			}
-			clear_bit(RBTREE_RED_FLAG, &node->flags);
+
+			if(node) {
+				clear_bit(RBTREE_RED_FLAG, &node->flags);
+				rbtree_unlock_node(node);
+			}
 		} else {
+			rbtree_lock_root(root);
 			/* current is root */
 			root->tree = (current->left) ? 
 					current->left : current->right;
@@ -810,25 +889,32 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 			set_bit(RBTREE_IS_ROOT_FLAG, &root->tree->flags);
 			clear_bit(RBTREE_IS_ROOT_FLAG, &root->tree->flags);
 			root->tree->parent = NULL;
+			rbtree_unlock_root(root);
 		}
 
 		action = REMOVE_TERMINATE;
 		break;
 
 	case BLACK_NO_CHILDREN:
+		rbtree_lock_root(root);
 		if(root->tree == current) {
 			clear_bit(RBTREE_IS_ROOT_FLAG, &root->tree->flags);
 			root->tree = NULL;
 			action = REMOVE_TERMINATE;
+			rbtree_unlock_root(root);
 			break;
 		}
+		rbtree_unlock_root(root);
 
 		action = REMOVE_TERMINATE;
+		rbtree_unlock_node(current);
 		rbtree_remove_balance(root, current);
+		rbtree_lock_node(current);
 		break;
 
 	default:
 	case RED_NO_CHILDREN:
+		rbtree_lock_node(current->parent);
 		parent = current->parent;
 		if(parent->right == current)
 			parent->right = NULL;
@@ -836,6 +922,7 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 			parent->left = NULL;
 
 		action = REMOVE_TERMINATE;
+		rbtree_unlock_node(parent);
 		break;
 	}
 
@@ -845,7 +932,7 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 static struct rbtree *__rbtree_remove(struct rbtree_root *root,
 				      struct rbtree      *node)
 {
-	struct rbtree *orig;
+	struct rbtree *orig = node;
 	bool replace = false;
 	rbtree_delete_t action = REMOVE_TERMINATE;
 
@@ -861,17 +948,21 @@ static struct rbtree *__rbtree_remove(struct rbtree_root *root,
 		/* node has at most one child (and node is black) */
 		action = BLACK_ONE_CHILD;
 	} else if(node->left && node->right) {
-		orig = node;
 		node = rbtree_find_replacement(orig);
 		replace = true;
 		goto successor;
 	}
 
+	rbtree_lock_node(node);
 	while(action)
 		action = rbtree_do_remove(root, node, action);
 
-	if(replace)
+	if(replace) {
+		rbtree_lock_node(orig);
 		rbtree_replace_node(root, orig, node);
+		rbtree_unlock_node(orig);
+	}
+	rbtree_unlock_node(node);
 
 	return node;
 }

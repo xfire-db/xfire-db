@@ -73,14 +73,14 @@ static void test_tree_increasing(void)
 		}
 	}
 
-	rbtree_remove(&root, 6, "Hello World!");
+	rbtree_remove(&root, 5, "Hello World!");
 	rbtree_remove(&root, 7, "Hello World!");
 
 	find = rbtree_find_duplicate(&root, 7, &compare_node, "Hello World 3!");
 
 	if(find) {
 		printf("[OK] Duplicate has been replaced!\n");
-		if(find->left->key == 5ULL && find->right->key == 8ULL)
+		if(find->parent->key == 6ULL)
 			printf("[OK] RBTree structure OK\n");
 	}
 
