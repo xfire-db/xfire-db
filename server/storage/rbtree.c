@@ -313,6 +313,63 @@ static inline bool rbtree_node_is_right(struct rbtree *node)
 				!test_bit(RBTREE_RED_FLAG, &__n->left->flags)
 #define should_rotate_right(__n) rbtree_node_is_right(__n) && \
 				test_bit(RBTREE_RED_FLAG, &__n->left->flags)
+
+#define NUM_LOCKS_MAX 4
+static void **rbtree_acquire_insert_locks(struct rbtree *node)
+{
+	struct rbtree *sibling = rbtree_sibling(node);
+	struct rbtree *parent = node->parent,
+		      *gparent = rbtree_grandparent(node),
+		      *ggparent = (gparent) ? gparent->parent : NULL;
+	void **locks = mzalloc(sizeof(*locks)*NUM_LOCKS_MAX);
+	int idx = NUM_LOCKS_MAX - 1;
+
+	if(sibling && !test_bit(RBTREE_RED_FLAG, &sibling->flags)) {
+		rbtree_lock_node(ggparent);
+		locks[idx--] = ggparent;
+	}
+
+	if(gparent) {
+		rbtree_lock_node(gparent);
+		locks[idx--] = gparent;
+	}
+
+	if(parent) {
+		rbtree_lock_node(parent);
+		locks[idx--] = parent;
+	}
+
+	if(sibling) {
+		if(test_bit(RBTREE_RED_FLAG, &node->flags)) {
+			rbtree_lock_node(sibling);
+			locks[idx--] = sibling;
+			return locks;
+		} else if(should_rotate_left(node)) {
+			rbtree_lock_node(node->right);
+			locks[idx--] = node->right;
+		} else if(should_rotate_right(node)) {
+			rbtree_lock_node(node->left);
+			locks[idx--] = node->left;
+		}
+	}
+
+	return locks;
+}
+
+static void rbtree_release_insert_locks(void **locks)
+{
+	struct rbtree *node;
+	int idx;
+
+	for(idx = 0; idx < NUM_LOCKS_MAX; idx++) {
+		node = locks[idx];
+		if(!node)
+			continue;
+
+		rbtree_unlock_node(node);
+	}
+}
+
 static u32 rbtree_insert_balance(struct rbtree_root *root, struct rbtree *node)
 {
 	struct rbtree *sibling,
