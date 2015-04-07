@@ -24,6 +24,7 @@
 #include <pthread.h>
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
 
 #ifdef HAVE_LINUX
 #define xfire_cond_t pthread_cond_t
@@ -56,6 +57,22 @@ struct thread {
 	char *name;
 };
 
+typedef struct atomic {
+	s32 val;
+	xfire_spinlock_t lock;
+} atomic_t;
+
+typedef struct atomic64 {
+	s64 val;
+	xfire_spinlock_t lock;
+} atomic64_t;
+
+#define atomic_inc(__a) atomic_add(&__a, 1)
+#define atomic_dec(__a) atomic_sub(&__a, 1)
+
+#define atomic64_inc(__a) atomic64_add(&__a, 1LL)
+#define atomic64_dec(__a) atomic64_sub(&__a, 1LL)
+
 CDECL
 extern struct thread *xfire_create_thread(const char *name,
 				      const pthread_attr_t *attr, 
@@ -63,6 +80,23 @@ extern struct thread *xfire_create_thread(const char *name,
 				      void* arg);
 extern void *xfire_thread_join(struct thread *tp);
 extern int xfire_destroy_thread(struct thread *tp);
+
+extern void atomic_add(atomic_t *atom, s32 val);
+extern void atomic_sub(atomic_t *atom, s32 val);
+extern void atomic64_add(atomic64_t *atom, s64 val);
+extern void atomic64_sub(atomic64_t *atom, s64 val);
+
+static inline void atomic_init(atomic_t *atom)
+{
+	atom->val = 0;
+	xfire_spinlock_init(&atom->lock);
+}
+
+static inline void atomic64_init(atomic_t *atom)
+{
+	atom->val = 0LL;
+	xfire_spinlock_init(&atom->lock);
+}
 
 static inline void *mzalloc(size_t size)
 {
