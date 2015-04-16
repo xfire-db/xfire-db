@@ -24,19 +24,19 @@
 #include <xfire/xfire.h>
 #include <xfire/os.h>
 #include <xfire/types.h>
+#include <xfire/flags.h>
 
 typedef struct rbtree {
 	struct rbtree *parent,
 		      *left,
-		      *right,
-		      *root;
+		      *right;
 
 	struct list_head {
 		struct list_head *next,
 				 *prev;
 	} duplicates;
 	u64 key;
-	unsigned long flags;
+	atomic_flags_t flags;
 	
 	xfire_mutex_t lock;
 	xfire_cond_t condi;
@@ -52,9 +52,9 @@ typedef struct rbtree_root {
 
 } RBTREE_ROOT;
 
-#define RBTREE_IS_ROOT_FLAG	   0
-#define RBTREE_HAS_DUPLICATES_FLAG 1
-#define RBTREE_LOCK_FLAG	   2
+#define RBTREE_HAS_DUPLICATES_FLAG 0
+#define RBTREE_ACQUIRED_FLAG	   1
+#define RBTREE_NODE_LOCKED	   2
 #define RBTREE_RED_FLAG		   3
 
 #define RB_RED 		true
@@ -78,12 +78,41 @@ extern struct rbtree *rbtree_remove(struct rbtree_root *root,
 				    u64 key,void *arg);
 extern void rbtree_init_node(struct rbtree *node);
 
+extern void rbtree_put_node(struct rbtree *node);
+extern struct rbtree *rbtree_get_node(struct rbtree_root *root, u64 key,
+		bool (*cmp)(struct rbtree*, void*), void *arg);
+
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {
 	if(!tree)
 		return;
 
 	tree->key = key;
+}
+
+static inline struct rbtree *rbtree_get_root(struct rbtree_root *root)
+{
+	struct rbtree *rv;
+
+	xfire_spin_lock(&root->lock);
+	rv = root->tree;
+	xfire_spin_unlock(&root->lock);
+
+	return rv;
+}
+static inline void rbtree_set_root(struct rbtree_root *root, struct rbtree *n)
+{
+	xfire_spin_lock(&root->lock);
+	root->tree = n;
+	xfire_spin_unlock(&root->lock);
+}
+
+static inline bool rb_red(struct rbtree *n)
+{
+	if(!n)
+		return false;
+
+	return test_bit(RBTREE_RED_FLAG, &n->flags);
 }
 
 CDECL_END

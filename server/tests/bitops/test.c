@@ -39,7 +39,7 @@ static void set_bit_test(int *bits, unsigned long *flags, int bit_num)
 	int i;
 
 	for(i = 0; i < bit_num; i++)
-		set_bit(bits[i], flags);
+		__set_bit(bits[i], flags);
 
 	if(flags[0] == flags1 && flags[1] == flags2)
 		printf("[OK] set_bit\n");
@@ -53,7 +53,7 @@ static void test_and_clear_bit_test(int *bits, unsigned long *flags, int num)
 	    result = 1;
 
 	for(i = 0; i < num; i++)
-		result &= test_and_clear_bit(bits[i], flags);
+		result &= __test_and_clear_bit(bits[i], flags);
 
 	if(result && (flags[0] == 0UL && flags[1] == 0UL))
 		printf("[OK] test_and_clear_bit\n");
@@ -69,7 +69,7 @@ static void test_and_set_bit_test(int *bits, unsigned long *flags, int num)
 	    result = 1;
 
 	for(i = 0; i < num; i++)
-		result &= !test_and_set_bit(bits[i], flags);
+		result &= !__test_and_set_bit(bits[i], flags);
 
 	if(result && (flags[0] == flags1 && flags[1] == flags2))
 		printf("[OK] test_and_set_bit\n");
@@ -83,7 +83,7 @@ static void clear_bit_test(int *bits, unsigned long *flags, int num)
 	int i;
 
 	for(i = 0; i < num; i++)
-		clear_bit(bits[i], flags);
+		__clear_bit(bits[i], flags);
 
 	if(flags[0] == 0UL && flags[1] == 0UL)
 		printf("[OK] set_bit\n");
@@ -98,7 +98,7 @@ static void test_bit_test(int *bits, unsigned long *flags, int bit_num)
 	    result = 1;
 
 	for(i = 0; i < bit_num; i++)
-		result &= test_bit(bits[i], flags);
+		result &= __test_bit(bits[i], flags);
 
 	printf("[%s] test_bit\n", result ? RESULT_OK : RESULT_ERROR);
 }
@@ -129,10 +129,10 @@ static void swap_bit_test(void)
 {
 	bool result = true;
 
-	swap_bit(SWAP_BIT_BIT, &x1, &y1);
-	swap_bit(SWAP_BIT_BIT, &x2, &y2);
-	swap_bit(SWAP_BIT_BIT, &x3, &y3);
-	swap_bit(SWAP_BIT_BIT, &x4, &y4);
+	__swap_bit(SWAP_BIT_BIT, &x1, &y1);
+	__swap_bit(SWAP_BIT_BIT, &x2, &y2);
+	__swap_bit(SWAP_BIT_BIT, &x3, &y3);
+	__swap_bit(SWAP_BIT_BIT, &x4, &y4);
 
 	if(x1 != X1_RESULT || y1 != Y1_RESULT) {
 		printf("[ERROR]: x1 %lu ?= %lu :: y1 %lu ?= %lu\n",

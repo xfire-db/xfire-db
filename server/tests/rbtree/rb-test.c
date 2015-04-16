@@ -40,7 +40,7 @@ static bool compare_node(struct rbtree *node, void *arg)
 	return false;
 }
 
-static void test_tree_increasing(void)
+/*static void test_tree_increasing(void)
 {
 	struct rbtree_root root;
 	struct rbtree_node *node;
@@ -87,7 +87,7 @@ static void test_tree_increasing(void)
 
 	printf("Tree height: %u\n", (unsigned int)root.height);
 	rbtree_dump(&root, stdout);
-}
+}*/
 
 static void test_rbtree_insert(struct rbtree_root *root, int key)
 {
@@ -97,9 +97,27 @@ static void test_rbtree_insert(struct rbtree_root *root, int key)
 	if(!node)
 		return;
 
+	rbtree_init_node(&node->node);
 	rbtree_set_key(&node->node, key);
 	node->data = "Hello World!";
 	rbtree_insert(root, &node->node);
+}
+
+static void test_incremental(void)
+{
+	struct rbtree_root root;
+	int i;
+
+	memset(&root, 0, sizeof(root));
+	rbtree_init_root(&root);
+
+	for(i = 11; i <= 20; i++)
+		test_rbtree_insert(&root, i);
+
+	for(i = 1; i <= 10; i++)
+		test_rbtree_insert(&root, i);
+
+	rbtree_dump(&root, stdout);
 }
 
 static void test_tree_random(void)
@@ -118,18 +136,18 @@ static void test_tree_random(void)
 	test_rbtree_insert(&root, 28);
 	test_rbtree_insert(&root, 26);
 
-	rbtree_remove(&root, 27, "Hello World!");
+	//rbtree_remove(&root, 27, "Hello World!");
 
-	if(root.tree->key == 26ULL)
-		printf("[OK] Root removal OK\n");
+	/*if(root.tree->key == 26ULL)
+		printf("[OK] Root removal OK\n");*/
 
-	printf("Tree height: %u\n", (unsigned int)root.height);
 	rbtree_dump(&root, stdout);
 }
 
 int main(int argc, char **argv)
 {
-	test_tree_increasing();
+	test_incremental();
+	//test_tree_increasing();
 	putc('\n', stdout);
 	test_tree_random();
 

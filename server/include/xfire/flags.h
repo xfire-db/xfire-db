@@ -20,18 +20,24 @@
 #define __BITOPS_H__
 
 #include <xfire/xfire.h>
+#include <xfire/os.h>
 
-#if defined(__x86_64) || defined(__x86_64__)
-#define X86_64
-#endif
+typedef struct {
+	unsigned long flags;
+	xfire_spinlock_t lock;
+} atomic_flags_t;
 
 CDECL
-int __test_bit(int nr, void *addr);
-void __swap_bit(int nr, void *addr1, void *addr2);
-void __set_bit(int nr, void *addr);
-void __clear_bit(int nr, void *addr);
-int __test_and_clear_bit(int nr, void *addr);
-int __test_and_set_bit(int nr, void *addr);
+extern int test_bit(int nr, atomic_flags_t *atom);
+extern void set_bit(int nr, atomic_flags_t *atom);
+extern void clear_bit(int nr, atomic_flags_t *atom);
+extern int test_and_clear_bit(int nr, atomic_flags_t *atom);
+extern int test_and_set_bit(int nr, atomic_flags_t *atom);
+extern void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2);
+
+extern void atomic_flags_destroy(atomic_flags_t *atom);
+extern void atomic_flags_init(atomic_flags_t *atom);
 CDECL_END
 
 #endif
+

@@ -40,12 +40,13 @@
 #define xfire_mutex_lock(__l) pthread_mutex_lock(__l)
 #define xfire_mutex_unlock(__l) pthread_mutex_unlock(__l)
 #define xfire_mutex_destroy(__l) pthread_mutex_destroy(__l)
-#define xfire_mutex_init(__l) pthread_mutex_init(__l, NULL)
 
 #define xfire_cond_init(__c) pthread_cond_init(__c, NULL)
 #define xfire_cond_destroy(__c) pthread_cond_destroy(__c)
 #define xfire_cond_wait(__c, __m) pthread_cond_wait(__c, __m)
 #define xfire_cond_signal(__c) pthread_cond_signal(__c)
+
+#define xfire_thread_exit(__a) pthread_exit(__a)
 #endif
 
 struct thread {
@@ -73,9 +74,14 @@ typedef struct atomic64 {
 #define atomic64_inc(__a) atomic64_add(&__a, 1LL)
 #define atomic64_dec(__a) atomic64_sub(&__a, 1LL)
 
+#ifdef __GNUC__
+#define barrier() __sync_synchronize()
+#else
+#define barrier() asm volatile("" ::: "memory")
+#endif
+
 CDECL
 extern struct thread *xfire_create_thread(const char *name,
-				      const pthread_attr_t *attr, 
 				      void* (*fn)(void*),
 				      void* arg);
 extern void *xfire_thread_join(struct thread *tp);
@@ -87,6 +93,7 @@ extern void atomic64_add(atomic64_t *atom, s64 val);
 extern void atomic64_sub(atomic64_t *atom, s64 val);
 extern s32 atomic_get(atomic_t *atom);
 extern s64 atomic64_get(atomic64_t *atom);
+extern void xfire_mutex_init(xfire_mutex_t *m);
 
 static inline void atomic_init(atomic_t *atom)
 {

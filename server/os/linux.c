@@ -24,7 +24,14 @@
 #include <xfire/types.h>
 #include <xfire/os.h>
 
-struct thread *xfire_create_thread(const char *name, const pthread_attr_t *attr,
+void xfire_mutex_init(xfire_mutex_t *m)
+{
+	pthread_mutexattr_t *attr = malloc(sizeof(*attr));
+	pthread_mutexattr_settype(attr, PTHREAD_MUTEX_NORMAL);
+	pthread_mutex_init(m, attr);
+}
+
+struct thread *xfire_create_thread(const char *name,
 				void* (*fn)(void*),
 				void* arg)
 {
@@ -34,7 +41,7 @@ struct thread *xfire_create_thread(const char *name, const pthread_attr_t *attr,
 	pthread_attr_init(&tp->attr);
 	pthread_attr_setdetachstate(&tp->attr, PTHREAD_CREATE_JOINABLE);
 	
-	if(pthread_create(&tp->thread, attr, fn, arg)) {
+	if(pthread_create(&tp->thread, &tp->attr, fn, arg)) {
 		free(tp);
 		return NULL;
 	}
