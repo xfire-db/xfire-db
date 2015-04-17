@@ -813,112 +813,6 @@ typedef enum {
 	(!test_bit(RBTREE_RED_FLAG, &__s->flags)) && \
 	((__s->left && is_red(__s->left)) || (__s->right && is_red(__s->right)))
 
-static struct rbtree *rb_acquire_area_bb(struct rbtree *gp,
-					 struct rbtree *p,
-					 struct rbtree *n,
-					 struct rbtree *sibling,
-					 struct rbtree *fn)
-{
-	gp = rbtree_grandparent(n);
-	p = n->parent;
-
-	rbtree_lock_node(gp);
-	if(gp != rbtree_grandparent(n)) {
-		rbtree_unlock_node(gp);
-		return NULL;
-	}
-
-	rbtree_lock_node(p);
-	if(p != n->parent) {
-		rbtree_unlock_node(p);
-		rbtree_unlock_node(gp);
-		return NULL;
-	}
-
-	rbtree_lock_node(sibling);
-	rbtree_lock_node(n);
-	rbtree_lock_node(fn);
-	
-	return n;
-}
-
-static void rb_release_area_bb(struct rbtree *gp,
-				   struct rbtree *p,
-				   struct rbtree *n,
-				   struct rbtree *s,
-				   struct rbtree *fn)
-{
-	rbtree_unlock_node(fn);
-	rbtree_unlock_node(n);
-	rbtree_unlock_node(s);
-	rbtree_unlock_node(p);
-	rbtree_unlock_node(gp);
-}
-
-#define NUM_REMOVE_LOCKS_MAX 6
-static void **rbtree_acquire_remove_locks(struct rbtree *node,
-					struct rbtree *sibling,
-					struct rbtree *fn)
-{
-	struct rbtree *parent = node->parent,
-		      *gparent = parent->parent;
-	int idx = NUM_REMOVE_LOCKS_MAX - 1;
-
-	void **locks = mzalloc(sizeof(*locks)*NUM_REMOVE_LOCKS_MAX);
-
-	if(gparent) {
-		rbtree_lock_node(gparent);
-		locks[idx--] = gparent;
-	}
-
-	if(parent) {
-		rbtree_lock_node(parent);
-		locks[idx--] = parent;
-	}
-
-	if(sibling) {
-		rbtree_lock_node(sibling);
-		locks[idx--] = sibling;
-	}
-
-	rbtree_lock_node(node);
-	locks[idx--] = node;
-
-	if(fn) {
-		rbtree_lock_node(fn);
-		locks[idx--] = fn;
-	}
-
-	if(sibling_has_red_child(sibling) && (!fn || 
-				!test_bit(RBTREE_RED_FLAG, &fn->flags))) {
-		if(fn == sibling->left && sibling->left != node) {
-			rbtree_lock_node(sibling->right);
-			locks[idx--] = sibling->right;
-		} else if(sibling->right != node) {
-			rbtree_lock_node(sibling->left);
-			locks[idx--] = sibling->left;
-		}
-	}
-
-	return locks;
-}
-
-static void rbtree_release_remove_locks(void **locks)
-{
-	struct rbtree *node;
-	int idx;
-
-	for(idx = 0; idx < NUM_REMOVE_LOCKS_MAX; idx++) {
-		node = locks[idx];
-		if(!node)
-			continue;
-
-		rbtree_unlock_node(node);
-	}
-
-	free(locks);
-}
-
 static void rbtree_remove_balance(struct rbtree_root *root,
 				  struct rbtree *current)
 {
@@ -1017,7 +911,6 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 					rbtree_delete_t action)
 {
 	struct rbtree *parent = current->parent,
-		      *gp = rbtree_grandparent(current),
 		      *node = NULL;
 
 	switch(action) {
