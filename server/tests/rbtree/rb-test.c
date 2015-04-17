@@ -110,12 +110,12 @@ static void test_incremental(void)
 
 	memset(&root, 0, sizeof(root));
 	rbtree_init_root(&root);
+	root.iterate = &compare_node;
 
-	for(i = 11; i <= 20; i++)
+	for(i = 1; i <= 9; i++)
 		test_rbtree_insert(&root, i);
 
-	for(i = 1; i <= 10; i++)
-		test_rbtree_insert(&root, i);
+	rbtree_remove(&root, 6, "Hello World!");
 
 	rbtree_dump(&root, stdout);
 }

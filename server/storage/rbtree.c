@@ -61,7 +61,7 @@ static void rbtree_lock_node(struct rbtree *node)
 		return;
 
 	xfire_mutex_lock(&node->lock);
-	set_bit(RBTREE_NODE_LOCKED, &node->flags);
+	set_bit(RBTREE_LOCKED_FLAG, &node->flags);
 	return;
 }
 
@@ -69,7 +69,7 @@ static void rbtree_unlock_node(struct rbtree *node)
 {
 	if(!node)
 		return;
-	else if(!test_and_clear_bit(RBTREE_NODE_LOCKED, &node->flags))
+	else if(!test_and_clear_bit(RBTREE_LOCKED_FLAG, &node->flags))
 		return;
 
 	xfire_mutex_unlock(&node->lock);
@@ -77,15 +77,21 @@ static void rbtree_unlock_node(struct rbtree *node)
 
 
 #ifndef HAVE_NO_RECURSION
-static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
+static bool raw_rbtree_search(struct rbtree *tree, u64 key, struct rbtree **rv)
 {
 	struct rbtree *next;
 
-	if(!tree)
-		return NULL;
+	if(!tree) {
+		*rv = NULL;
+		return false;
+	}
+
+	if(test_bit(RBTREE_IGNORE_FLAG, &tree->flags))
+		return true;
 
 	if(tree->key == key) {
-		return tree;
+		*rv = tree;
+		return false;
 	}
 
 	if(key < tree->key)
@@ -93,7 +99,18 @@ static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
 	else
 		next = tree->right;
 
-	return __rbtree_search(next, key, h);
+	return raw_rbtree_search(next, key, rv);
+}
+static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
+{
+	bool again = true;
+	struct rbtree *node;
+
+	for(; again;) {
+		again = raw_rbtree_search(tree, key, &node);
+	}
+
+	return node;
 }
 #else
 static struct rbtree *__rbtree_search(struct rbtree *tree, u64 key, u32 h)
@@ -774,6 +791,7 @@ typedef enum {
 	RED_NO_CHILDREN,
 	BLACK_ONE_CHILD,
 	BLACK_NO_CHILDREN,
+	REMOVE_AGAIN,
 } rbtree_delete_t;
 
 typedef enum {
@@ -904,24 +922,20 @@ static void rbtree_release_remove_locks(void **locks)
 static void rbtree_remove_balance(struct rbtree_root *root,
 				  struct rbtree *current)
 {
-	void **locks;
 	rbtree_delete_balance_t action = REMOVE_BALANCE_TERMINATE;
 	struct rbtree *sibling = rbtree_sibling(current),
 		      *fn = rbtree_far_nephew(current),
 		      *parent;
 
-	rbtree_lock_node(current->parent);
 	if(current->parent->left == current)
 		current->parent->left = NULL;
 	else
 		current->parent->right = NULL;
-	rbtree_unlock_node(current->parent);
 
 	if(!sibling)
 		return;
 
 	do {
-		locks = rbtree_acquire_remove_locks(current, sibling, fn);
 
 		if(test_bit(RBTREE_RED_FLAG, &sibling->flags)) {
 			action = RED_SIBLING;
@@ -995,7 +1009,6 @@ static void rbtree_remove_balance(struct rbtree_root *root,
 			break;
 		}
 
-		rbtree_release_remove_locks(locks);
 	} while(action);
 }
 
@@ -1004,17 +1017,16 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 					rbtree_delete_t action)
 {
 	struct rbtree *parent = current->parent,
+		      *gp = rbtree_grandparent(current),
 		      *node = NULL;
 
 	switch(action) {
 	case BLACK_ONE_CHILD:
 		if(parent) {
-			rbtree_lock_node(parent);
 			if(parent->left == current) {
 				parent->left = (current->left) ?
 						current->left : current->right;
 				if(parent->left) {
-					rbtree_lock_node(parent->left);
 					parent->left->parent = parent;
 					node = parent->left;
 				}
@@ -1023,7 +1035,6 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 				parent->right = (current->left) ?
 						current->left : current->right;
 				if(parent->right) {
-					rbtree_lock_node(parent->right);
 					parent->right->parent = parent;
 					node = parent->right;
 				}
@@ -1031,7 +1042,6 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 
 			if(node) {
 				clear_bit(RBTREE_RED_FLAG, &node->flags);
-				rbtree_unlock_node(node);
 			}
 		} else {
 			rbtree_lock_root(root);
@@ -1057,14 +1067,11 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 		rbtree_unlock_root(root);
 
 		action = REMOVE_TERMINATE;
-		rbtree_unlock_node(current);
 		rbtree_remove_balance(root, current);
-		rbtree_lock_node(current);
 		break;
 
 	default:
 	case RED_NO_CHILDREN:
-		rbtree_lock_node(current->parent);
 		parent = current->parent;
 		if(parent->right == current)
 			parent->right = NULL;
@@ -1072,7 +1079,6 @@ static rbtree_delete_t rbtree_do_remove(struct rbtree_root *root,
 			parent->left = NULL;
 
 		action = REMOVE_TERMINATE;
-		rbtree_unlock_node(parent);
 		break;
 	}
 
@@ -1086,33 +1092,31 @@ static struct rbtree *__rbtree_remove(struct rbtree_root *root,
 	bool replace = false;
 	rbtree_delete_t action = REMOVE_TERMINATE;
 
-	successor:
-	if(!node->left && !node->right) {
-		if(test_bit(RBTREE_RED_FLAG, &node->flags)) {
-			action = RED_NO_CHILDREN;
-		} else {
-			action = BLACK_NO_CHILDREN;
+	do {
+successor:
+		if(!node->left && !node->right) {
+			if(test_bit(RBTREE_RED_FLAG, &node->flags)) {
+				action = RED_NO_CHILDREN;
+			} else {
+				action = BLACK_NO_CHILDREN;
+			}
+		} else if(!(node->left && node->right) &&
+				!test_bit(RBTREE_RED_FLAG, &node->flags)) {
+			/* node has at most one child (and node is black) */
+			action = BLACK_ONE_CHILD;
+		} else if(node->left && node->right) {
+			node = rbtree_find_replacement(orig);
+			replace = true;
+			goto successor;
 		}
-	} else if(!(node->left && node->right) &&
-			!test_bit(RBTREE_RED_FLAG, &node->flags)) {
-		/* node has at most one child (and node is black) */
-		action = BLACK_ONE_CHILD;
-	} else if(node->left && node->right) {
-		node = rbtree_find_replacement(orig);
-		replace = true;
-		goto successor;
-	}
 
-	rbtree_lock_node(node);
-	while(action)
-		action = rbtree_do_remove(root, node, action);
+		while(action && action != REMOVE_AGAIN)
+			action = rbtree_do_remove(root, node, action);
+	} while(action == REMOVE_AGAIN);
 
 	if(replace) {
-		rbtree_lock_node(orig);
 		rbtree_replace_node(root, orig, node);
-		rbtree_unlock_node(orig);
 	}
-	rbtree_unlock_node(node);
 
 	return node;
 }
@@ -1123,7 +1127,8 @@ struct rbtree *rbtree_remove(struct rbtree_root *root,
 {
 	struct rbtree *find,
 		      *gp,
-		      *p;
+		      *p,
+		      *rv;
 	bool done = false;
 
 	do {
@@ -1135,18 +1140,22 @@ struct rbtree *rbtree_remove(struct rbtree_root *root,
 		gp = rbtree_grandparent(find);
 		p = find->parent;
 
-		rb_acquire_area_bb(gp, p, find, NULL, NULL);
+		if(!rb_acquire_area_rr(gp, p, find))
+			continue;
+
 		if(test_bit(RBTREE_HAS_DUPLICATES_FLAG, &find->flags)) {
 			done = __rbtree_remove_duplicate(root, find, arg);
-			rb_release_area_bb(gp, p, find, NULL, NULL);
+			rb_release_area_rr(gp, p, find);
 			return find;
 		} else {
 			done = true;
 		}
-		rb_release_area_bb(gp, p, find, NULL, NULL);
 	} while(!done);
 
-	return __rbtree_remove(root, find);
+	rv = __rbtree_remove(root, find);
+	rb_release_area_rr(gp, p, find);
+
+	return rv;
 }
 
 static void rbtree_dump_node(struct rbtree *tree, FILE *stream)

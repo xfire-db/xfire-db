@@ -79,12 +79,10 @@ void *test_thread_a(void *arg)
 	int idx;
 
 	printf("Thread 1 starting\n");
-	for(idx = 21; idx <= 40; idx++)
+	for(idx = 11; idx <= 20; idx++)
 		test_rbtree_insert(&root, idx);
 
-	test_insert_duplicate(&root, 25);
-
-	rbtree_remove(&root, 25, (char*)node_data);
+	rbtree_remove(&root, 16, (char*)node_data);
 
 	xfire_thread_exit(NULL);
 }
@@ -94,7 +92,7 @@ void *test_thread_b(void *arg)
 	int idx;
 
 	printf("Thread 2 starting\n");
-	for(idx = 1; idx <= 20; idx++)
+	for(idx = 1; idx <= 10; idx++)
 		test_rbtree_insert(&root, idx);
 
 	xfire_thread_exit(NULL);
@@ -110,8 +108,8 @@ int main(int argc, char **argv)
 	root.iterate = &compare_node;
 	rbtree_init_root(&root);
 
-	a = xfire_create_thread("thread a", &test_thread_a, NULL);
-	b = xfire_create_thread("thread b", &test_thread_b, NULL);
+	a = xfire_create_thread("thread a", &test_thread_b, NULL);
+	b = xfire_create_thread("thread b", &test_thread_a, NULL);
 
 	xfire_thread_join(a);
 	xfire_thread_join(b);

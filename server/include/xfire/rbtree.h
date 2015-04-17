@@ -54,8 +54,9 @@ typedef struct rbtree_root {
 
 #define RBTREE_HAS_DUPLICATES_FLAG 0
 #define RBTREE_ACQUIRED_FLAG	   1
-#define RBTREE_NODE_LOCKED	   2
-#define RBTREE_RED_FLAG		   3
+#define RBTREE_LOCKED_FLAG	   2
+#define RBTREE_IGNORE_FLAG	   3
+#define RBTREE_RED_FLAG		   4
 
 #define RB_RED 		true
 #define RB_BLACK 	false
