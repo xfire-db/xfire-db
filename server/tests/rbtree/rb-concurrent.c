@@ -32,6 +32,7 @@ struct rbtree_node {
 static struct rbtree_root root;
 
 static const char node_data[] = "Hello World!";
+static const char node_data2[] = "Hello World, again!";
 
 static bool compare_node(struct rbtree *node, void *arg)
 {
@@ -59,6 +60,20 @@ static void test_rbtree_insert(struct rbtree_root *root, int key)
 	rbtree_insert(root, &node->node);
 }
 
+static void test_insert_duplicate(struct rbtree_root *root, int key)
+{
+	struct rbtree_node *node;
+
+	node = malloc(sizeof(*node));
+	if(!node)
+		return;
+
+	rbtree_init_node(&node->node);
+	rbtree_set_key(&node->node, key);
+	node->data = node_data2;
+	rbtree_insert_duplicate(root, &node->node);
+}
+
 void *test_thread_a(void *arg)
 {
 	int idx;
@@ -66,6 +81,10 @@ void *test_thread_a(void *arg)
 	printf("Thread 1 starting\n");
 	for(idx = 21; idx <= 40; idx++)
 		test_rbtree_insert(&root, idx);
+
+	test_insert_duplicate(&root, 25);
+
+	rbtree_remove(&root, 25, (char*)node_data);
 
 	xfire_thread_exit(NULL);
 }
@@ -84,6 +103,8 @@ void *test_thread_b(void *arg)
 int main(int argc, char **argv)
 {
 	struct thread *a, *b;
+	struct rbtree *node;
+	struct rbtree_node *dnode;
 
 	memset(&root, 0, sizeof(root));
 	root.iterate = &compare_node;
@@ -98,6 +119,19 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(a);
 	xfire_destroy_thread(b);
 
+	node = rbtree_find(&root, 25);
+
+	if(node) {
+		dnode = container_of(node, struct rbtree_node, node);
+		printf("Found node: <\"%llu\",\"%s\">\n",
+				(unsigned long long)node->key,
+				dnode->data);
+	} else {
+		printf("Node not found!\n");
+	}
+
+	fputc('\n', stdout);
 	rbtree_dump(&root,stdout);
 	return -EXIT_SUCCESS;
 }
+

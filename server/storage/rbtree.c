@@ -192,12 +192,8 @@ static void rbtree_pop(struct rbtree *node)
 	dnode->prev = NULL;
 }
 
-struct rbtree *rbtree_get_node(struct rbtree_root *root, u64 key,
-		bool (*cmp)(struct rbtree*, void*), void *arg)
+struct rbtree *__rbtree_get_node(struct rbtree *node)
 {
-	struct rbtree *node;
-
-	node = rbtree_find_duplicate(root, key, cmp, arg);
 	if(!node)
 		return NULL;
 
@@ -207,6 +203,18 @@ struct rbtree *rbtree_get_node(struct rbtree_root *root, u64 key,
 	rbtree_unlock_node(node);
 
 	return node;
+}
+
+struct rbtree *rbtree_get_node(struct rbtree_root *root, u64 key,
+		bool (*cmp)(struct rbtree*, void*), void *arg)
+{
+	struct rbtree *node;
+
+	node = rbtree_find_duplicate(root, key, cmp, arg);
+	if(!node)
+		return NULL;
+
+	return __rbtree_get_node(node);
 }
 
 void rbtree_put_node(struct rbtree *node)
@@ -253,10 +261,12 @@ struct rbtree *rbtree_insert_duplicate(struct rbtree_root *root,
 	struct rbtree *entry;
 
 	entry = rbtree_insert(root, node);
+	rbtree_lock_node(node);
 	if(entry != node) {
 		rbtree_lpush(entry, node);
 		set_bit(RBTREE_HAS_DUPLICATES_FLAG, &entry->flags);
 	}
+	rbtree_unlock_node(node);
 
 	return entry;
 }
@@ -456,8 +466,7 @@ static struct rbtree *raw_rbtree_balance_rr(struct rbtree_root *root,
 	return node;
 }
 
-static inline struct rbtree *rb_acquire_area(struct rbtree_root *root,
-					     struct rbtree *gp,
+static inline struct rbtree *rb_acquire_area_rr(struct rbtree *gp,
 					     struct rbtree *p,
 					     struct rbtree *n)
 {
@@ -479,7 +488,7 @@ static inline struct rbtree *rb_acquire_area(struct rbtree_root *root,
 	return n;
 }
 
-static inline void rb_release_area(struct rbtree *gp, struct rbtree *p,
+static inline void rb_release_area_rr(struct rbtree *gp, struct rbtree *p,
 				   struct rbtree *n)
 {
 	rbtree_unlock_node(n);
@@ -501,13 +510,13 @@ static struct rbtree *rbtree_balance_rr(struct rbtree_root *root,
 		return node;
 	}
 
-	if(!rb_acquire_area(root, gp, p, node))
+	if(!rb_acquire_area_rr(gp, p, node))
 		return node;
 
 	if(rn == rbtree_get_root(root))
 		rv = raw_rbtree_balance_rr(root, node);
 
-	rb_release_area(gp, p, node);
+	rb_release_area_rr(gp, p, node);
 
 	return rv;
 }
@@ -523,7 +532,7 @@ static rbtree_insert_t rbtree_attempt_insert(struct rbtree_root *root,
 
 	rbtree_insert_t rv = INSERT_RETRY;
 
-	if(!rb_acquire_area(root, gp, parent, node))
+	if(!rb_acquire_area_rr(gp, parent, node))
 		return rv;
 
 	if(rn == rbtree_get_root(root)) {
@@ -540,7 +549,7 @@ static rbtree_insert_t rbtree_attempt_insert(struct rbtree_root *root,
 		}
 	}
 
-	rb_release_area(gp, parent, node);
+	rb_release_area_rr(gp, parent, node);
 
 	return rv;
 }
@@ -712,13 +721,16 @@ static inline bool rbtree_node_has_duplicates(struct rbtree *node)
 	return node->duplicates.next != NULL;
 }
 
-static void __rbtree_remove_duplicate(struct rbtree_root *root,
+static bool __rbtree_remove_duplicate(struct rbtree_root *root,
 				      struct rbtree      *node,
 				      void *arg)
 {
 	struct list_head *c;
 	struct rbtree *replacement,
 		      *orig;
+
+	if(!test_bit(RBTREE_HAS_DUPLICATES_FLAG, &node->flags))
+		return false;
 
 	if(root->iterate(node, arg)) {
 		/* replace *node* with node::duplicates::next */
@@ -737,7 +749,7 @@ static void __rbtree_remove_duplicate(struct rbtree_root *root,
 		}
 
 		rbtree_unlock_node(replacement);
-		return;
+		return true;
 	}
 
 	orig = node;
@@ -753,6 +765,8 @@ static void __rbtree_remove_duplicate(struct rbtree_root *root,
 		set_bit(RBTREE_HAS_DUPLICATES_FLAG, &orig->flags);
 	else
 		clear_bit(RBTREE_HAS_DUPLICATES_FLAG, &orig->flags);
+
+	return true;
 }
 
 typedef enum {
@@ -780,6 +794,48 @@ typedef enum {
 #define sibling_has_red_child(__s) \
 	(!test_bit(RBTREE_RED_FLAG, &__s->flags)) && \
 	((__s->left && is_red(__s->left)) || (__s->right && is_red(__s->right)))
+
+static struct rbtree *rb_acquire_area_bb(struct rbtree *gp,
+					 struct rbtree *p,
+					 struct rbtree *n,
+					 struct rbtree *sibling,
+					 struct rbtree *fn)
+{
+	gp = rbtree_grandparent(n);
+	p = n->parent;
+
+	rbtree_lock_node(gp);
+	if(gp != rbtree_grandparent(n)) {
+		rbtree_unlock_node(gp);
+		return NULL;
+	}
+
+	rbtree_lock_node(p);
+	if(p != n->parent) {
+		rbtree_unlock_node(p);
+		rbtree_unlock_node(gp);
+		return NULL;
+	}
+
+	rbtree_lock_node(sibling);
+	rbtree_lock_node(n);
+	rbtree_lock_node(fn);
+	
+	return n;
+}
+
+static void rb_release_area_bb(struct rbtree *gp,
+				   struct rbtree *p,
+				   struct rbtree *n,
+				   struct rbtree *s,
+				   struct rbtree *fn)
+{
+	rbtree_unlock_node(fn);
+	rbtree_unlock_node(n);
+	rbtree_unlock_node(s);
+	rbtree_unlock_node(p);
+	rbtree_unlock_node(gp);
+}
 
 #define NUM_REMOVE_LOCKS_MAX 6
 static void **rbtree_acquire_remove_locks(struct rbtree *node,
@@ -1065,20 +1121,30 @@ struct rbtree *rbtree_remove(struct rbtree_root *root,
 			     u64 key,
 			     void *arg)
 {
-	struct rbtree *find;
+	struct rbtree *find,
+		      *gp,
+		      *p;
+	bool done = false;
 
-	find = __rbtree_search(root->tree, key, root->height);
-	if(!find)
-		return NULL;
+	do {
 
-	rbtree_lock_node(find);
-	if(test_bit(RBTREE_HAS_DUPLICATES_FLAG, &find->flags)) {
-		__rbtree_remove_duplicate(root, find, arg);
-		rbtree_unlock_node(find);
-		return find;
-	}
-	rbtree_unlock_node(find);
+		find = __rbtree_search(root->tree, key, root->height);
+		if(!find)
+			return NULL;
 
+		gp = rbtree_grandparent(find);
+		p = find->parent;
+
+		rb_acquire_area_bb(gp, p, find, NULL, NULL);
+		if(test_bit(RBTREE_HAS_DUPLICATES_FLAG, &find->flags)) {
+			done = __rbtree_remove_duplicate(root, find, arg);
+			rb_release_area_bb(gp, p, find, NULL, NULL);
+			return find;
+		} else {
+			done = true;
+		}
+		rb_release_area_bb(gp, p, find, NULL, NULL);
+	} while(!done);
 
 	return __rbtree_remove(root, find);
 }

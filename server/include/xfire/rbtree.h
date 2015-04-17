@@ -81,6 +81,7 @@ extern void rbtree_init_node(struct rbtree *node);
 extern void rbtree_put_node(struct rbtree *node);
 extern struct rbtree *rbtree_get_node(struct rbtree_root *root, u64 key,
 		bool (*cmp)(struct rbtree*, void*), void *arg);
+extern struct rbtree *__rbtree_get_node(struct rbtree *node);
 
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {
