@@ -29,10 +29,8 @@ struct rbtree_node {
 	const char *data;
 };
 
-static struct rbtree_root root;
-
 static const char node_data[] = "Hello World!";
-static const char node_data2[] = "Hello World, again!";
+static struct rbtree_root root;
 
 static bool compare_node(struct rbtree *node, void *arg)
 {
@@ -60,6 +58,7 @@ static void test_rbtree_insert(struct rbtree_root *root, int key)
 	rbtree_insert(root, &node->node);
 }
 
+#if 0
 static void test_insert_duplicate(struct rbtree_root *root, int key)
 {
 	struct rbtree_node *node;
@@ -73,13 +72,14 @@ static void test_insert_duplicate(struct rbtree_root *root, int key)
 	node->data = node_data2;
 	rbtree_insert_duplicate(root, &node->node);
 }
+#endif
 
 void *test_thread_a(void *arg)
 {
 	int idx;
 
 	printf("Thread 1 starting\n");
-	for(idx = 11; idx <= 20; idx++)
+	for(idx = 21; idx <= 30; idx++)
 		test_rbtree_insert(&root, idx);
 
 	xfire_thread_exit(NULL);
@@ -90,8 +90,8 @@ void *test_thread_b(void *arg)
 	int idx;
 
 	printf("Thread 2 starting\n");
-	for(idx = 1; idx <= 10; idx++)
-		test_rbtree_insert(&root, idx);
+	for(idx = 11; idx <= 20; idx++)
+		rbtree_remove(&root, idx, (char*)node_data);
 
 	xfire_thread_exit(NULL);
 }
@@ -101,68 +101,43 @@ void *test_thread_c(void *arg)
 	int idx;
 
 	printf("Thread 3 starting\n");
-	for(idx = 13; idx <= 20; idx++)
+	for(idx = 1; idx <= 10; idx++)
 		rbtree_remove(&root, idx, (char*)node_data);
 
 	xfire_thread_exit(NULL);
 }
-void *test_thread_d(void *arg)
+
+void rb_setup_tree(void)
 {
 	int idx;
 
-	printf("Thread 4 starting\n");
-	for(idx = 3; idx <= 10; idx++)
-		rbtree_remove(&root, idx, (char*)node_data);
-
-	xfire_thread_exit(NULL);
+	for(idx = 1; idx <= 20; idx += 100)
+		test_rbtree_insert(&root, idx);
 }
-
 
 int main(int argc, char **argv)
 {
-	struct thread *a, *b;
-	struct rbtree *node;
-	struct rbtree_node *dnode;
+	struct thread *a, *b, *c;
 
 	memset(&root, 0, sizeof(root));
 	root.iterate = &compare_node;
 	rbtree_init_root(&root);
 
-	/* insert */
-	a = xfire_create_thread("thread a", &test_thread_b, NULL);
-	b = xfire_create_thread("thread b", &test_thread_a, NULL);
+	rb_setup_tree();
+
+	a = xfire_create_thread("thread a", &test_thread_a, NULL);
+	b = xfire_create_thread("thread b", &test_thread_b, NULL);
+	c = xfire_create_thread("thread c", &test_thread_c, NULL);
 
 	xfire_thread_join(a);
 	xfire_thread_join(b);
+	xfire_thread_join(c);
 
 	xfire_destroy_thread(a);
 	xfire_destroy_thread(b);
+	xfire_destroy_thread(c);
 
 	rbtree_dump(&root,stdout);
-	
-	/* removal */
-	a = xfire_create_thread("thread c", &test_thread_c, NULL);
-	b = xfire_create_thread("thread d", &test_thread_d, NULL);
-
-	xfire_thread_join(a);
-	xfire_thread_join(b);
-
-	xfire_destroy_thread(a);
-	xfire_destroy_thread(b);
-
-	node = rbtree_find(&root, 12);
-
-	if(node) {
-		dnode = container_of(node, struct rbtree_node, node);
-		printf("Found node: <\"%llu\",\"%s\">\n",
-				(unsigned long long)node->key,
-				dnode->data);
-	} else {
-		printf("Node not found!\n");
-	}
-
-	rbtree_dump(&root,stdout);
-	fputc('\n', stdout);
 	return -EXIT_SUCCESS;
 }
 

@@ -37,7 +37,8 @@ typedef struct rbtree {
 	} duplicates;
 	u64 key;
 	atomic_flags_t flags;
-	
+
+	atomic_t ldepth;
 	xfire_mutex_t lock;
 	xfire_cond_t condi;
 } RBTREE;
@@ -48,15 +49,21 @@ typedef struct rbtree_root {
 	u64 num;
 	xfire_spinlock_t lock;
 
+	atomic_flags_t flags;
+
 	bool (*iterate)(struct rbtree *node,void*);
 
 } RBTREE_ROOT;
 
+#define RBROOT_BUSY_FLAG 0
+
 #define RBTREE_HAS_DUPLICATES_FLAG 0
 #define RBTREE_ACQUIRED_FLAG	   1
 #define RBTREE_LOCKED_FLAG	   2
-#define RBTREE_IGNORE_FLAG	   3
-#define RBTREE_RED_FLAG		   4
+#define RBTREE_UNLINKED_FLAG	   3
+#define RBTREE_DBLK_FLAG	   4
+#define RBTREE_REMOVE_FLAG	   5
+#define RBTREE_RED_FLAG		   6
 
 #define RB_RED 		true
 #define RB_BLACK 	false
@@ -84,6 +91,14 @@ extern struct rbtree *rbtree_get_node(struct rbtree_root *root, u64 key,
 		bool (*cmp)(struct rbtree*, void*), void *arg);
 extern struct rbtree *__rbtree_get_node(struct rbtree *node);
 
+static inline bool rb_ignore(struct rbtree *node)
+{
+	if(node)
+		return false;
+
+	return false;
+}
+
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {
 	if(!tree)
@@ -109,12 +124,75 @@ static inline void rbtree_set_root(struct rbtree_root *root, struct rbtree *n)
 	xfire_spin_unlock(&root->lock);
 }
 
+static inline bool rb_unlinked(struct rbtree_root *root, struct rbtree *node)
+{
+	struct rbtree *rn = rbtree_get_root(root);
+
+	if(!node)
+		return false;
+
+	if(rn == node)
+		return false;
+
+	if(test_bit(RBTREE_UNLINKED_FLAG, &node->flags))
+		return true;
+
+	return false;
+}
+
 static inline bool rb_red(struct rbtree *n)
 {
 	if(!n)
 		return false;
 
 	return test_bit(RBTREE_RED_FLAG, &n->flags);
+}
+
+static inline bool rb_blk(struct rbtree *n)
+{
+	if(!n)
+		return true;
+
+	if(test_bit(RBTREE_RED_FLAG, &n->flags) ||
+			test_bit(RBTREE_DBLK_FLAG, &n->flags))
+		return false;
+	
+	return true;
+}
+
+static inline void rb_set_dblk(struct rbtree *n)
+{
+	if(!n)
+		return;
+
+	clear_bit(RBTREE_RED_FLAG, &n->flags);
+	set_bit(RBTREE_DBLK_FLAG, &n->flags);
+}
+
+static inline void rb_set_red(struct rbtree *n)
+{
+	if(!n)
+		return;
+
+	clear_bit(RBTREE_DBLK_FLAG, &n->flags);
+	set_bit(RBTREE_RED_FLAG, &n->flags);
+}
+
+static inline void rb_set_blk(struct rbtree *n)
+{
+	if(!n)
+		return;
+
+	clear_bit(RBTREE_DBLK_FLAG, &n->flags);
+	clear_bit(RBTREE_RED_FLAG, &n->flags);
+}
+
+static inline bool rb_dblk(struct rbtree *n)
+{
+	if(!n)
+		return false;
+
+	return test_bit(RBTREE_DBLK_FLAG, &n->flags);
 }
 
 CDECL_END

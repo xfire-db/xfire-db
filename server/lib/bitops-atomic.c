@@ -39,6 +39,17 @@ void atomic_flags_destroy(atomic_flags_t *atom)
 	xfire_spinlock_destroy(&atom->lock);
 }
 
+void atomic_flags_copy(atomic_flags_t *dst, atomic_flags_t *src)
+{
+	xfire_spin_lock(&src->lock);
+	xfire_spin_lock(&dst->lock);
+
+	dst->flags = src->flags;
+
+	xfire_spin_unlock(&dst->lock);
+	xfire_spin_unlock(&src->lock);
+}
+
 static inline int __raw_test_bit(int bit, volatile unsigned long *addr)
 {
 	return (*addr >> bit) & 1UL;

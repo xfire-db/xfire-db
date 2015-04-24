@@ -35,6 +35,7 @@ extern int test_and_clear_bit(int nr, atomic_flags_t *atom);
 extern int test_and_set_bit(int nr, atomic_flags_t *atom);
 extern void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2);
 
+extern void atomic_flags_copy(atomic_flags_t *dst, atomic_flags_t *src);
 extern void atomic_flags_destroy(atomic_flags_t *atom);
 extern void atomic_flags_init(atomic_flags_t *atom);
 CDECL_END

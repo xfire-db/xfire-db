@@ -27,7 +27,7 @@
 void xfire_mutex_init(xfire_mutex_t *m)
 {
 	pthread_mutexattr_t *attr = malloc(sizeof(*attr));
-	pthread_mutexattr_settype(attr, PTHREAD_MUTEX_NORMAL);
+	pthread_mutexattr_settype(attr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(m, attr);
 }
 
