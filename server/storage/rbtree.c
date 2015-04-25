@@ -334,9 +334,9 @@ struct rb_node *rb_insert_duplicate(struct rb_root *root,
 	bool done = false;
 
 	do {
-		entry = rb_insert(root, node, false);
+		entry = rb_find(root, node->key);
 		if(!entry)
-			return NULL;
+			return rb_insert(root, node, false);
 
 		gp = rb_grandparent(entry);
 		p = entry->parent;
@@ -1014,7 +1014,65 @@ static inline bool rb_acquire_area_bb(struct rb_root *root,
 
 	return true;
 }
+#if 0
+static bool __rb_remove_duplicate(struct rb_root *root,
+				      struct rb_node      *node,
+				      const void *arg)
+{
+	struct rb_node *replacement, *tmp,
+		      *gp, *p, *s;
 
+	if(!node)
+		return false;
+
+	gp = rb_grandparent(node);
+	p = node->parent;
+	s = rb_sibling(node);
+
+	if(!rb_acquire_area_bb(root, gp, p, node, s))
+		return false;
+
+	if(!rb_node_has_duplicates(node)) {
+		rb_release_area_bb(gp, p, node, s);
+		return false;
+	}
+
+	tmp = rb_find_duplicate(root, node->key, root->iterate, arg);
+	
+	if(tmp == node) {
+		replacement = node->next;
+
+		if(!replacement) {
+			clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
+			rb_release_area_bb(gp, p, node, s);
+			return false;
+		}
+
+		replacement->prev = NULL;
+		set_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
+		rb_lock_node(replacement);
+		
+		rb_replace_node(root, node, replacement);
+		
+		node->left = node->right = node->parent = NULL;
+		clear_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
+
+		rb_unlock_node(replacement);
+
+		node = replacement;
+	} else {
+		rb_pop(tmp);
+	}
+
+	if(rb_node_has_duplicates(node))
+		set_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
+	else
+		clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
+
+	rb_release_area_bb(gp, p, node, s);
+	return true;
+}
+#else
 static bool __rb_remove_duplicate(struct rb_root *root,
 				      struct rb_node      *node,
 				      const void *arg)
@@ -1047,11 +1105,13 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 		}
 		
 		rb_lock_node(replacement);
-		rb_pop(replacement);
+
+		replacement->prev = NULL;
 		node->left = node->right = node->parent = NULL;
 
 		set_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
 		rb_replace_node(root, node, replacement);
+		clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
 
 		tmp = replacement;
 		rb_unlock_node(replacement);
@@ -1075,6 +1135,7 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	rb_release_area_bb(gp, p, node, s);
 	return true;
 }
+#endif
 
 static struct rb_node *raw_rb_balance_bb(struct rb_root *root,
 					struct rb_node *p,

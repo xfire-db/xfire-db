@@ -126,8 +126,8 @@ void rb_setup_tree(void)
 int main(int argc, char **argv)
 {
 	struct thread *a, *b, *c;
-	struct rb_node *node;
-	struct data_node *dnode;
+	struct rb_node *node1, *node2;
+	struct data_node *dnode1, *dnode2;
 
 	memset(&root, 0, sizeof(root));
 	rb_init_root(&root);
@@ -147,14 +147,26 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(b);
 	xfire_destroy_thread(c);
 
-	node = rb_find_duplicate(&root, 24, &compare_node,
+	node1 = rb_find_duplicate(&root, 24, &compare_node,
 			(char*)node_data3);
 
-	if(node) {
-		dnode = container_of(node, struct data_node, node);
+	node2 = rb_find_duplicate(&root, 23, &compare_node,
+			(char*)node_data1);
+
+	if(node1) {
+		dnode1 = container_of(node1, struct data_node, node);
 		printf("Found node: <\"%llu\",\"%s\">\n",
-				(unsigned long long)node->key,
-				dnode->data);
+				(unsigned long long)node1->key,
+				dnode1->data);
+	} else {
+		printf("Node not found!\n");
+	}
+
+	if(node2) {
+		dnode2 = container_of(node2, struct data_node, node);
+		printf("Found node: <\"%llu\",\"%s\">\n",
+				(unsigned long long)node2->key,
+				dnode2->data);
 	} else {
 		printf("Node not found!\n");
 	}
