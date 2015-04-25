@@ -34,10 +34,13 @@ static struct rbtree_root root;
 static const char node_data[] = "Hello World!";
 static const char node_data2[] = "Hello World, again!";
 
-static bool compare_node(struct rbtree *node, void *arg)
+static bool compare_node(struct rbtree *node, const void *arg)
 {
 
 	struct rbtree_node *container;
+
+	if(!node)
+		return false;
 
 	container = container_of(node, struct rbtree_node, node);
 	if(!strcmp(container->data, arg))
@@ -58,20 +61,6 @@ static void test_rbtree_insert(struct rbtree_root *root, int key)
 	rbtree_set_key(&node->node, key);
 	node->data = node_data;
 	rbtree_insert(root, &node->node);
-}
-
-static void test_insert_duplicate(struct rbtree_root *root, int key)
-{
-	struct rbtree_node *node;
-
-	node = malloc(sizeof(*node));
-	if(!node)
-		return;
-
-	rbtree_init_node(&node->node);
-	rbtree_set_key(&node->node, key);
-	node->data = node_data2;
-	rbtree_insert_duplicate(root, &node->node);
 }
 
 void *test_thread_a(void *arg)

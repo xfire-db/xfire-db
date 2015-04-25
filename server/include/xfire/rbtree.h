@@ -29,12 +29,10 @@
 typedef struct rbtree {
 	struct rbtree *parent,
 		      *left,
-		      *right;
+		      *right,
+		      *next,
+		      *prev;
 
-	struct list_head {
-		struct list_head *next,
-				 *prev;
-	} duplicates;
 	u64 key;
 	atomic_flags_t flags;
 
@@ -51,19 +49,17 @@ typedef struct rbtree_root {
 
 	atomic_flags_t flags;
 
-	bool (*iterate)(struct rbtree *node,void*);
+	bool (*iterate)(struct rbtree *node,const void*);
 
 } RBTREE_ROOT;
 
 #define RBROOT_BUSY_FLAG 0
 
-#define RBTREE_HAS_DUPLICATES_FLAG 0
-#define RBTREE_ACQUIRED_FLAG	   1
-#define RBTREE_LOCKED_FLAG	   2
-#define RBTREE_UNLINKED_FLAG	   3
-#define RBTREE_DBLK_FLAG	   4
-#define RBTREE_REMOVE_FLAG	   5
-#define RBTREE_RED_FLAG		   6
+#define RBTREE_ACQUIRED_FLAG	   0
+#define RBTREE_UNLINKED_FLAG	   1
+#define RBTREE_DBLK_FLAG	   2
+#define RBTREE_REMOVE_FLAG	   3
+#define RBTREE_RED_FLAG		   4
 
 #define RB_RED 		true
 #define RB_BLACK 	false
@@ -81,23 +77,15 @@ extern struct rbtree *rbtree_find_leftmost(struct rbtree *tree);
 extern struct rbtree *rbtree_find_rightmost(struct rbtree *tree);
 
 extern struct rbtree *rbtree_find_duplicate(struct rbtree_root *root, u64 key,
-		bool (*cmp)(struct rbtree*,void*), void *arg);
+		bool (*cmp)(struct rbtree*, const void*), const void *arg);
 extern struct rbtree *rbtree_remove(struct rbtree_root *root,
-				    u64 key,void *arg);
+				    u64 key, const void *arg);
 extern void rbtree_init_node(struct rbtree *node);
 
 extern void rbtree_put_node(struct rbtree *node);
 extern struct rbtree *rbtree_get_node(struct rbtree_root *root, u64 key,
-		bool (*cmp)(struct rbtree*, void*), void *arg);
+		bool (*cmp)(struct rbtree*, const void*), const void *arg);
 extern struct rbtree *__rbtree_get_node(struct rbtree *node);
-
-static inline bool rb_ignore(struct rbtree *node)
-{
-	if(node)
-		return false;
-
-	return false;
-}
 
 static inline void rbtree_set_key(struct rbtree *tree, u64 key)
 {
@@ -124,14 +112,9 @@ static inline void rbtree_set_root(struct rbtree_root *root, struct rbtree *n)
 	xfire_spin_unlock(&root->lock);
 }
 
-static inline bool rb_unlinked(struct rbtree_root *root, struct rbtree *node)
+static inline bool rb_unlinked(struct rbtree *node)
 {
-	struct rbtree *rn = rbtree_get_root(root);
-
 	if(!node)
-		return false;
-
-	if(rn == node)
 		return false;
 
 	if(test_bit(RBTREE_UNLINKED_FLAG, &node->flags))

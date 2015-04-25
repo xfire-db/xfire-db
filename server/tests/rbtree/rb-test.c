@@ -28,7 +28,7 @@ struct rbtree_node {
 	const char *data;
 };
 
-static bool compare_node(struct rbtree *node, void *arg)
+static bool compare_node(struct rbtree *node, const void *arg)
 {
 
 	struct rbtree_node *container;
