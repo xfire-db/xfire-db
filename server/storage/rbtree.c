@@ -52,9 +52,6 @@ void rb_init_node(struct rb_node *node)
 void rb_init_root(struct rb_root *root)
 {
 	xfire_spinlock_init(&root->lock);
-	xfire_mutex_init(&root->clock);
-	xfire_cond_init(&root->condi);
-	atomic_flags_init(&root->flags);
 }
 
 static inline void rb_lock_root(struct rb_root *root)
@@ -86,39 +83,16 @@ static void rb_unlock_node(struct rb_node *node)
 	atomic_dec(node->ldepth);
 }
 
-static void rb_acquire_root(struct rb_root *root)
-{
-	xfire_mutex_lock(&root->clock);
-	while(test_bit(RBROOT_BUSY_FLAG, &root->flags))
-		xfire_cond_wait(&root->condi, &root->clock);
-	xfire_mutex_unlock(&root->clock);
-}
-
-static void rb_release_root(struct rb_root *root)
-{
-	xfire_mutex_lock(&root->clock);
-	clear_bit(RBROOT_BUSY_FLAG, &root->flags);
-	xfire_cond_signal(&root->condi);
-	xfire_mutex_unlock(&root->clock);
-}
-
-#ifdef HAVE_NO_RECURSION
-static bool raw_rb_search(struct rb_node *tree, u64 key, struct rb_node **rv)
+#ifdef HAVE_RECURSION
+static struct rbtree *raw_rb_search(struct rb_node *tree, u64 key)
 {
 	struct rb_node *next;
 
-	if(!tree) {
-		*rv = NULL;
-		return false;
-	}
+	if(!tree)
+		return NULL;
 
-	if(rb_unlinked(tree))
-		return true;
-
-	if(tree->key == key) {
-		*rv = tree;
-		return false;
-	}
+	if(tree->key == key)
+		return tree;
 
 	rb_lock_node(tree);
 	if(key < tree->key)
@@ -129,38 +103,18 @@ static bool raw_rb_search(struct rb_node *tree, u64 key, struct rb_node **rv)
 
 	return raw_rb_search(next, key, rv);
 }
-static struct rb_node *__rb_search(struct rb_node *tree, u64 key)
-{
-	bool again = true;
-	struct rb_node *node;
-
-	for(; again;) {
-		again = raw_rb_search(tree, key, &node);
-	}
-
-	return node;
-}
 #else
-static bool raw_rb_search(struct rb_node *tree, u64 key, struct rb_node **rv)
+static struct rb_node *raw_rb_search(struct rb_node *tree, u64 key)
 {
 	struct rb_node *tmp;
 
-	if(!tree)
-		return false;
-
 	for(;;) {
 
-		if(!tree) {
-			return false;
-		}
+		if(!tree)
+			return NULL;
 
-		if(rb_unlinked(tree))
-			return true;
-
-		if(tree->key == key) {
-			*rv = tree;
-			return false;
-		}
+		if(tree->key == key)
+			return tree;
 
 		tmp = tree;
 		rb_lock_node(tmp);
@@ -171,18 +125,7 @@ static bool raw_rb_search(struct rb_node *tree, u64 key, struct rb_node **rv)
 		rb_unlock_node(tmp);
 	}
 
-	return false;
-}
-static struct rb_node *__rb_search(struct rb_node *tree, u64 key)
-{
-	bool again = true;
-	struct rb_node *node = NULL;
-
-	while(again) {
-		again = raw_rb_search(tree, key, &node);
-	}
-
-	return node;
+	return NULL;
 }
 #endif
 
@@ -192,7 +135,7 @@ struct rb_node *rb_find(struct rb_root *root, u64 key)
 		       *rv;
 
 	rn = rb_get_root(root);
-	rv = __rb_search(rn, key);
+	rv = raw_rb_search(rn, key);
 
 	return rv;
 }
@@ -343,7 +286,6 @@ struct rb_node *rb_insert_duplicate(struct rb_root *root,
 
 		if(rb_acquire_area_rr(root, gp, p, entry))
 			done = true;
-
 	} while(!done);
 
 	if(entry != node)
@@ -444,23 +386,16 @@ static struct rb_node *rb_find_insert(struct rb_root *root,
 	for(;;) {
 		rn = rb_get_root(root);
 
-		if(rb_unlinked(tree)) {
-			tree = rb_get_root(root);
-			continue;
-		}
-
 		if(!tree) {
 			return (tmp == rn) ? 
 				rn : tmp;
 		}
 
 		tmp = tree;
-		rb_lock_node(tmp);
 		if(node->key <= tree->key)
 			tree = tree->left;
 		else
 			tree = tree->right;
-		rb_unlock_node(tmp);
 	}
 
 	return node;
@@ -642,11 +577,6 @@ static rb_insert_t rb_attempt_insert(struct rb_root *root,
 	if(!rb_acquire_area_rr(root, gp, parent, node))
 		return rv;
 
-	if(rb_unlinked(node)) {
-		rb_release_area_rr(gp, parent, node);
-		return rv;
-	}
-
 	if(rn == rb_get_root(root)) {
 		if(new->key <= node->key && !node->left) {
 			node->left = new;
@@ -673,8 +603,6 @@ static void __rb_insert(struct rb_root *root, struct rb_node *new)
 	
 	do {
 		node = rb_find_insert(root, new);
-		if(node && rb_unlinked(node))
-			continue;
 
 		if(!node) {
 			rb_lock_root(root);
@@ -756,6 +684,9 @@ static void rb_replace_node(struct rb_root *root,
 	replacement->left = orig->left;
 	replacement->right = orig->right;
 	replacement->parent = orig->parent;
+
+	replacement->next = orig->next;
+	replacement->prev = orig->prev;
 
 	if(orig->left)
 		orig->left->parent = replacement;
@@ -1014,16 +945,14 @@ static inline bool rb_acquire_area_bb(struct rb_root *root,
 
 	return true;
 }
-#if 0
+#if 1
 static bool __rb_remove_duplicate(struct rb_root *root,
 				      struct rb_node      *node,
 				      const void *arg)
 {
 	struct rb_node *replacement, *tmp,
 		      *gp, *p, *s;
-
-	if(!node)
-		return false;
+	struct rb_node *nxt, *prev;
 
 	gp = rb_grandparent(node);
 	p = node->parent;
@@ -1033,6 +962,7 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 		return false;
 
 	if(!rb_node_has_duplicates(node)) {
+		clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
 		rb_release_area_bb(gp, p, node, s);
 		return false;
 	}
@@ -1041,24 +971,25 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	
 	if(tmp == node) {
 		replacement = node->next;
+		rb_lock_node(replacement);
 
 		if(!replacement) {
 			clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
+			rb_unlock_node(replacement);
 			rb_release_area_bb(gp, p, node, s);
 			return false;
 		}
+		nxt = replacement->next;
+		prev = NULL;
 
-		replacement->prev = NULL;
 		set_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
-		rb_lock_node(replacement);
-		
 		rb_replace_node(root, node, replacement);
-		
+		replacement->next = nxt;
+		replacement->prev = prev;
+
 		node->left = node->right = node->parent = NULL;
-		clear_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
-
-		rb_unlock_node(replacement);
-
+		clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
+		rb_unlock_node(node);
 		node = replacement;
 	} else {
 		rb_pop(tmp);
@@ -1073,6 +1004,8 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	return true;
 }
 #else
+static struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
+		struct rb_node *orig);
 static bool __rb_remove_duplicate(struct rb_root *root,
 				      struct rb_node      *node,
 				      const void *arg)
@@ -1098,24 +1031,12 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	if(root->iterate(node, arg)) {
 		/* replace *node* with node::duplicates::next */
 		replacement = node->next;
-		if(!replacement) {
-			clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
-			rb_release_area_bb(gp, p, node, s);
-			return false;
-		}
-		
-		rb_lock_node(replacement);
-
 		replacement->prev = NULL;
-		node->left = node->right = node->parent = NULL;
-
-		set_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
-		rb_replace_node(root, node, replacement);
-		clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
+		node->next = NULL;
+		raw_rb_remove(root, node, NULL);
+		rb_insert(root, replacement, true);
 
 		tmp = replacement;
-		rb_unlock_node(replacement);
-
 	} else {
 		tmp = node;
 		for(tmp = tmp->next; tmp; tmp = tmp->next) {
@@ -1146,9 +1067,6 @@ static struct rb_node *raw_rb_balance_bb(struct rb_root *root,
 	struct rb_node *sr, *sl,
 		      *rv;
 	bool ndir;
-
-	if(rb_unlinked(node))
-		return node;
 
 	assert(s != NULL);
 	assert(p != NULL);
@@ -1381,7 +1299,7 @@ static rb_delete_t rb_do_remove(struct rb_root *root,
 	return action;
 }
 
-struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
+static struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
 		struct rb_node *orig)
 {
 	struct rb_node *gp, *p, *s,
@@ -1416,18 +1334,16 @@ struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
 			rb_release_area_bb(gp, p, node, s);
 			return NULL;
 		}
-		rb_acquire_root(root);
 
 		if(raw_rb_remove(root, replacement, node) != replacement) {
-			rb_release_root(root);
 			rb_release_area_bb(gp, p, node, s);
 			return NULL;
 		} else {
 			rb_lock_node(replacement);
 			rb_replace_node(root, node, replacement);
-			clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
-			rb_unlock_node(replacement);
-			rb_release_root(root);
+			set_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
+			rb_unlock_node(node);
+			node = replacement;
 		}
 	} else {
 		if(!node->left && !node->right) {
@@ -1472,9 +1388,7 @@ struct rb_node *rb_remove(struct rb_root *root,
 			continue;
 
 		if(test_bit(RB_NODE_HAS_DUPLICATES_FLAG, &find->flags)) {
-			rb_acquire_root(root);
 			done =__rb_remove_duplicate(root, find, arg);
-			rb_release_root(root);
 		} else {
 			if(raw_rb_remove(root, find, NULL))
 				done = true;

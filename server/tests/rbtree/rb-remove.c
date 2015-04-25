@@ -93,6 +93,7 @@ void *test_thread_b(void *arg)
 	int idx;
 
 	printf("Thread 2 starting\n");
+	rb_remove(&root, 18, (char*)node_data1);
 	rb_remove(&root, 18, (char*)node_data3);
 	for(idx = 11; idx <= 20; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
@@ -104,8 +105,8 @@ void *test_thread_c(void *arg)
 {
 	int idx;
 
-	printf("Thread 3 starting\n");
 	rb_remove(&root, 18, (char*)node_data2);
+	printf("Thread 3 starting\n");
 	for(idx = 1; idx <= 10; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
 

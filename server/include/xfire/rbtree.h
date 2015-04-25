@@ -46,23 +46,17 @@ typedef struct rb_root {
 	u32 height;
 	u64 num;
 	xfire_spinlock_t lock;
-	atomic_flags_t flags;
-
-	xfire_mutex_t clock;
-	xfire_cond_t condi;
 
 	bool (*iterate)(struct rb_node *node,const void*);
 
 } RB_ROOT;
 
-#define RBROOT_BUSY_FLAG 0
-
-#define RB_NODE_ACQUIRED_FLAG	   0
-#define RB_NODE_UNLINKED_FLAG	   1
-#define RB_NODE_DBLK_FLAG	   2
-#define RB_NODE_REMOVE_FLAG	   3
-#define RB_NODE_RED_FLAG	   4
-#define RB_NODE_HAS_DUPLICATES_FLAG     5
+#define RB_NODE_ACQUIRED_FLAG		0
+#define RB_NODE_UNLINKED_FLAG		1
+#define RB_NODE_DBLK_FLAG		2
+#define RB_NODE_REMOVE_FLAG		3
+#define RB_NODE_HAS_DUPLICATES_FLAG	4
+#define RB_NODE_RED_FLAG		5
 
 #define RB_RED 		true
 #define RB_BLACK 	false
