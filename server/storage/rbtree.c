@@ -968,6 +968,11 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	}
 
 	tmp = rb_find_duplicate(root, node->key, root->iterate, arg);
+
+	if(test_bit(RB_NODE_ACQUIRED_FLAG, &tmp->flags)) {
+		rb_release_area_bb(gp, p, node, s);
+		return false;
+	}
 	
 	if(tmp == node) {
 		replacement = node->next;
@@ -1314,7 +1319,8 @@ static struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
 	if(!rb_acquire_area_bb(root, gp, p, node, s))
 		return NULL;
 
-	if(rb_dblk(node) || rb_unlinked(node)) {
+	if(rb_dblk(node) || rb_unlinked(node) ||
+			test_bit(RB_NODE_ACQUIRED_FLAG, &node->flags)) {
 		rb_release_area_bb(gp, p, node, s);
 		return NULL;
 	}
