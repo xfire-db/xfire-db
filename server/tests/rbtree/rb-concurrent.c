@@ -60,7 +60,7 @@ static void test_rb_insert(struct rb_root *root, int key)
 	rb_init_node(&node->node);
 	rb_set_key(&node->node, key);
 	node->data = node_data;
-	rb_insert(root, &node->node);
+	rb_insert(root, &node->node, false);
 }
 
 void *test_thread_a(void *arg)

@@ -100,7 +100,7 @@ static void test_rb_insert(struct rb_root *root, int key)
 	rb_init_node(&node->node);
 	rb_set_key(&node->node, key);
 	node->data = "Hello World!";
-	rb_insert(root, &node->node);
+	rb_insert(root, &node->node, false);
 }
 
 static void test_incremental(void)

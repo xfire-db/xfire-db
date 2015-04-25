@@ -58,7 +58,7 @@ static void test_rb_insert(struct rb_root *root, int key)
 	rb_init_node(&node->node);
 	rb_set_key(&node->node, key);
 	node->data = node_data1;
-	rb_insert(root, &node->node);
+	rb_insert(root, &node->node, false);
 }
 
 static void test_insert_duplicate(struct rb_root *root, int key,
@@ -73,7 +73,7 @@ static void test_insert_duplicate(struct rb_root *root, int key,
 	rb_init_node(&node->node);
 	rb_set_key(&node->node, key);
 	node->data = data;
-	rb_insert_duplicate(root, &node->node);
+	rb_insert(root, &node->node, true);
 }
 
 void *test_thread_a(void *arg)
@@ -93,7 +93,6 @@ void *test_thread_b(void *arg)
 	int idx;
 
 	printf("Thread 2 starting\n");
-	rb_remove(&root, 18, (char*)node_data2);
 	rb_remove(&root, 18, (char*)node_data3);
 	for(idx = 11; idx <= 20; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
@@ -106,7 +105,7 @@ void *test_thread_c(void *arg)
 	int idx;
 
 	printf("Thread 3 starting\n");
-	rb_remove(&root, 18, (char*)node_data1);
+	rb_remove(&root, 18, (char*)node_data2);
 	for(idx = 1; idx <= 10; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
 
@@ -120,8 +119,8 @@ void rb_setup_tree(void)
 	for(idx = 1; idx <= 20; idx += 100)
 		test_rb_insert(&root, idx);
 
-	//test_insert_duplicate(&root, 18, node_data2);
-	//test_insert_duplicate(&root, 18, node_data3);
+	test_insert_duplicate(&root, 18, node_data2);
+	test_insert_duplicate(&root, 18, node_data3);
 }
 
 int main(int argc, char **argv)
@@ -131,8 +130,8 @@ int main(int argc, char **argv)
 	struct data_node *dnode;
 
 	memset(&root, 0, sizeof(root));
-	root.iterate = &compare_node;
 	rb_init_root(&root);
+	root.iterate = &compare_node;
 
 	rb_setup_tree();
 

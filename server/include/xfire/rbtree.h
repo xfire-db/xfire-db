@@ -46,8 +46,10 @@ typedef struct rb_root {
 	u32 height;
 	u64 num;
 	xfire_spinlock_t lock;
-
 	atomic_flags_t flags;
+
+	xfire_mutex_t clock;
+	xfire_cond_t condi;
 
 	bool (*iterate)(struct rb_node *node,const void*);
 
@@ -59,7 +61,8 @@ typedef struct rb_root {
 #define RB_NODE_UNLINKED_FLAG	   1
 #define RB_NODE_DBLK_FLAG	   2
 #define RB_NODE_REMOVE_FLAG	   3
-#define RB_NODE_RED_FLAG		   4
+#define RB_NODE_RED_FLAG	   4
+#define RB_NODE_HAS_DUPLICATES_FLAG     5
 
 #define RB_RED 		true
 #define RB_BLACK 	false
@@ -68,7 +71,7 @@ CDECL
 extern void rb_init_root(struct rb_root *root);
 extern struct rb_node *rb_insert_duplicate(struct rb_root *root,
 					      struct rb_node      *node);
-extern struct rb_node *rb_insert(struct rb_root *, struct rb_node*);
+extern struct rb_node *rb_insert(struct rb_root *, struct rb_node*,bool);
 extern struct rb_node *rb_find(struct rb_root *root, u64 key);
 extern void rb_dump(struct rb_root *root, FILE *stream);
 extern void rb_iterate(struct rb_root *root,
@@ -93,6 +96,11 @@ static inline void rb_set_key(struct rb_node *tree, u64 key)
 		return;
 
 	tree->key = key;
+}
+
+static inline bool rb_node_has_duplicates(struct rb_node *node)
+{
+	return node->next != NULL;
 }
 
 static inline struct rb_node *rb_get_root(struct rb_root *root)
