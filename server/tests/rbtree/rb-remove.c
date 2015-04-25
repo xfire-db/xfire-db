@@ -24,8 +24,8 @@
 #include <xfire/rbtree.h>
 #include <xfire/os.h>
 
-struct rbtree_node {
-	struct rbtree node;
+struct data_node {
+	struct rb_node node;
 	const char *data;
 };
 
@@ -33,47 +33,47 @@ static const char node_data1[] = "Hello World!";
 static const char node_data2[] = "Hello World 2!";
 static const char node_data3[] = "Hello World 3!";
 
-static struct rbtree_root root;
+static struct rb_root root;
 
-static bool compare_node(struct rbtree *node, const void *arg)
+static bool compare_node(struct rb_node *node, const void *arg)
 {
 
-	struct rbtree_node *container;
+	struct data_node *container;
 
-	container = container_of(node, struct rbtree_node, node);
+	container = container_of(node, struct data_node, node);
 	if(!strcmp(container->data, arg))
 		return true;
 
 	return false;
 }
 
-static void test_rbtree_insert(struct rbtree_root *root, int key)
+static void test_rb_insert(struct rb_root *root, int key)
 {
-	struct rbtree_node *node;
+	struct data_node *node;
 
 	node = malloc(sizeof(*node));
 	if(!node)
 		return;
 
-	rbtree_init_node(&node->node);
-	rbtree_set_key(&node->node, key);
+	rb_init_node(&node->node);
+	rb_set_key(&node->node, key);
 	node->data = node_data1;
-	rbtree_insert(root, &node->node);
+	rb_insert(root, &node->node);
 }
 
-static void test_insert_duplicate(struct rbtree_root *root, int key,
+static void test_insert_duplicate(struct rb_root *root, int key,
 		const char *data)
 {
-	struct rbtree_node *node;
+	struct data_node *node;
 
 	node = malloc(sizeof(*node));
 	if(!node)
 		return;
 
-	rbtree_init_node(&node->node);
-	rbtree_set_key(&node->node, key);
+	rb_init_node(&node->node);
+	rb_set_key(&node->node, key);
 	node->data = data;
-	rbtree_insert_duplicate(root, &node->node);
+	rb_insert_duplicate(root, &node->node);
 }
 
 void *test_thread_a(void *arg)
@@ -82,7 +82,7 @@ void *test_thread_a(void *arg)
 
 	printf("Thread 1 starting\n");
 	for(idx = 21; idx <= 30; idx++)
-		test_rbtree_insert(&root, idx);
+		test_rb_insert(&root, idx);
 
 	test_insert_duplicate(&root, 24, node_data3);
 	xfire_thread_exit(NULL);
@@ -93,10 +93,10 @@ void *test_thread_b(void *arg)
 	int idx;
 
 	printf("Thread 2 starting\n");
-	rbtree_remove(&root, 18, (char*)node_data2);
-	rbtree_remove(&root, 18, (char*)node_data3);
+	rb_remove(&root, 18, (char*)node_data2);
+	rb_remove(&root, 18, (char*)node_data3);
 	for(idx = 11; idx <= 20; idx++)
-		rbtree_remove(&root, idx, (char*)node_data1);
+		rb_remove(&root, idx, (char*)node_data1);
 
 	xfire_thread_exit(NULL);
 }
@@ -106,9 +106,9 @@ void *test_thread_c(void *arg)
 	int idx;
 
 	printf("Thread 3 starting\n");
-	rbtree_remove(&root, 18, (char*)node_data1);
+	rb_remove(&root, 18, (char*)node_data1);
 	for(idx = 1; idx <= 10; idx++)
-		rbtree_remove(&root, idx, (char*)node_data1);
+		rb_remove(&root, idx, (char*)node_data1);
 
 	xfire_thread_exit(NULL);
 }
@@ -118,7 +118,7 @@ void rb_setup_tree(void)
 	int idx;
 
 	for(idx = 1; idx <= 20; idx += 100)
-		test_rbtree_insert(&root, idx);
+		test_rb_insert(&root, idx);
 
 	//test_insert_duplicate(&root, 18, node_data2);
 	//test_insert_duplicate(&root, 18, node_data3);
@@ -127,12 +127,12 @@ void rb_setup_tree(void)
 int main(int argc, char **argv)
 {
 	struct thread *a, *b, *c;
-	struct rbtree *node;
-	struct rbtree_node *dnode;
+	struct rb_node *node;
+	struct data_node *dnode;
 
 	memset(&root, 0, sizeof(root));
 	root.iterate = &compare_node;
-	rbtree_init_root(&root);
+	rb_init_root(&root);
 
 	rb_setup_tree();
 
@@ -148,11 +148,11 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(b);
 	xfire_destroy_thread(c);
 
-	node = rbtree_find_duplicate(&root, 24, &compare_node,
+	node = rb_find_duplicate(&root, 24, &compare_node,
 			(char*)node_data3);
 
 	if(node) {
-		dnode = container_of(node, struct rbtree_node, node);
+		dnode = container_of(node, struct data_node, node);
 		printf("Found node: <\"%llu\",\"%s\">\n",
 				(unsigned long long)node->key,
 				dnode->data);
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 		printf("Node not found!\n");
 	}
 
-	rbtree_dump(&root,stdout);
+	rb_dump(&root,stdout);
 	return -EXIT_SUCCESS;
 }
 

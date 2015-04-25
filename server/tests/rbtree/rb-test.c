@@ -23,17 +23,17 @@
 
 #include <xfire/rbtree.h>
 
-struct rbtree_node {
-	struct rbtree node;
+struct data_node {
+	struct rb_node node;
 	const char *data;
 };
 
-static bool compare_node(struct rbtree *node, const void *arg)
+static bool compare_node(struct rb_node *node, const void *arg)
 {
 
-	struct rbtree_node *container;
+	struct data_node *container;
 
-	container = container_of(node, struct rbtree_node, node);
+	container = container_of(node, struct data_node, node);
 	if(!strcmp(container->data, arg))
 		return true;
 
@@ -42,41 +42,41 @@ static bool compare_node(struct rbtree *node, const void *arg)
 
 /*static void test_tree_increasing(void)
 {
-	struct rbtree_root root;
-	struct rbtree_node *node;
-	struct rbtree *find;
+	struct rb_root root;
+	struct data_node *node;
+	struct rb_node *find;
 	int i = 1;
 
 	memset(&root, 0, sizeof(root));
 	root.iterate = &compare_node;
-	rbtree_init_root(&root);
+	rb_init_root(&root);
 
 	for(; i <= 9; i++) {
 		node = malloc(sizeof(*node));
-		rbtree_init_node(&node->node);
-		rbtree_set_key(&node->node, i);
+		rb_init_node(&node->node);
+		rb_set_key(&node->node, i);
 		node->data = "Hello World!";
-		rbtree_insert_duplicate(&root, &node->node);
+		rb_insert_duplicate(&root, &node->node);
 
 		if(i == 7) {
 			node = malloc(sizeof(*node));
-			rbtree_init_node(&node->node);
-			rbtree_set_key(&node->node, i);
+			rb_init_node(&node->node);
+			rb_set_key(&node->node, i);
 			node->data = "Hello World 2!";
-			rbtree_insert_duplicate(&root, &node->node);
+			rb_insert_duplicate(&root, &node->node);
 
 			node = malloc(sizeof(*node));
-			rbtree_init_node(&node->node);
-			rbtree_set_key(&node->node, i);
+			rb_init_node(&node->node);
+			rb_set_key(&node->node, i);
 			node->data = "Hello World 3!";
-			rbtree_insert_duplicate(&root, &node->node);
+			rb_insert_duplicate(&root, &node->node);
 		}
 	}
 
-	rbtree_remove(&root, 5, "Hello World!");
-	rbtree_remove(&root, 7, "Hello World!");
+	rb_remove(&root, 5, "Hello World!");
+	rb_remove(&root, 7, "Hello World!");
 
-	find = rbtree_find_duplicate(&root, 7, &compare_node, "Hello World 3!");
+	find = rb_find_duplicate(&root, 7, &compare_node, "Hello World 3!");
 
 	if(find) {
 		printf("[OK] Duplicate has been replaced!\n");
@@ -86,62 +86,62 @@ static bool compare_node(struct rbtree *node, const void *arg)
 
 
 	printf("Tree height: %u\n", (unsigned int)root.height);
-	rbtree_dump(&root, stdout);
+	rb_dump(&root, stdout);
 }*/
 
-static void test_rbtree_insert(struct rbtree_root *root, int key)
+static void test_rb_insert(struct rb_root *root, int key)
 {
-	struct rbtree_node *node;
+	struct data_node *node;
 
 	node = malloc(sizeof(*node));
 	if(!node)
 		return;
 
-	rbtree_init_node(&node->node);
-	rbtree_set_key(&node->node, key);
+	rb_init_node(&node->node);
+	rb_set_key(&node->node, key);
 	node->data = "Hello World!";
-	rbtree_insert(root, &node->node);
+	rb_insert(root, &node->node);
 }
 
 static void test_incremental(void)
 {
-	struct rbtree_root root;
+	struct rb_root root;
 	int i;
 
 	memset(&root, 0, sizeof(root));
-	rbtree_init_root(&root);
+	rb_init_root(&root);
 	root.iterate = &compare_node;
 
 	for(i = 1; i <= 9; i++)
-		test_rbtree_insert(&root, i);
+		test_rb_insert(&root, i);
 
-	rbtree_remove(&root, 6, "Hello World!");
+	rb_remove(&root, 6, "Hello World!");
 
-	rbtree_dump(&root, stdout);
+	rb_dump(&root, stdout);
 }
 
 static void test_tree_random(void)
 {
-	struct rbtree_root root;
+	struct rb_root root;
 
 	memset(&root, 0, sizeof(root));
-	rbtree_init_root(&root);
+	rb_init_root(&root);
 
-	test_rbtree_insert(&root, 20);;
-	test_rbtree_insert(&root, 10);
-	test_rbtree_insert(&root, 30);
-	test_rbtree_insert(&root, 40);
-	test_rbtree_insert(&root, 27);
-	test_rbtree_insert(&root, 25);
-	test_rbtree_insert(&root, 28);
-	test_rbtree_insert(&root, 26);
+	test_rb_insert(&root, 20);;
+	test_rb_insert(&root, 10);
+	test_rb_insert(&root, 30);
+	test_rb_insert(&root, 40);
+	test_rb_insert(&root, 27);
+	test_rb_insert(&root, 25);
+	test_rb_insert(&root, 28);
+	test_rb_insert(&root, 26);
 
-	//rbtree_remove(&root, 27, "Hello World!");
+	//rb_remove(&root, 27, "Hello World!");
 
 	/*if(root.tree->key == 26ULL)
 		printf("[OK] Root removal OK\n");*/
 
-	rbtree_dump(&root, stdout);
+	rb_dump(&root, stdout);
 }
 
 int main(int argc, char **argv)

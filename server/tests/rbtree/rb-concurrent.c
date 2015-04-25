@@ -24,43 +24,43 @@
 #include <xfire/rbtree.h>
 #include <xfire/os.h>
 
-struct rbtree_node {
-	struct rbtree node;
+struct data_node {
+	struct rb_node node;
 	const char *data;
 };
 
-static struct rbtree_root root;
+static struct rb_root root;
 
 static const char node_data[] = "Hello World!";
 static const char node_data2[] = "Hello World, again!";
 
-static bool compare_node(struct rbtree *node, const void *arg)
+static bool compare_node(struct rb_node *node, const void *arg)
 {
 
-	struct rbtree_node *container;
+	struct data_node *container;
 
 	if(!node)
 		return false;
 
-	container = container_of(node, struct rbtree_node, node);
+	container = container_of(node, struct data_node, node);
 	if(!strcmp(container->data, arg))
 		return true;
 
 	return false;
 }
 
-static void test_rbtree_insert(struct rbtree_root *root, int key)
+static void test_rb_insert(struct rb_root *root, int key)
 {
-	struct rbtree_node *node;
+	struct data_node *node;
 
 	node = malloc(sizeof(*node));
 	if(!node)
 		return;
 
-	rbtree_init_node(&node->node);
-	rbtree_set_key(&node->node, key);
+	rb_init_node(&node->node);
+	rb_set_key(&node->node, key);
 	node->data = node_data;
-	rbtree_insert(root, &node->node);
+	rb_insert(root, &node->node);
 }
 
 void *test_thread_a(void *arg)
@@ -69,7 +69,7 @@ void *test_thread_a(void *arg)
 
 	printf("Thread 1 starting\n");
 	for(idx = 11; idx <= 20; idx++)
-		test_rbtree_insert(&root, idx);
+		test_rb_insert(&root, idx);
 
 	xfire_thread_exit(NULL);
 }
@@ -80,7 +80,7 @@ void *test_thread_b(void *arg)
 
 	printf("Thread 2 starting\n");
 	for(idx = 1; idx <= 10; idx++)
-		test_rbtree_insert(&root, idx);
+		test_rb_insert(&root, idx);
 
 	xfire_thread_exit(NULL);
 }
@@ -91,7 +91,7 @@ void *test_thread_c(void *arg)
 
 	printf("Thread 3 starting\n");
 	for(idx = 13; idx <= 20; idx++)
-		rbtree_remove(&root, idx, (char*)node_data);
+		rb_remove(&root, idx, (char*)node_data);
 
 	xfire_thread_exit(NULL);
 }
@@ -101,7 +101,7 @@ void *test_thread_d(void *arg)
 
 	printf("Thread 4 starting\n");
 	for(idx = 3; idx <= 10; idx++)
-		rbtree_remove(&root, idx, (char*)node_data);
+		rb_remove(&root, idx, (char*)node_data);
 
 	xfire_thread_exit(NULL);
 }
@@ -110,12 +110,12 @@ void *test_thread_d(void *arg)
 int main(int argc, char **argv)
 {
 	struct thread *a, *b;
-	struct rbtree *node;
-	struct rbtree_node *dnode;
+	struct rb_node *node;
+	struct data_node *dnode;
 
 	memset(&root, 0, sizeof(root));
 	root.iterate = &compare_node;
-	rbtree_init_root(&root);
+	rb_init_root(&root);
 
 	/* insert */
 	a = xfire_create_thread("thread a", &test_thread_b, NULL);
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(a);
 	xfire_destroy_thread(b);
 
-	rbtree_dump(&root,stdout);
+	rb_dump(&root,stdout);
 	
 	/* removal */
 	a = xfire_create_thread("thread c", &test_thread_c, NULL);
@@ -139,10 +139,10 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(a);
 	xfire_destroy_thread(b);
 
-	node = rbtree_find(&root, 12);
+	node = rb_find(&root, 12);
 
 	if(node) {
-		dnode = container_of(node, struct rbtree_node, node);
+		dnode = container_of(node, struct data_node, node);
 		printf("Found node: <\"%llu\",\"%s\">\n",
 				(unsigned long long)node->key,
 				dnode->data);
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 		printf("Node not found!\n");
 	}
 
-	rbtree_dump(&root,stdout);
+	rb_dump(&root,stdout);
 	fputc('\n', stdout);
 	return -EXIT_SUCCESS;
 }
