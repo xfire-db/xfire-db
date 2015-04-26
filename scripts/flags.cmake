@@ -11,6 +11,8 @@ endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 set(DEBUG_FLAGS "")
 if(XFIRE_DEBUG)
 	set(DEBUG_FLAGS -g)
+else(XFIRE_DEBUG)
+	set(DEBUG_FLAGS "-fomit-frame-pointer")
 endif(XFIRE_DEBUG)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COMPILE_FLAGS} ${DEBUG_FLAGS}")

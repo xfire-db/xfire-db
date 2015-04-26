@@ -8,11 +8,11 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
-add_library(xfire-os SHARED
+add_library(xfireos SHARED
 	    ${XFIRE_OS_FILES}
 	    )
 
 
-install (TARGETS xfire-os
+install (TARGETS xfireos
 	LIBRARY DESTINATION lib
 	)

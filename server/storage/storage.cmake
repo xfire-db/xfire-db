@@ -2,7 +2,7 @@
 # Build the storage library
 #
 
-add_library(xfire-storage SHARED
+add_library(xfirestorage SHARED
 	storage/rbtree.c
 	storage/database.c
 	storage/hashmap.c
@@ -12,8 +12,8 @@ add_library(xfire-storage SHARED
 	include/xfire/hashmap.h
 	)
 
-target_link_libraries(xfire-storage LINK_PUBLIC xfire xfire-os)
+target_link_libraries(xfirestorage LINK_PUBLIC xfire xfireos)
 
-install (TARGETS xfire-storage
+install (TARGETS xfirestorage
 	LIBRARY DESTINATION lib
 	)

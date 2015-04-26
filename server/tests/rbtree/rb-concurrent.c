@@ -80,7 +80,7 @@ void *test_thread_d(void *arg)
 {
 	int idx;
 
-	printf("Thread 1 starting\n");
+	printf("Thread 2 starting\n");
 	for(idx = 31; idx <= 40; idx++)
 		test_rb_insert(&root, idx);
 
@@ -103,7 +103,7 @@ void *test_thread_b(void *arg)
 {
 	int idx;
 
-	printf("Thread 2 starting\n");
+	printf("Thread 3 starting\n");
 	rb_remove(&root, 18, (char*)node_data1);
 	rb_remove(&root, 18, (char*)node_data3);
 	for(idx = 11; idx <= 20; idx++)
@@ -117,7 +117,7 @@ void *test_thread_c(void *arg)
 	int idx;
 
 	rb_remove(&root, 18, (char*)node_data2);
-	printf("Thread 3 starting\n");
+	printf("Thread 4 starting\n");
 	for(idx = 1; idx <= 10; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
 
