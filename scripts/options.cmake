@@ -9,6 +9,10 @@ option (XFIRE_DEBUG
 	"Set to true if debugging options should be enabled"
 	[false])
 
+option (RECURSION
+	"Set to true if search functions should use recursion."
+	[false])
+
 set(HAVE_DBG "")
 if(XFIRE_DEBUG)
 	set(HAVE_DBG "#define HAVE_DBG")
@@ -18,3 +22,8 @@ endif(XFIRE_DEBUG)
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(HAVE_LINUX "#define HAVE_LINUX")
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+
+set(HAVE_RECURSION "")
+if(RECURSION)
+	set(HAVE_RECURSION "#define HAVE_RECURSION")
+endif(RECURSION)

@@ -84,7 +84,7 @@ static void rb_unlock_node(struct rb_node *node)
 }
 
 #ifdef HAVE_RECURSION
-static struct rbtree *raw_rb_search(struct rb_node *tree, u64 key)
+static struct rb_node *raw_rb_search(struct rb_node *tree, u64 key)
 {
 	struct rb_node *next;
 
@@ -101,7 +101,7 @@ static struct rbtree *raw_rb_search(struct rb_node *tree, u64 key)
 		next = tree->right;
 	rb_unlock_node(tree);
 
-	return raw_rb_search(next, key, rv);
+	return raw_rb_search(next, key);
 }
 #else
 static struct rb_node *raw_rb_search(struct rb_node *tree, u64 key)

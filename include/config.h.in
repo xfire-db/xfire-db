@@ -7,5 +7,6 @@
 
 ${HAVE_DBG}
 ${HAVE_LINUX}
+${HAVE_RECURSION}
 
 #endif
