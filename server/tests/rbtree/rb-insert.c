@@ -40,55 +40,6 @@ static bool compare_node(struct rb_node *node, const void *arg)
 	return false;
 }
 
-/*static void test_tree_increasing(void)
-{
-	struct rb_root root;
-	struct data_node *node;
-	struct rb_node *find;
-	int i = 1;
-
-	memset(&root, 0, sizeof(root));
-	root.iterate = &compare_node;
-	rb_init_root(&root);
-
-	for(; i <= 9; i++) {
-		node = malloc(sizeof(*node));
-		rb_init_node(&node->node);
-		rb_set_key(&node->node, i);
-		node->data = "Hello World!";
-		rb_insert_duplicate(&root, &node->node);
-
-		if(i == 7) {
-			node = malloc(sizeof(*node));
-			rb_init_node(&node->node);
-			rb_set_key(&node->node, i);
-			node->data = "Hello World 2!";
-			rb_insert_duplicate(&root, &node->node);
-
-			node = malloc(sizeof(*node));
-			rb_init_node(&node->node);
-			rb_set_key(&node->node, i);
-			node->data = "Hello World 3!";
-			rb_insert_duplicate(&root, &node->node);
-		}
-	}
-
-	rb_remove(&root, 5, "Hello World!");
-	rb_remove(&root, 7, "Hello World!");
-
-	find = rb_find_duplicate(&root, 7, &compare_node, "Hello World 3!");
-
-	if(find) {
-		printf("[OK] Duplicate has been replaced!\n");
-		if(find->parent->key == 6ULL)
-			printf("[OK] RBTree structure OK\n");
-	}
-
-
-	printf("Tree height: %u\n", (unsigned int)root.height);
-	rb_dump(&root, stdout);
-}*/
-
 static void test_rb_insert(struct rb_root *root, int key)
 {
 	struct data_node *node;
@@ -103,7 +54,7 @@ static void test_rb_insert(struct rb_root *root, int key)
 	rb_insert(root, &node->node, false);
 }
 
-static void test_incremental(void)
+static void test_tree_incremental(void)
 {
 	struct rb_root root;
 	int i;
@@ -112,12 +63,11 @@ static void test_incremental(void)
 	rb_init_root(&root);
 	root.iterate = &compare_node;
 
-	for(i = 1; i <= 9; i++)
+	for(i = 1; i <= 10; i++)
 		test_rb_insert(&root, i);
 
-	rb_remove(&root, 6, "Hello World!");
-
 	rb_dump(&root, stdout);
+	fputc('\n', stdout);
 }
 
 static void test_tree_random(void)
@@ -136,19 +86,12 @@ static void test_tree_random(void)
 	test_rb_insert(&root, 28);
 	test_rb_insert(&root, 26);
 
-	//rb_remove(&root, 27, "Hello World!");
-
-	/*if(root.tree->key == 26ULL)
-		printf("[OK] Root removal OK\n");*/
-
 	rb_dump(&root, stdout);
 }
 
 int main(int argc, char **argv)
 {
-	test_incremental();
-	//test_tree_increasing();
-	putc('\n', stdout);
+	test_tree_incremental();
 	test_tree_random();
 
 	return -EXIT_SUCCESS;
