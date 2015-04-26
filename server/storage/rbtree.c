@@ -388,6 +388,34 @@ static inline bool rb_node_is_right(struct rb_node *node)
 		return false;
 }
 
+#ifdef HAVE_RECURSION
+static struct rb_node *raw_rb_find_insert(struct rb_node *node,
+					  struct rb_node *prev,
+					  u64 key)
+{
+	struct rb_node *tree = node;
+
+	if(!node)
+		return prev;
+
+	rb_lock_node(tree);
+	if(key <= node->key)
+		node = node->left;
+	else
+		node = node->right;
+	rb_unlock_node(tree);
+
+	return raw_rb_find_insert(node, tree, key);
+}
+
+static struct rb_node *rb_find_insert(struct rb_root *root,
+					struct rb_node *node)
+{
+	struct rb_node *rn = rb_get_root(root);
+
+	return raw_rb_find_insert(rn, NULL, node->key);
+}
+#else
 static struct rb_node *rb_find_insert(struct rb_root *root,
 		struct rb_node *node)
 {
@@ -415,6 +443,7 @@ static struct rb_node *rb_find_insert(struct rb_root *root,
 
 	return node;
 }
+#endif
 
 typedef enum {
 	INSERT_SUCCESS,
@@ -654,6 +683,41 @@ static inline struct rb_node *rb_far_nephew(struct rb_node *node)
 	return rv;
 }
 
+#ifdef HAVE_RECURSION
+struct rb_node *rb_find_rightmost(struct rb_node *tree)
+{
+	struct rb_node *node = tree;
+
+	if(!tree)
+		return NULL;
+
+	rb_lock_node(node);
+	tree = tree->right;
+	rb_unlock_node(node);
+
+	if(!tree)
+		return node;
+
+	return rb_find_leftmost(tree);
+}
+
+struct rb_node *rb_find_leftmost(struct rb_node *tree)
+{
+	struct rb_node *node = tree;
+
+	if(!tree)
+		return NULL;
+
+	rb_lock_node(node);
+	tree = tree->left;
+	rb_unlock_node(node);
+
+	if(!tree)
+		return node;
+
+	return rb_find_leftmost(tree);
+}
+#else
 struct rb_node *rb_find_leftmost(struct rb_node *tree)
 {
 	struct rb_node *tmp;
@@ -695,6 +759,7 @@ struct rb_node *rb_find_rightmost(struct rb_node *tree)
 		rb_unlock_node(tmp);
 	}
 }
+#endif
 
 static struct rb_node *rb_find_replacement(struct rb_node *node)
 {
