@@ -46,7 +46,7 @@ typedef struct rb_root {
 	atomic64_t num;
 	xfire_spinlock_t lock;
 
-	bool (*iterate)(struct rb_node *node,const void*);
+	bool (*cmp)(struct rb_node *node,const void*);
 
 } RB_ROOT;
 
@@ -72,14 +72,14 @@ extern struct rb_node *rb_find_leftmost(struct rb_node *tree);
 extern struct rb_node *rb_find_rightmost(struct rb_node *tree);
 
 extern struct rb_node *rb_find_duplicate(struct rb_root *root, u64 key,
-		bool (*cmp)(struct rb_node*, const void*), const void *arg);
+						const void *arg);
 extern struct rb_node *rb_remove(struct rb_root *root,
 				    u64 key, const void *arg);
 extern void rb_init_node(struct rb_node *node);
 
 extern void rb_put_node(struct rb_node *node);
 extern struct rb_node *rb_get_node(struct rb_root *root, u64 key,
-		bool (*cmp)(struct rb_node*, const void*), const void *arg);
+					const void *arg);
 extern struct rb_node *__rb_get_node(struct rb_node *node);
 
 static inline void rb_set_key(struct rb_node *tree, u64 key)

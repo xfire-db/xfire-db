@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 
 	memset(&root, 0, sizeof(root));
 	rb_init_root(&root);
-	root.iterate = &compare_node;
+	root.cmp = &compare_node;
 
 	rb_setup_tree();
 
@@ -164,11 +164,9 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(c);
 	xfire_destroy_thread(d);
 
-	node1 = rb_find_duplicate(&root, 24, &compare_node,
-			(char*)node_data3);
+	node1 = rb_find_duplicate(&root, 24, (char*)node_data3);
 
-	node2 = rb_find_duplicate(&root, 23, &compare_node,
-			(char*)node_data1);
+	node2 = rb_find_duplicate(&root, 23, (char*)node_data1);
 
 	if(node1) {
 		dnode1 = container_of(node1, struct data_node, node);

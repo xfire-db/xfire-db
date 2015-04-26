@@ -82,7 +82,7 @@ static void test_remove_tree(void)
 int main(int argc, char **argv)
 {
 	memset(&root, 0, sizeof(root));
-	root.iterate = &compare_node;
+	root.cmp = &compare_node;
 	rb_init_root(&root);
 
 	test_setup_tree();

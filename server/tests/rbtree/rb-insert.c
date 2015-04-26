@@ -61,7 +61,7 @@ static void test_tree_incremental(void)
 
 	memset(&root, 0, sizeof(root));
 	rb_init_root(&root);
-	root.iterate = &compare_node;
+	root.cmp = &compare_node;
 
 	for(i = 1; i <= 10; i++)
 		test_rb_insert(&root, i);
