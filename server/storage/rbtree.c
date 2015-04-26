@@ -420,17 +420,12 @@ static struct rb_node *rb_find_insert(struct rb_root *root,
 		struct rb_node *node)
 {
 	struct rb_node *tree,
-		      *tmp = NULL,
-		      *rn;
+		      *tmp = NULL;
 
 	tree = rb_get_root(root);
 	for(;;) {
-		rn = rb_get_root(root);
-
-		if(!tree) {
-			return (tmp == rn) ? 
-				rn : tmp;
-		}
+		if(!tree)
+			return tmp;
 
 		tmp = tree;
 		rb_lock_node(tmp);
@@ -698,7 +693,7 @@ struct rb_node *rb_find_rightmost(struct rb_node *tree)
 	if(!tree)
 		return node;
 
-	return rb_find_leftmost(tree);
+	return rb_find_rightmost(tree);
 }
 
 struct rb_node *rb_find_leftmost(struct rb_node *tree)
