@@ -11,7 +11,7 @@ option (XFIRE_DEBUG
 
 option (RECURSION
 	"Set to true if search functions should use recursion."
-	[false])
+	[true])
 
 set(HAVE_DBG "")
 if(XFIRE_DEBUG)
