@@ -52,6 +52,7 @@ void rb_init_node(struct rb_node *node)
 void rb_init_root(struct rb_root *root)
 {
 	xfire_spinlock_init(&root->lock);
+	atomic64_init(&root->num);
 }
 
 static inline void rb_lock_root(struct rb_root *root)
@@ -193,6 +194,7 @@ static void rb_lpush(struct rb_node *head, struct rb_node *node)
 
 static void rb_pop(struct rb_node *node)
 {
+
 	if(node->prev)
 		node->prev->next = node->next;
 	if(node->next)
@@ -237,6 +239,8 @@ void rb_put_node(struct rb_node *node)
 	rb_unlock_node(node);
 }
 
+static struct rb_node *rb_insert_duplicate(struct rb_root *root,
+				       struct rb_node *node);
 struct rb_node *rb_insert(struct rb_root *root, struct rb_node *node,
 		bool dup)
 {
@@ -252,6 +256,7 @@ struct rb_node *rb_insert(struct rb_root *root, struct rb_node *node,
 	else if(entry && dup)
 		return rb_insert_duplicate(root, node);
 
+	atomic64_inc(root->num);
 	if(!rb_get_root(root)) {
 		rb_lock_root(root);
 		if(!root->tree) {
@@ -268,7 +273,18 @@ struct rb_node *rb_insert(struct rb_root *root, struct rb_node *node,
 	return node;
 }
 
-struct rb_node *rb_insert_duplicate(struct rb_root *root,
+s32 rb_get_height(struct rb_root *root)
+{
+	s32 n, h;
+
+	n = rb_get_size(root);
+	h = log10(n+1) / log10(2);
+	h *= 2;
+
+	return h;
+}
+
+static struct rb_node *rb_insert_duplicate(struct rb_root *root,
 				       struct rb_node      *node)
 {
 	struct rb_node *entry,
@@ -1009,58 +1025,6 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	return true;
 }
 #else
-static struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
-		struct rb_node *orig);
-static bool __rb_remove_duplicate(struct rb_root *root,
-				      struct rb_node      *node,
-				      const void *arg)
-{
-	struct rb_node *replacement, *tmp,
-		      *gp, *p, *s;
-
-	if(!node)
-		return false;
-
-	gp = rb_grandparent(node);
-	p = node->parent;
-	s = rb_sibling(node);
-
-	if(!rb_acquire_area_bb(root, gp, p, node, s))
-		return false;
-
-	if(!rb_node_has_duplicates(node)) {
-		rb_release_area_bb(gp, p, node, s);
-		return false;
-	}
-
-	if(root->iterate(node, arg)) {
-		/* replace *node* with node::duplicates::next */
-		replacement = node->next;
-		replacement->prev = NULL;
-		node->next = NULL;
-		raw_rb_remove(root, node, NULL);
-		rb_insert(root, replacement, true);
-
-		tmp = replacement;
-	} else {
-		tmp = node;
-		for(tmp = tmp->next; tmp; tmp = tmp->next) {
-			if(root->iterate(tmp, arg)) {
-				rb_pop(tmp);
-				break;
-			}
-		}
-		tmp = node;
-	}
-
-	if(rb_node_has_duplicates(tmp))
-		set_bit(RB_NODE_HAS_DUPLICATES_FLAG, &tmp->flags);
-	else
-		clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &tmp->flags);
-
-	rb_release_area_bb(gp, p, node, s);
-	return true;
-}
 #endif
 
 static struct rb_node *raw_rb_balance_bb(struct rb_root *root,
@@ -1396,11 +1360,12 @@ struct rb_node *rb_remove(struct rb_root *root,
 		if(test_bit(RB_NODE_HAS_DUPLICATES_FLAG, &find->flags)) {
 			done =__rb_remove_duplicate(root, find, arg);
 		} else {
-			if(raw_rb_remove(root, find, NULL))
+			if(raw_rb_remove(root, find, NULL)) {
+				atomic64_dec(root->num);
 				done = true;
+			}
 		}
 	} while(!done);
-
 
 	return find;
 }

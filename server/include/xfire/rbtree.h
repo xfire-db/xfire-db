@@ -43,8 +43,7 @@ typedef struct rb_node {
 
 typedef struct rb_root {
 	struct rb_node *tree;
-	u32 height;
-	u64 num;
+	atomic64_t num;
 	xfire_spinlock_t lock;
 
 	bool (*iterate)(struct rb_node *node,const void*);
@@ -62,9 +61,8 @@ typedef struct rb_root {
 #define RB_BLACK 	false
 
 CDECL
+extern s32 rb_get_height(struct rb_root *root);
 extern void rb_init_root(struct rb_root *root);
-extern struct rb_node *rb_insert_duplicate(struct rb_root *root,
-					      struct rb_node      *node);
 extern struct rb_node *rb_insert(struct rb_root *, struct rb_node*,bool);
 extern struct rb_node *rb_find(struct rb_root *root, u64 key);
 extern void rb_dump(struct rb_root *root, FILE *stream);
@@ -90,6 +88,11 @@ static inline void rb_set_key(struct rb_node *tree, u64 key)
 		return;
 
 	tree->key = key;
+}
+
+static inline s64 rb_get_size(struct rb_root *root)
+{
+	return atomic64_get(&root->num);
 }
 
 static inline bool rb_node_has_duplicates(struct rb_node *node)

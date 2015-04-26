@@ -76,7 +76,7 @@ static void test_insert_duplicate(struct rb_root *root, int key,
 	rb_insert(root, &node->node, true);
 }
 
-void *test_thread_d(void *arg)
+void *test_thread_b(void *arg)
 {
 	int idx;
 
@@ -99,7 +99,7 @@ void *test_thread_a(void *arg)
 	xfire_thread_exit(NULL);
 }
 
-void *test_thread_b(void *arg)
+void *test_thread_c(void *arg)
 {
 	int idx;
 
@@ -112,12 +112,12 @@ void *test_thread_b(void *arg)
 	xfire_thread_exit(NULL);
 }
 
-void *test_thread_c(void *arg)
+void *test_thread_d(void *arg)
 {
 	int idx;
 
-	rb_remove(&root, 18, (char*)node_data2);
 	printf("Thread 4 starting\n");
+	rb_remove(&root, 18, (char*)node_data2);
 	for(idx = 1; idx <= 10; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
 
@@ -140,6 +140,8 @@ int main(int argc, char **argv)
 	struct thread *a, *b, *c, *d;
 	struct rb_node *node1, *node2;
 	struct data_node *dnode1, *dnode2;
+	s64 num;
+	s32 height;
 
 	memset(&root, 0, sizeof(root));
 	rb_init_root(&root);
@@ -148,9 +150,9 @@ int main(int argc, char **argv)
 	rb_setup_tree();
 
 	a = xfire_create_thread("thread a", &test_thread_a, NULL);
-	d = xfire_create_thread("thread d", &test_thread_d, NULL);
 	b = xfire_create_thread("thread b", &test_thread_b, NULL);
 	c = xfire_create_thread("thread c", &test_thread_c, NULL);
+	d = xfire_create_thread("thread d", &test_thread_d, NULL);
 
 	xfire_thread_join(a);
 	xfire_thread_join(b);
@@ -186,6 +188,10 @@ int main(int argc, char **argv)
 		printf("Node not found!\n");
 	}
 
+	num = rb_get_size(&root);
+	height = rb_get_height(&root);
+	printf("Number of nodes: %lld - Tree height: %d\n",
+			(long long)num, (int)height);
 	rb_dump(&root,stdout);
 	return -EXIT_SUCCESS;
 }

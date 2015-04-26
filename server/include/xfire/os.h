@@ -101,7 +101,7 @@ static inline void atomic_init(atomic_t *atom)
 	xfire_spinlock_init(&atom->lock);
 }
 
-static inline void atomic64_init(atomic_t *atom)
+static inline void atomic64_init(atomic64_t *atom)
 {
 	atom->val = 0LL;
 	xfire_spinlock_init(&atom->lock);
