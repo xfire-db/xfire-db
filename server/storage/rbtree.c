@@ -976,7 +976,7 @@ static inline bool rb_acquire_area_bb(struct rb_node *gp,
 
 	return true;
 }
-#if 1
+
 static bool __rb_remove_duplicate(struct rb_root *root,
 				      struct rb_node      *node,
 				      const void *arg)
@@ -1039,8 +1039,6 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	rb_release_area_bb(gp, p, node, s);
 	return true;
 }
-#else
-#endif
 
 static struct rb_node *raw_rb_balance_bb(struct rb_root *root,
 					struct rb_node *p,
