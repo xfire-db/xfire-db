@@ -106,23 +106,25 @@ static struct rb_node *raw_rb_search(struct rb_node *tree, u64 key)
 #else
 static struct rb_node *raw_rb_search(struct rb_node *tree, u64 key)
 {
-	struct rb_node *tmp;
+	struct rb_node *node;
 
 	for(;;) {
 
 		if(!tree)
 			return NULL;
 
-		if(tree->key == key)
+		node = tree;
+		rb_lock_node(node);
+		if(tree->key == key) {
+			rb_unlock_node(node);
 			return tree;
+		}
 
-		tmp = tree;
-		rb_lock_node(tmp);
 		if(key < tree->key)
 			tree = tree->left;
 		else
 			tree = tree->right;
-		rb_unlock_node(tmp);
+		rb_unlock_node(node);
 	}
 
 	return NULL;
@@ -143,51 +145,43 @@ struct rb_node *rb_find(struct rb_root *root, u64 key)
 struct rb_node *rb_find_duplicate(struct rb_root *root, u64 key,
 					const void *arg)
 {
-	struct rb_node *node, *c,
-		      *gp,
-		      *p;
-	bool done = false;
+	struct rb_node *node, *c;
 
-	do {
-		node = rb_find(root, key);
+	node = rb_find(root, key);
 
-		if(!node)
-			return NULL;
+	if(!node)
+		return NULL;
 
-		gp = rb_grandparent(node);
-		p = node->parent;
-
-		if(rb_acquire_area_rr(gp, p, node))
-			done = true;
-	} while(!done);
-
-	if(root->cmp(node, arg))
+	rb_lock_node(node);
+	if(root->cmp(node, arg)) {
+		rb_unlock_node(node);
 		return node;
+	}
 
 	c = node;
 	for(c = c->next; c; c = c->next) {
-		if(root->cmp(c, arg))
+		if(root->cmp(c, arg)) {
+			rb_unlock_node(node);
 			return c;
+		}
 	}
 
-	rb_release_area_rr(gp, p, node);
-
+	rb_unlock_node(node);
 	return NULL;
 }
 
 static void rb_lpush(struct rb_node *head, struct rb_node *node)
 {
-	if(!head->next) {
-		head->next = node;
-		node->prev = head;
-		node->next = NULL;
-	} else {
-		/* head already has duplicates */
-		node->next = head;
-		node->prev = NULL;
+	struct rb_node *next = head->next;
 
-		head->prev = node;
-	}
+	node->next = next;
+	node->prev = head;
+
+	head->next = node;
+	if(next)
+		next->prev = node;
+
+	set_bit(RB_NODE_HAS_DUPLICATES_FLAG, &head->flags);
 }
 
 static void rb_pop(struct rb_node *node)
@@ -289,22 +283,18 @@ static struct rb_node *rb_insert_duplicate(struct rb_root *root,
 		      *p;
 	bool done = false;
 
-	do {
-		entry = rb_find(root, node->key);
-		if(!entry)
-			return rb_insert(root, node, false);
+	entry = rb_find(root, node->key);
+	rb_lock_node(entry);
 
-		gp = rb_grandparent(entry);
-		p = entry->parent;
-
-		if(rb_acquire_area_rr(gp, p, entry))
-			done = true;
-	} while(!done);
+	if(!entry) {
+		rb_unlock_node(entry);
+		return rb_insert(root, node, false);
+	}
 
 	if(entry != node)
 		rb_lpush(entry, node);
-
-	rb_release_area_rr(gp, p, entry);
+	
+	rb_unlock_node(entry);
 	return entry;
 }
 
@@ -702,7 +692,7 @@ struct rb_node *rb_find_leftmost(struct rb_node *tree)
 
 	if(!tree)
 		return NULL;
-
+	
 	rb_lock_node(node);
 	tree = tree->left;
 	rb_unlock_node(node);
@@ -715,43 +705,41 @@ struct rb_node *rb_find_leftmost(struct rb_node *tree)
 #else
 struct rb_node *rb_find_leftmost(struct rb_node *tree)
 {
-	struct rb_node *tmp;
+	struct rb_node *node;
 
 	if(!tree)
 		return NULL;
 
-	tmp = tree;
 	for(;;) {
-		rb_lock_node(tmp);
+		node = tree;
+		rb_lock_node(node);
 		if(!tree->left) {
-			rb_unlock_node(tmp);
+			rb_unlock_node(node);
 			return tree;
 		}
 
-		tmp = tree;
 		tree = tree->left;
-		rb_unlock_node(tmp);
+		rb_unlock_node(node);
 	}
 }
 
 struct rb_node *rb_find_rightmost(struct rb_node *tree)
 {
-	struct rb_node *tmp;
+	struct rb_node *node;
 
 	if(!tree)
 		return NULL;
 
-	tmp = tree;
 	for(;;) {
-		rb_lock_node(tmp);
+		node = tree;
+		rb_lock_node(node);
 		if(!tree->right) {
-			rb_unlock_node(tmp);
+			rb_unlock_node(node);
 			return tree;
 		}
 
-		tmp = tree;
 		tree = tree->right;
-		rb_unlock_node(tmp);
+		rb_unlock_node(node);
 	}
 }
 #endif
@@ -773,12 +761,10 @@ static void rb_replace_node(struct rb_root *root,
 				struct rb_node      *orig,
 				struct rb_node      *replacement)
 {
+	set_bit(RB_NODE_UNLINKED_FLAG, &orig->flags);
 	replacement->left = orig->left;
 	replacement->right = orig->right;
 	replacement->parent = orig->parent;
-
-	replacement->next = orig->next;
-	replacement->prev = orig->prev;
 
 	if(orig->left)
 		orig->left->parent = replacement;
@@ -795,7 +781,8 @@ static void rb_replace_node(struct rb_root *root,
 		rb_set_root(root, replacement);
 	}
 
-	atomic_flags_copy(&replacement->flags, &orig->flags);
+	rb_swap_color(orig, replacement);
+	clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
 }
 
 static void __rb_iterate(struct rb_node *node,
@@ -1059,6 +1046,10 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	}
 
 	tmp = rb_find_duplicate(root, node->key, arg);
+	if(!tmp) {
+		rb_release_area_bb(gp, p, node, s);
+		return true;
+	}
 
 	if(test_bit(RB_NODE_ACQUIRED_FLAG, &tmp->flags)) {
 		rb_release_area_bb(gp, p, node, s);
@@ -1078,13 +1069,11 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 		nxt = replacement->next;
 		prev = NULL;
 
-		set_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
 		rb_replace_node(root, node, replacement);
 		replacement->next = nxt;
 		replacement->prev = prev;
 
 		node->left = node->right = node->parent = NULL;
-		clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
 		rb_unlock_node(node);
 		node = replacement;
 	} else {
@@ -1384,7 +1373,6 @@ static struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
 		} else {
 			rb_lock_node(replacement);
 			rb_replace_node(root, node, replacement);
-			set_bit(RB_NODE_UNLINKED_FLAG, &node->flags);
 			rb_unlock_node(node);
 			node = replacement;
 		}

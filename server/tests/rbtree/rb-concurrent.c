@@ -35,6 +35,11 @@ static const char node_data3[] = "Hello World 3!";
 
 static struct rb_root root;
 
+struct data_node *get_node_data(struct rb_node *node)
+{
+	return container_of(node, struct data_node, node);
+}
+
 static bool compare_node(struct rb_node *node, const void *arg)
 {
 
@@ -106,8 +111,9 @@ void *test_thread_c(void *arg)
 	printf("Thread 3 starting\n");
 	rb_remove(&root, 18, (char*)node_data1);
 	rb_remove(&root, 18, (char*)node_data3);
-	for(idx = 11; idx <= 20; idx++)
+	for(idx = 11; idx <= 20; idx++) {
 		rb_remove(&root, idx, (char*)node_data1);
+	}
 
 	xfire_thread_exit(NULL);
 }
@@ -128,18 +134,32 @@ void rb_setup_tree(void)
 {
 	int idx;
 
-	for(idx = 1; idx <= 20; idx += 100)
+	for(idx = 1; idx <= 20; idx++)
 		test_rb_insert(&root, idx);
 
 	test_insert_duplicate(&root, 18, node_data2);
 	test_insert_duplicate(&root, 18, node_data3);
 }
 
+static void test_find_node(u64 key, const void *data)
+{
+	struct data_node *dnode1;
+	struct rb_node *node1;
+
+	node1 = rb_find_duplicate(&root, key, data);
+	if(node1) {
+		dnode1 = container_of(node1, struct data_node, node);
+		printf("Found node: <\"%llu\",\"%s\">\n",
+				(unsigned long long)node1->key,
+				dnode1->data);
+	} else {
+		printf("Node not found!\n");
+	}
+}
+
 int main(int argc, char **argv)
 {
 	struct thread *a, *b, *c, *d;
-	struct rb_node *node1, *node2;
-	struct data_node *dnode1, *dnode2;
 	s64 num;
 	s32 height;
 
@@ -164,28 +184,9 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(c);
 	xfire_destroy_thread(d);
 
-	node1 = rb_find_duplicate(&root, 24, (char*)node_data3);
-
-	node2 = rb_find_duplicate(&root, 23, (char*)node_data1);
-
-	if(node1) {
-		dnode1 = container_of(node1, struct data_node, node);
-		printf("Found node: <\"%llu\",\"%s\">\n",
-				(unsigned long long)node1->key,
-				dnode1->data);
-	} else {
-		printf("Node not found!\n");
-	}
-
-	if(node2) {
-		dnode2 = container_of(node2, struct data_node, node);
-		printf("Found node: <\"%llu\",\"%s\">\n",
-				(unsigned long long)node2->key,
-				dnode2->data);
-	} else {
-		printf("Node not found!\n");
-	}
-
+	test_find_node(23, node_data1);
+	test_find_node(18, node_data3);
+	
 	num = rb_get_size(&root);
 	height = rb_get_height(&root);
 	printf("Number of nodes: %lld - Tree height: %d\n",
