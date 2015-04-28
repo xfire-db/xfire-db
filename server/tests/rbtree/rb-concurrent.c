@@ -35,11 +35,6 @@ static const char node_data3[] = "Hello World 3!";
 
 static struct rb_root root;
 
-struct data_node *get_node_data(struct rb_node *node)
-{
-	return container_of(node, struct data_node, node);
-}
-
 static bool compare_node(struct rb_node *node, const void *arg)
 {
 
@@ -110,10 +105,8 @@ void *test_thread_c(void *arg)
 
 	printf("Thread 3 starting\n");
 	rb_remove(&root, 18, (char*)node_data1);
-	rb_remove(&root, 18, (char*)node_data3);
-	for(idx = 11; idx <= 20; idx++) {
+	for(idx = 11; idx <= 20; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
-	}
 
 	xfire_thread_exit(NULL);
 }
@@ -184,7 +177,7 @@ int main(int argc, char **argv)
 	xfire_destroy_thread(c);
 	xfire_destroy_thread(d);
 
-	test_find_node(23, node_data1);
+	test_find_node(24, node_data3);
 	test_find_node(18, node_data3);
 	
 	num = rb_get_size(&root);

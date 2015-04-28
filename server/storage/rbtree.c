@@ -1038,12 +1038,11 @@ static inline bool rb_acquire_area_bb(struct rb_node *gp,
 }
 
 static bool __rb_remove_duplicate(struct rb_root *root,
-				      struct rb_node      *node,
-				      const void *arg)
+					struct rb_node *node,
+					struct rb_node *dup)
 {
-	struct rb_node *replacement, *tmp,
+	struct rb_node *replacement,
 		      *gp, *p, *s;
-	struct rb_node *nxt, *prev;
 
 	gp = rb_grandparent(node);
 	p = node->parent;
@@ -1052,24 +1051,18 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 	if(!rb_acquire_area_bb(gp, p, node, s))
 		return false;
 
-	if(!rb_node_has_duplicates(node)) {
+	if(!rb_node_has_duplicates(node) || !dup) {
 		clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
 		rb_release_area_bb(gp, p, node, s);
 		return false;
 	}
 
-	tmp = rb_find_duplicate(root, node->key, arg);
-	if(!tmp) {
-		rb_release_area_bb(gp, p, node, s);
-		return true;
-	}
-
-	if(test_bit(RB_NODE_ACQUIRED_FLAG, &tmp->flags)) {
+	if(test_bit(RB_NODE_ACQUIRED_FLAG, &dup->flags)) {
 		rb_release_area_bb(gp, p, node, s);
 		return false;
 	}
 	
-	if(tmp == node) {
+	if(dup == node) {
 		replacement = node->next;
 		rb_lock_node(replacement);
 
@@ -1080,7 +1073,7 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 		rb_unlock_node(node);
 		node = replacement;
 	} else {
-		rb_pop(tmp);
+		rb_pop(dup);
 	}
 
 	if(rb_node_has_duplicates(node))
@@ -1409,20 +1402,24 @@ struct rb_node *rb_remove(struct rb_root *root,
 			     u64 key,
 			     const void *arg)
 {
-	struct rb_node *find;
+	struct rb_node *find, *dup;
 	bool done = false;
 
 	do {
-		find = rb_find(root, key);
+		dup = find = rb_find_duplicate(root, key, arg);
+
 		if(!find) {
 			return NULL;
 		}
+
+		while(find->prev)
+			find = find->prev;
 
 		if(rb_dblk(find) || rb_unlinked(find))
 			continue;
 
 		if(test_bit(RB_NODE_HAS_DUPLICATES_FLAG, &find->flags)) {
-			done =__rb_remove_duplicate(root, find, arg);
+			done =__rb_remove_duplicate(root, find, dup);
 		} else {
 			if(raw_rb_remove(root, find, NULL)) {
 				atomic64_dec(root->num);
