@@ -145,28 +145,36 @@ struct rb_node *rb_find(struct rb_root *root, u64 key)
 struct rb_node *rb_find_duplicate(struct rb_root *root, u64 key,
 					const void *arg)
 {
-	struct rb_node *node, *c;
+	struct rb_node *node, *c,
+		       *gp, *p;
 
-	node = rb_find(root, key);
+	while(true) {
+		node = rb_find(root, key);
 
-	if(!node)
-		return NULL;
+		if(!node)
+			return NULL;
 
-	rb_lock_node(node);
+		gp = rb_grandparent(node);
+		p = node->parent;
+
+		if(rb_acquire_area_rr(gp, p, node))
+			break;
+	}
+
 	if(root->cmp(node, arg)) {
-		rb_unlock_node(node);
+		rb_release_area_rr(gp, p, node);
 		return node;
 	}
 
 	c = node;
 	for(c = c->next; c; c = c->next) {
 		if(root->cmp(c, arg)) {
-			rb_unlock_node(node);
+			rb_release_area_rr(gp, p, node);
 			return c;
 		}
 	}
 
-	rb_unlock_node(node);
+	rb_release_area_rr(gp, p, node);
 	return NULL;
 }
 
@@ -281,20 +289,25 @@ static struct rb_node *rb_insert_duplicate(struct rb_root *root,
 	struct rb_node *entry,
 		      *gp,
 		      *p;
-	bool done = false;
 
-	entry = rb_find(root, node->key);
-	rb_lock_node(entry);
+	do {
+		entry = rb_find(root, node->key);
 
-	if(!entry) {
-		rb_unlock_node(entry);
-		return rb_insert(root, node, false);
-	}
+		if(!entry) {
+			return rb_insert(root, node, false);
+		}
+
+		gp = rb_grandparent(entry);
+		p = entry->parent;
+
+		if(rb_acquire_area_rr(gp, p, entry))
+			break;
+	} while(true);
 
 	if(entry != node)
 		rb_lpush(entry, node);
-	
-	rb_unlock_node(entry);
+
+	rb_release_area_rr(gp, p, entry);
 	return entry;
 }
 
@@ -1060,18 +1073,8 @@ static bool __rb_remove_duplicate(struct rb_root *root,
 		replacement = node->next;
 		rb_lock_node(replacement);
 
-		if(!replacement) {
-			clear_bit(RB_NODE_HAS_DUPLICATES_FLAG, &node->flags);
-			rb_unlock_node(replacement);
-			rb_release_area_bb(gp, p, node, s);
-			return false;
-		}
-		nxt = replacement->next;
-		prev = NULL;
-
 		rb_replace_node(root, node, replacement);
-		replacement->next = nxt;
-		replacement->prev = prev;
+		replacement->prev = NULL;
 
 		node->left = node->right = node->parent = NULL;
 		rb_unlock_node(node);
