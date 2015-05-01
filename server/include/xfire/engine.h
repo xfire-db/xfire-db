@@ -19,5 +19,11 @@
 #ifndef __ENGINE__H__
 #define __ENGINE__H__
 
+#include <xfire/xfire.h>
+
+CDECL
+extern void eng_init_processors(int num);
+CDECL_END
+
 #endif
 

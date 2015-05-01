@@ -17,6 +17,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 #include <xfire/xfire.h>
@@ -27,6 +28,8 @@
 #include <xfire/hash.h>
 #include <xfire/os.h>
 #include <xfire/mem.h>
+
+static struct request_pool **processors;
 
 static struct rq_buff *rq_buff_alloc(struct request *parent)
 {
@@ -162,5 +165,24 @@ void *eng_processor_thread(void *arg)
 	} while(true);
 
 	xfire_thread_exit(NULL);
+}
+
+#define POOL_NAME_LENGTH 12
+
+void eng_init_processors(int num)
+{
+	int i;
+	struct request_pool *pool;
+
+	processors = xfire_zalloc(sizeof(*processors));
+
+	for(i = 0; i < num; i++) {
+		pool = rq_pool_alloc();
+		snprintf((char*)pool->name, POOL_NAME_LENGTH, "proc %d", i);
+		pool->proc = xfire_create_thread(pool->name,
+						 &eng_processor_thread,
+						 pool);
+		processors[i] = pool;
+	}
 }
 

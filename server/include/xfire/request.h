@@ -67,6 +67,8 @@ typedef struct request_pool {
 		       *tail,
 		       *curr;
 
+	const char name[13];
+	struct thread *proc;
 	xfire_mutex_t lock;
 	xfire_cond_t condi;
 } REQUEST_POOL;
