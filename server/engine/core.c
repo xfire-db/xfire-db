@@ -68,7 +68,13 @@ static struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num)
 
 static struct request_pool *rq_pool_alloc(void)
 {
-	return NULL;
+	struct request_pool *pool;
+
+	pool = xfire_zalloc(sizeof(*pool));
+	xfire_cond_init(&pool->condi);
+	xfire_mutex_init(&pool->lock);
+
+	return pool;
 }
 
 static struct request *eng_get_next_request(struct request_pool *pool)
