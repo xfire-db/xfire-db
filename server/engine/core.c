@@ -37,7 +37,7 @@ static struct request *eng_handle_request(struct request *rq)
 	return NULL;
 }
 
-static void eng_processor(struct request_pool *pool)
+static struct request *eng_processor(struct request_pool *pool)
 {
 	struct request *next;
 	struct rq_buff *data,
@@ -71,5 +71,6 @@ static void eng_processor(struct request_pool *pool)
 	next->hash = hash;
 
 	eng_handle_request(next);
+	return next;
 }
 
