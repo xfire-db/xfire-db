@@ -22,7 +22,8 @@
 #include <xfire/xfire.h>
 
 CDECL
-extern void eng_init_processors(int num);
+extern void eng_init(int num);
+extern void eng_exit(void);
 CDECL_END
 
 #endif
