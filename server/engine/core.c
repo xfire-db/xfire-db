@@ -131,6 +131,10 @@ static struct request *eng_processor(struct request_pool *pool)
 	time(&tstamp);
 	xfire_hash(next->key, &hash);
 
+	next->data = data;
+	next->stamp = tstamp;
+	next->hash = hash;
+
 	if(test_and_swap_bit(RQ_MULTI_FLAG, &next->flags, &data->flags)) {
 		range = next->range.end - next->range.start;
 		multi = rq_buff_alloc_multi(next, range);
@@ -140,10 +144,6 @@ static struct request *eng_processor(struct request_pool *pool)
 	} else {
 		eng_handle_request(next, next->data);
 	}
-
-	next->data = data;
-	next->stamp = tstamp;
-	next->hash = hash;
 
 	eng_reply(next);
 	return next;
