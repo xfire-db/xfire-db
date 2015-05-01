@@ -68,6 +68,15 @@ int test_bit(int nr, atomic_flags_t *atom)
 	return rv;
 }
 
+static inline void raw_swap_bit(int bit,
+				volatile unsigned long *p1,
+				volatile unsigned long *p2)
+{
+	*p1 = *p1 ^ (*p2 & bit);
+	*p2 = *p2 ^ (*p1 & bit);
+	*p1 = *p1 ^ (*p2 & bit);
+}
+
 void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 {
 	volatile unsigned long *p1 = &atom1->flags;
@@ -79,13 +88,32 @@ void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 
 	xfire_spin_lock(&atom1->lock);
 	xfire_spin_lock(&atom2->lock);
-	*p1 = *p1 ^ (*p2 & bit);
-	*p2 = *p2 ^ (*p1 & bit);
-	*p1 = *p1 ^ (*p2 & bit);
+	raw_swap_bit(bit, p1, p2);
 	xfire_spin_unlock(&atom2->lock);
 	xfire_spin_unlock(&atom1->lock);
 
 	barrier();
+}
+
+int test_and_swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
+{
+	int old;
+	volatile unsigned long *p1 = &atom1->flags;
+	volatile unsigned long *p2 = &atom2->flags;
+	int bit = 1 << (nr % BITS_PER_LONG);
+
+	p1 += nr / (BITS_PER_LONG - 1);
+	p2 += nr / (BITS_PER_LONG - 1);
+
+	xfire_spin_lock(&atom1->lock);
+	xfire_spin_lock(&atom2->lock);
+	old = __raw_test_bit(bit, p1);
+	raw_swap_bit(bit, p1, p2);
+	xfire_spin_unlock(&atom2->lock);
+	xfire_spin_unlock(&atom1->lock);
+
+	barrier();
+	return old != 0;
 }
 
 void set_bit(int nr, atomic_flags_t *atom)
