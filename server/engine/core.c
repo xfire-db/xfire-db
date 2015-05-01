@@ -138,7 +138,7 @@ static struct request *eng_processor(struct request_pool *pool)
 	next->stamp = tstamp;
 	next->hash = hash;
 
-	if(test_and_swap_bit(RQ_MULTI_FLAG, &next->flags, &data->flags)) {
+	if(test_bit(RQ_MULTI_FLAG, &next->flags)) {
 		range = next->range.end - next->range.start;
 		multi = rq_buff_alloc_multi(next, range);
 		multi->prev = data;

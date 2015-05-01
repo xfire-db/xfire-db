@@ -33,7 +33,7 @@ static void fnv_hash(const char *data, u64 seed, u64 *key)
 	u64 hash = seed;
 
 	while(*_data) {
-		hash ^= *_data;
+		hash = XOR(hash, *_data);
 		hash *= FNV_PRIME;
 		_data++;
 	}
@@ -56,7 +56,7 @@ static void xfire_calc_seed(const char *data, u64 *seed)
 		_data++;
 	}
 
-	*seed = (val * tmp) ^ (len * XFIRE_CONSTANT);
+	*seed = XOR(val * tmp, len * XFIRE_CONSTANT);
 }
 
 u64 xfire_hash(const char *data, u64 *key)

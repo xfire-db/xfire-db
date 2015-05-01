@@ -48,6 +48,8 @@ public:
 
 #endif
 
+#define XOR(a,b) (a ^ b)
+
 #ifdef __GNUC__
 #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
 #define offsetof(a,b) __compiler_offsetof(a,b)
