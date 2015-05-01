@@ -92,6 +92,7 @@ static inline void eng_handle_multi_request(struct request *rq)
 	int len, i;
 
 	len = rq->range.end - rq->range.start;
+	len += 1; /* also include the base entry */
 	buffer = rq->data;
 
 	for(i = 0; i < len && buffer; i++) {
@@ -126,7 +127,7 @@ static struct request *eng_processor(struct request_pool *pool)
 
 	if(test_and_swap_bit(RQ_MULTI_FLAG, &next->flags, &data->flags)) {
 		range = next->range.end - next->range.start;
-		multi = rq_buff_alloc_multi(next, range - 1);
+		multi = rq_buff_alloc_multi(next, range);
 		multi->prev = data;
 		data->next = multi;
 		eng_handle_multi_request(next);
