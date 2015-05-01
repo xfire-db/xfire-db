@@ -23,8 +23,9 @@
 
 CDECL
 extern void *xfire_alloc(size_t len);
-extern void xfire_free(void *region);
 extern void *xfire_zalloc(size_t len);
+extern void *xfire_calloc(size_t num, size_t size);
+extern void xfire_free(void *region);
 CDECL_END
 
 #endif

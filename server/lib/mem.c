@@ -50,6 +50,16 @@ void *xfire_zalloc(size_t len)
 	return region;
 }
 
+void *xfire_calloc(size_t num, size_t size)
+{
+	void *region;
+
+	region = calloc(num, size);
+	memset(region, 0x0, num*size);
+
+	return region;
+}
+
 void xfire_free(void *region)
 {
 	if(!region)

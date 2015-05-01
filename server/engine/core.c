@@ -174,7 +174,7 @@ void eng_init_processors(int num)
 	int i;
 	struct request_pool *pool;
 
-	processors = xfire_zalloc(sizeof(*processors));
+	processors = xfire_calloc(num, sizeof(void*));
 
 	for(i = 0; i < num; i++) {
 		pool = rq_pool_alloc();
