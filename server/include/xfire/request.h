@@ -79,8 +79,7 @@ typedef struct request_pool {
 #define RQ_MULTI_FLAG		5
 
 CDECL
-extern struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num);
-extern struct rq_buff *rq_buff_alloc(struct request *parent);
+void *eng_processor_thread(void *arg);
 CDECL_END
 
 #endif

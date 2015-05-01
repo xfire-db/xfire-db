@@ -26,6 +26,50 @@
 #include <xfire/engine.h>
 #include <xfire/hash.h>
 #include <xfire/os.h>
+#include <xfire/mem.h>
+
+static struct rq_buff *rq_buff_alloc(struct request *parent)
+{
+	struct rq_buff *data;
+
+	data = xfire_zalloc(sizeof(*data));
+	data->parent = parent;
+	atomic_flags_init(&data->flags);
+
+	return data;
+}
+
+static struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num)
+{
+	struct rq_buff *data,
+		       *iterator,
+		       *head;
+	int idx = 0;
+
+	if(!parent || !num)
+		return NULL;
+
+	head = rq_buff_alloc(parent);
+	iterator = head;
+	idx++;
+
+	for(; idx < num; idx++) {
+		data = rq_buff_alloc(parent);
+
+		data->prev = iterator;
+		data->next = NULL;
+
+		iterator->next = data;
+		iterator = data;
+	}
+
+	return head;
+}
+
+static struct request_pool *rq_pool_alloc(void)
+{
+	return NULL;
+}
 
 static struct request *eng_get_next_request(struct request_pool *pool)
 {
@@ -86,9 +130,9 @@ void *eng_processor_thread(void *arg)
 
 	do {
 		handle = eng_processor(pool);
-		pthread_mutex_lock(&handle->lock);
+		xfire_mutex_lock(&handle->lock);
 		xfire_cond_signal(&handle->condi);
-		pthread_mutex_unlock(&handle->lock);
+		xfire_mutex_unlock(&handle->lock);
 	} while(true);
 
 	xfire_thread_exit(NULL);

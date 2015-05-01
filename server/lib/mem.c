@@ -1,5 +1,5 @@
 /*
- *  REQUEST header
+ *  MEMORY management
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -17,10 +17,44 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
-#include <xfire/request.h>
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/flags.h>
-#include <xfire/os.h>
+
+void *xfire_alloc(size_t len)
+{
+	void *region;
+
+	if(len)
+		region = malloc(len);
+	else
+		return NULL;
+
+	if(!region) {
+		fputs("Memory allocation failed!\n", stderr);
+		abort();
+	}
+
+	return region;
+}
+
+void *xfire_zalloc(size_t len)
+{
+	void *region;
+
+	region = xfire_alloc(len);
+	memset(region, 0x0, len);
+
+	return region;
+}
+
+void xfire_free(void *region)
+{
+	if(!region)
+		return;
+
+	free(region);
+}
 

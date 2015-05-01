@@ -1,5 +1,5 @@
 /*
- *  REQUEST header
+ *  MEM header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,11 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
+#ifndef __MEM_H__
+#define __MEM_H__
 
-#include <xfire/request.h>
 #include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/flags.h>
-#include <xfire/os.h>
 
+CDECL
+extern void *xfire_alloc(size_t len);
+extern void xfire_free(void *region);
+extern void *xfire_zalloc(size_t len);
+CDECL_END
+
+#endif
