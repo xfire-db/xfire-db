@@ -37,6 +37,10 @@ static struct request *eng_handle_request(struct request *rq)
 	return NULL;
 }
 
+static void eng_reply(struct request *rq)
+{
+}
+
 static struct request *eng_processor(struct request_pool *pool)
 {
 	struct request *next;
@@ -71,6 +75,22 @@ static struct request *eng_processor(struct request_pool *pool)
 	next->hash = hash;
 
 	eng_handle_request(next);
+	eng_reply(next);
 	return next;
+}
+
+void *eng_processor_thread(void *arg)
+{
+	struct request_pool *pool = arg;
+	struct request *handle;
+
+	do {
+		handle = eng_processor(pool);
+		pthread_mutex_lock(&handle->lock);
+		xfire_cond_signal(&handle->condi);
+		pthread_mutex_unlock(&handle->lock);
+	} while(true);
+
+	xfire_thread_exit(NULL);
 }
 
