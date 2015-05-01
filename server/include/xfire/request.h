@@ -69,9 +69,13 @@ typedef struct request_pool {
 
 	const char name[13];
 	struct thread *proc;
+
+	atomic_flags_t flags;
 	xfire_mutex_t lock;
 	xfire_cond_t condi;
 } REQUEST_POOL;
+
+#define RQP_EXIT_FLAG		0
 
 #define RQ_INSERT_FLAG		0
 #define RQ_REMOVE_FLAG		1

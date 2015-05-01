@@ -49,6 +49,8 @@
 #define xfire_thread_exit(__a) pthread_exit(__a)
 #endif
 
+#define xfire_thread_destroy(__tp) xfire_destroy_thread(__tp)
+
 struct thread {
 #ifdef HAVE_LINUX
 	pthread_t thread;

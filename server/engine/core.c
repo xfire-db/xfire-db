@@ -162,19 +162,19 @@ void *eng_processor_thread(void *arg)
 		xfire_mutex_lock(&handle->lock);
 		xfire_cond_signal(&handle->condi);
 		xfire_mutex_unlock(&handle->lock);
-	} while(true);
+	} while(!test_bit(RQP_EXIT_FLAG, &pool->flags));
 
 	xfire_thread_exit(NULL);
 }
 
 #define POOL_NAME_LENGTH 12
 
-void eng_init_processors(int num)
+void eng_init(int num)
 {
 	int i;
 	struct request_pool *pool;
 
-	processors = xfire_calloc(num, sizeof(void*));
+	processors = xfire_calloc(num+1, sizeof(void*));
 
 	for(i = 0; i < num; i++) {
 		pool = rq_pool_alloc();
@@ -184,5 +184,22 @@ void eng_init_processors(int num)
 						 pool);
 		processors[i] = pool;
 	}
+}
+
+void eng_exit(void)
+{
+	struct request_pool *pool;
+	int i = 0;
+
+	for(; pool; i++) {
+		pool = processors[i];
+
+		set_bit(RQP_EXIT_FLAG, &pool->flags);
+		xfire_thread_join(pool->proc);
+		xfire_thread_destroy(pool->proc);
+		xfire_free(pool);
+	}
+
+	xfire_free(processors);
 }
 
