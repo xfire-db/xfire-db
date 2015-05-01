@@ -73,7 +73,13 @@ static struct request_pool *rq_pool_alloc(void)
 
 static struct request *eng_get_next_request(struct request_pool *pool)
 {
-	return NULL;
+	struct request *rv;
+
+	rv = pool->head;
+
+	/* set the pool head to the next request */
+	pool->head = pool->head->next;
+	return rv;
 }
 
 static struct request *eng_handle_request(struct request *rq)
