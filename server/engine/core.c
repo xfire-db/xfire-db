@@ -82,9 +82,22 @@ static struct request *eng_get_next_request(struct request_pool *pool)
 	return rv;
 }
 
-static struct request *eng_handle_request(struct request *rq)
+static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
-	return NULL;
+}
+
+static inline void eng_handle_multi_request(struct request *rq)
+{
+	struct rq_buff *buffer;
+	int len, i;
+
+	len = rq->range.end - rq->range.start;
+	buffer = rq->data;
+
+	for(i = 0; i < len && buffer; i++) {
+		eng_handle_request(rq, buffer);
+		buffer = buffer->next;
+	}
 }
 
 static void eng_reply(struct request *rq)
@@ -116,15 +129,15 @@ static struct request *eng_processor(struct request_pool *pool)
 		multi = rq_buff_alloc_multi(next, range - 1);
 		multi->prev = data;
 		data->next = multi;
-
+		eng_handle_multi_request(next);
 	} else {
+		eng_handle_request(next, next->data);
 	}
 
 	next->data = data;
 	next->stamp = tstamp;
 	next->hash = hash;
 
-	eng_handle_request(next);
 	eng_reply(next);
 	return next;
 }
