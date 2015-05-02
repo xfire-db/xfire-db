@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <time.h>
 
 #include <xfire/xfire.h>
@@ -110,8 +111,60 @@ static inline void eng_handle_multi_request(struct request *rq)
 	}
 }
 
-static void eng_reply(struct request *rq)
+static int eng_reply(struct request *rq, struct reply *reply)
 {
+	int err;
+	size_t length = sizeof(reply->num) + sizeof(reply->length);
+
+	for(; reply; reply = reply->next) {
+		err = write(rq->fd, &reply->num, length);
+		if(!err) {
+			err = write(rq->fd, reply->data, reply->length);
+			if(err)
+				break;
+		} else {
+			break;
+		}
+	}
+
+	return err;
+}
+
+static struct reply *eng_build_reply(struct rq_buff *data)
+{
+	struct reply *head,
+		     *reply,
+		     *prev;
+	struct rq_buff *iterator;
+	u16 i = 0;
+
+	head = xfire_zalloc(sizeof(*head));
+	head->num = 0;
+	head->length = data->length;
+	head->data = data->data;
+	prev = head;
+
+	for(iterator = data->next; iterator; iterator = iterator->next, i++) {
+		reply = xfire_zalloc(sizeof(*reply));
+		reply->num = i;
+		reply->length = iterator->length;
+		reply->data = iterator->data;
+
+		prev->next = reply;
+		reply->prev = prev;
+	}
+
+	return head;
+}
+
+static void eng_release_reply(struct reply *reply)
+{
+	struct reply *iterator;
+
+	for(iterator = reply->next; reply; iterator = iterator->next,
+						reply = iterator) {
+		xfire_free(reply);
+	}
 }
 
 static struct request *eng_processor(struct request_pool *pool)
@@ -119,6 +172,7 @@ static struct request *eng_processor(struct request_pool *pool)
 	struct request *next;
 	struct rq_buff *data,
 		       *multi;
+	struct reply *reply;
 	time_t tstamp;
 	u64 hash;
 	int range;
@@ -148,7 +202,9 @@ static struct request *eng_processor(struct request_pool *pool)
 		eng_handle_request(next, next->data);
 	}
 
-	eng_reply(next);
+	reply = eng_build_reply(next->data);
+	eng_reply(next, reply);
+	eng_release_reply(reply);
 	return next;
 }
 

@@ -20,6 +20,26 @@
 #define __ENGINE__H__
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
+
+typedef struct reply {
+	struct reply *next,
+		     *prev;
+	u16 num;
+	u32 length;
+	void *data;
+} REPLY;
+
+typedef struct rq_buff {
+	struct request *parent;
+	struct rq_buff *next,
+		       *prev;
+
+	atomic_flags_t flags;
+
+	void *data;
+	u32 length;
+} RQ_BUFF;
 
 CDECL
 extern void eng_init(int num);

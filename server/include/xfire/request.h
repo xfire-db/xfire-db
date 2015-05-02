@@ -35,6 +35,8 @@ typedef enum {
 } rq_type_t;
 
 typedef struct request {
+	int fd;
+
 	struct request *next,
 		       *prev;
 
@@ -53,14 +55,6 @@ typedef struct request {
 	} range;
 	atomic_flags_t flags;
 } REQUEST;
-
-typedef struct rq_buff {
-	struct request *parent;
-	struct rq_buff *next,
-		       *prev;
-
-	atomic_flags_t flags;
-} RQ_BUFF;
 
 typedef struct request_pool {
 	struct request *head,
