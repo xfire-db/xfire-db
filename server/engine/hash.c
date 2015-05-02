@@ -44,7 +44,7 @@ static void fnv_hash(const char *data, u64 seed, u64 *key)
 static void xfire_calc_seed(const char *data, u64 *seed)
 {
 	int idx, len;
-	u64 tmp, val = 1ULL;
+	u64 tmp, val = XFIRE_CONSTANT;
 	unsigned char *_data = (unsigned char *)data;
 
 	len = strlen(data);
