@@ -46,11 +46,12 @@ static void fnv_hash(const char *data, u64 seed, u64 *key)
 static u64 xfire_calc_seed(const char *data)
 {
 	int idx, len;
-	u64 tmp, seed, val = XFIRE_COLLISION_CONSTANT;
+	u64 tmp, seed, val;
 	unsigned char *_data = (unsigned char *)data;
 
 	len = strlen(data);
 	seed = XFIRE_SEED_CONSTANT;
+	val = XFIRE_COLLISION_CONSTANT;
 	fnv_hash(data, FNV_BASE_HASH, &tmp);
 
 	for(idx = 1; *_data; _data++, idx++) {
