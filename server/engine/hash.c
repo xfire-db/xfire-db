@@ -53,7 +53,6 @@ static void xfire_calc_seed(const char *data, u64 *seed)
 
 	while(*_data) {
 		val ^= *_data + idx;
-		val += *_data;
 		_data++;
 	}
 
