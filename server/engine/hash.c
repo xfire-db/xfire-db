@@ -25,7 +25,9 @@
 
 #define FNV_BASE_HASH 14695981039346656037ULL
 #define FNV_PRIME 1099511628211ULL
-#define XFIRE_CONSTANT 0x3BD1E995A641BC81
+
+#define XFIRE_SEED_CONSTANT 0x3BD1E995A641BC81ULL
+#define XFIRE_COLLISION_CONSTANT 0x30A1F995A241BC84ULL
 
 static void fnv_hash(const char *data, u64 seed, u64 *key)
 {
@@ -41,30 +43,29 @@ static void fnv_hash(const char *data, u64 seed, u64 *key)
 	*key = hash;
 }
 
-static void xfire_calc_seed(const char *data, u64 *seed)
+static u64 xfire_calc_seed(const char *data)
 {
 	int idx, len;
-	u64 tmp, val = XFIRE_CONSTANT;
+	u64 tmp, seed, val = XFIRE_COLLISION_CONSTANT;
 	unsigned char *_data = (unsigned char *)data;
 
 	len = strlen(data);
-	idx = 1;
+	seed = XFIRE_SEED_CONSTANT;
 	fnv_hash(data, FNV_BASE_HASH, &tmp);
 
-	while(*_data) {
-		val *= *_data + idx;
-		_data++;
-		idx++;
+	for(idx = 1; *_data; _data++, idx++) {
+		val *= (*_data + idx) * XFIRE_COLLISION_CONSTANT;
+		seed += XOR(val + tmp, len * XFIRE_SEED_CONSTANT);
 	}
 
-	*seed = XOR(val * tmp, len * XFIRE_CONSTANT);
+	return seed;
 }
 
 u64 xfire_hash(const char *data, u64 *key)
 {
 	u64 tmp, hash;
 
-	xfire_calc_seed(data, &tmp);
+	tmp = xfire_calc_seed(data);
 	fnv_hash(data, tmp, &hash);
 
 	if(key)
