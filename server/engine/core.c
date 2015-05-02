@@ -70,6 +70,16 @@ static struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num)
 	return head;
 }
 
+static void rq_buff_free(struct rq_buff *buffer)
+{
+	struct rq_buff *iterator;
+
+	for(iterator = buffer->next; buffer; buffer = iterator,
+						iterator = iterator->next) {
+		free(buffer);
+	}
+}
+
 static struct request_pool *rq_pool_alloc(void)
 {
 	struct request_pool *pool;
@@ -205,6 +215,7 @@ static struct request *eng_processor(struct request_pool *pool)
 	reply = eng_build_reply(next->data);
 	eng_reply(next, reply);
 	eng_release_reply(reply);
+	rq_buff_free(next->data);
 	return next;
 }
 
