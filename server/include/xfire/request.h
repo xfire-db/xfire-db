@@ -41,7 +41,7 @@ typedef struct request {
 		       *prev;
 
 	rq_type_t type;
-	const char *key;
+	char *key;
 	u64 hash;
 	struct rq_buff *data;
 
@@ -80,6 +80,9 @@ typedef struct request_pool {
 
 CDECL
 void *eng_processor_thread(void *arg);
+
+extern void rq_free(struct request *rq);
+extern struct request *rq_alloc(const char *key, int start, int end);
 CDECL_END
 
 #endif

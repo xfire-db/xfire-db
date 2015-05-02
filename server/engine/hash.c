@@ -25,7 +25,7 @@
 
 #define FNV_BASE_HASH 14695981039346656037ULL
 #define FNV_PRIME 1099511628211ULL
-#define XFIRE_CONSTANT 0x5BD1e995
+#define XFIRE_CONSTANT 0x3BD1E995A641BC81
 
 static void fnv_hash(const char *data, u64 seed, u64 *key)
 {

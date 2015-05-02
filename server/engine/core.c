@@ -30,7 +30,7 @@
 #include <xfire/os.h>
 #include <xfire/mem.h>
 
-static struct request_pool **processors;
+static struct request_pool **processors = NULL;
 
 static struct rq_buff *rq_buff_alloc(struct request *parent)
 {
@@ -87,6 +87,7 @@ static struct request_pool *rq_pool_alloc(void)
 	pool = xfire_zalloc(sizeof(*pool));
 	xfire_cond_init(&pool->condi);
 	xfire_mutex_init(&pool->lock);
+	atomic_flags_init(&pool->flags);
 
 	return pool;
 }

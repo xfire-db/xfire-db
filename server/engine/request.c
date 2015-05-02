@@ -17,10 +17,46 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
-#include <xfire/request.h>
 #include <xfire/xfire.h>
+#include <xfire/request.h>
 #include <xfire/types.h>
 #include <xfire/flags.h>
+#include <xfire/mem.h>
 #include <xfire/os.h>
+
+struct request *rq_alloc(const char *key, int start, int end)
+{
+	struct request *request;
+	int len;
+
+	len = strlen(key);
+	request = xfire_zalloc(sizeof(*request));
+	request->key = xfire_zalloc(len + 1);
+
+	memcpy(request->key, key, len);
+	xfire_mutex_init(&request->lock);
+	xfire_cond_init(&request->condi);
+	atomic_flags_init(&request->flags);
+
+	request->range.start = start;
+	request->range.end = end;
+
+	if(start != end)
+		set_bit(RQ_MULTI_FLAG, &request->flags);
+
+	return request;
+}
+
+void rq_free(struct request *rq)
+{
+	if(!rq)
+		return;
+
+	xfire_free(rq->key);
+	xfire_mutex_destroy(&rq->lock);
+	xfire_cond_destroy(&rq->condi);
+	xfire_free(rq);
+}
 
