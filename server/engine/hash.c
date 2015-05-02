@@ -52,8 +52,9 @@ static void xfire_calc_seed(const char *data, u64 *seed)
 	fnv_hash(data, FNV_BASE_HASH, &tmp);
 
 	while(*_data) {
-		val ^= *_data + idx;
+		val *= *_data + idx;
 		_data++;
+		idx++;
 	}
 
 	*seed = XOR(val * tmp, len * XFIRE_CONSTANT);
