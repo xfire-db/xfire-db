@@ -27,3 +27,4 @@ extern void xfire_log_err(const char *msg, ...);
 CDECL_END
 
 #endif
+

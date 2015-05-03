@@ -24,12 +24,34 @@
 #include <xfire/types.h>
 #include <xfire/log.h>
 
-#ifndef XFIRE_STDOUT
+#ifdef XFIRE_STDOUT
+static FILE *xfire_stdout = NULL;
+#define XFIRE_STDOUT xfire_stdout
+#else
 #define XFIRE_STDOUT stdout
 #endif
 
-#ifndef XFIRE_STDERR
+#ifdef XFIRE_STDERR
+static FILE *xfire_stderr = NULL;
+#define XFIRE_STDERR xfire_stderr
+#else
 #define XFIRE_STDERR stderr
+#endif
+
+#ifdef XFIRE_LOG
+void xfire_log_init(const char *out, const char *err)
+{
+	xfire_stderr = fopen(out, "r+a");
+	xfire_stdout = fopen(err, "r+a");
+}
+
+void xfire_log_exit(void)
+{
+	fclose(xfire_stderr);
+	fclose(xfire_stdout);
+
+	fputs("XFIRE logger stopped.\n", stdout);
+}
 #endif
 
 void xfire_log(const char *msg, ...)
