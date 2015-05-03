@@ -24,31 +24,32 @@
 #include <xfire/types.h>
 #include <xfire/log.h>
 
-#ifdef XFIRE_STDOUT
 static FILE *xfire_stdout = NULL;
-#define XFIRE_STDOUT xfire_stdout
-#else
-#define XFIRE_STDOUT stdout
-#endif
-
-#ifdef XFIRE_STDERR
 static FILE *xfire_stderr = NULL;
-#define XFIRE_STDERR xfire_stderr
-#else
-#define XFIRE_STDERR stderr
-#endif
 
-#ifdef XFIRE_LOG
+#ifdef HAVE_LOG
 void xfire_log_init(const char *out, const char *err)
 {
+#ifdef XFIRE_STDERR
 	xfire_stderr = fopen(out, "r+a");
+#else
+	xfire_stderr = stderr;
+#endif
+#ifdef XFIRE_STDOUT
 	xfire_stdout = fopen(err, "r+a");
+#else
+	xfire_stdout = stdout;
+#endif
 }
 
 void xfire_log_exit(void)
 {
+#ifdef XFIRE_STDERR
 	fclose(xfire_stderr);
+#endif
+#ifdef XFIRE_STDOUT
 	fclose(xfire_stdout);
+#endif
 
 	fputs("XFIRE logger stopped.\n", stdout);
 }
@@ -59,7 +60,7 @@ void xfire_log(const char *msg, ...)
 	va_list args;
 
 	va_start(args, msg);
-	vfprintf(XFIRE_STDOUT, msg, args);
+	vfprintf(xfire_stdout, msg, args);
 	va_end(args);
 }
 
@@ -68,7 +69,7 @@ void xfire_log_err(const char *msg, ...)
 	va_list args;
 
 	va_start(args, msg);
-	vfprintf(XFIRE_STDERR, msg, args);
+	vfprintf(xfire_stderr, msg, args);
 	va_end(args);
 }
 

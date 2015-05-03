@@ -6,5 +6,9 @@
 #define __CONFIG_H__
 
 ${HAVE_DBG}
+${HAVE_LOG}
+
+${XFIRE_STDERR} "${STDERR}"
+${XFIRE_STDOUT} "${STDOUT}"
 
 #endif
