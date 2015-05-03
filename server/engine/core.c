@@ -235,6 +235,22 @@ void *eng_processor_thread(void *arg)
 	xfire_thread_exit(NULL);
 }
 
+void eng_push_request(struct request_pool *pool, struct request *request)
+{
+	struct request *tail;
+
+	xfire_mutex_lock(&pool->lock);
+	tail = pool->tail;
+	if(tail)
+		tail->next = request;
+	else
+		pool->head = request;
+
+	request->prev = tail;
+	pool->tail = request;
+	xfire_mutex_unlock(&pool->lock);
+}
+
 #define POOL_NAME_LENGTH 12
 
 void eng_init(int num)

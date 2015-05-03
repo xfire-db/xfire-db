@@ -44,6 +44,7 @@ typedef struct rq_buff {
 CDECL
 extern void eng_init(int num);
 extern void eng_exit(void);
+extern void eng_push_request(struct request_pool *, struct request *);
 CDECL_END
 
 #endif
