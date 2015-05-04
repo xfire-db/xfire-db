@@ -21,6 +21,7 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
+#include <xfire/request.h>
 
 typedef struct reply {
 	struct reply *next,

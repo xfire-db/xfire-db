@@ -28,7 +28,7 @@
 
 #ifdef HAVE_LINUX
 #define xfire_cond_t pthread_cond_t
-#define xfire_mutex_t pthread_mutex_t
+#define xfire_mutex_t mutex_t
 #define xfire_spinlock_t pthread_spinlock_t
 
 #define xfire_spinlock_init(__s) pthread_spin_init(__s, PTHREAD_PROCESS_PRIVATE)
@@ -37,13 +37,9 @@
 #define xfire_spin_trylock(__s) pthread_spin_trylock(__s)
 #define xfire_spin_unlock(__s) pthread_spin_unlock(__s)
 
-#define xfire_mutex_lock(__l) pthread_mutex_lock(__l)
-#define xfire_mutex_unlock(__l) pthread_mutex_unlock(__l)
-#define xfire_mutex_destroy(__l) pthread_mutex_destroy(__l)
-
 #define xfire_cond_init(__c) pthread_cond_init(__c, NULL)
 #define xfire_cond_destroy(__c) pthread_cond_destroy(__c)
-#define xfire_cond_wait(__c, __m) pthread_cond_wait(__c, __m)
+#define xfire_cond_wait(__c, __m) pthread_cond_wait(__c, &(__m)->mtx)
 #define xfire_cond_signal(__c) pthread_cond_signal(__c)
 
 #define xfire_thread_exit(__a) pthread_exit(__a)
@@ -59,6 +55,11 @@ struct thread {
 
 	char *name;
 };
+
+typedef struct mutex {
+	pthread_mutex_t mtx;
+	pthread_mutexattr_t attr;
+} mutex_t;
 
 typedef struct atomic {
 	s32 val;
@@ -83,11 +84,15 @@ typedef struct atomic64 {
 #endif
 
 CDECL
+extern void xfire_mutex_destroy(xfire_mutex_t *m);
+extern void xfire_mutex_lock(xfire_mutex_t *m);
+extern void xfire_mutex_unlock(xfire_mutex_t *m);
 extern struct thread *xfire_create_thread(const char *name,
 				      void* (*fn)(void*),
 				      void* arg);
 extern void *xfire_thread_join(struct thread *tp);
 extern int xfire_destroy_thread(struct thread *tp);
+extern int xfire_thread_cancel(struct thread *tp);
 
 extern void atomic_add(atomic_t *atom, s32 val);
 extern void atomic_sub(atomic_t *atom, s32 val);

@@ -31,6 +31,7 @@
 #include <xfire/mem.h>
 
 static struct request_pool **processors = NULL;
+static int proc_num;
 
 static struct rq_buff *rq_buff_alloc(struct request *parent)
 {
@@ -258,7 +259,8 @@ void eng_init(int num)
 	int i;
 	struct request_pool *pool;
 
-	processors = xfire_calloc(num+1, sizeof(void*));
+	processors = xfire_calloc(num, sizeof(void*));
+	proc_num = num;
 
 	for(i = 0; i < num; i++) {
 		pool = rq_pool_alloc();
@@ -268,6 +270,8 @@ void eng_init(int num)
 						 pool);
 		processors[i] = pool;
 	}
+
+	/* initialise the sentinel */
 }
 
 void eng_exit(void)
@@ -275,12 +279,14 @@ void eng_exit(void)
 	struct request_pool *pool;
 	int i = 0;
 
-	for(; pool; i++) {
+	for(; i < proc_num; i++) {
 		pool = processors[i];
 
 		set_bit(RQP_EXIT_FLAG, &pool->flags);
-		xfire_thread_join(pool->proc);
+		xfire_thread_cancel(pool->proc);
 		xfire_thread_destroy(pool->proc);
+		xfire_cond_destroy(&pool->condi);
+		xfire_mutex_destroy(&pool->lock);
 		xfire_free(pool);
 	}
 
