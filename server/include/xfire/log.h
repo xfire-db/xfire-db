@@ -21,9 +21,12 @@
 
 #include <xfire/xfire.h>
 
+#define XFIRE_ENGINE_LOG "ENGINE"
+#define XFIRE_STORAGE_LOG "STORAGE"
+
 CDECL
-extern void xfire_log(const char *msg, ...);
-extern void xfire_log_err(const char *msg, ...);
+extern void xfire_log(const char *src, const char *msg, ...);
+extern void xfire_log_err(const char *src, const char *msg, ...);
 CDECL_END
 
 #endif

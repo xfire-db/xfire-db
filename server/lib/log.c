@@ -55,20 +55,22 @@ void xfire_log_exit(void)
 }
 #endif
 
-void xfire_log(const char *msg, ...)
+void xfire_log(const char *src, const char *msg, ...)
 {
 	va_list args;
 
 	va_start(args, msg);
+	fprintf(xfire_stdout, "[%s]: ", src);
 	vfprintf(xfire_stdout, msg, args);
 	va_end(args);
 }
 
-void xfire_log_err(const char *msg, ...)
+void xfire_log_err(const char *src, const char *msg, ...)
 {
 	va_list args;
 
 	va_start(args, msg);
+	fprintf(xfire_stderr, "[%s]: ", src);
 	vfprintf(xfire_stderr, msg, args);
 	va_end(args);
 }
