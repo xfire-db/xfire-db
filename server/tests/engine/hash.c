@@ -1,5 +1,5 @@
 /*
- *  Binary operations
+ *  XFIRE HASHING
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BITOPS_H__
-#define __BITOPS_H__
+#include <stdlib.h>
+#include <stdio.h>
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
+#include <xfire/hash.h>
 
-#if defined(__x86_64) || defined(__x86_64__)
-#define X86_64
-#endif
+int main(int argc, char **argv)
+{
+	u64 hash;
+	int i = 1;
 
-CDECL
-int __test_bit(int nr, void *addr);
-void __swap_bit(int nr, void *addr1, void *addr2);
-void __set_bit(int nr, void *addr);
-void __clear_bit(int nr, void *addr);
-int __test_and_clear_bit(int nr, void *addr);
-int __test_and_set_bit(int nr, void *addr);
-CDECL_END
+	if(argc < 2)
+		fprintf(stderr, "Usage: %s <key> ..\n", argv[0]);
 
-#endif
+	for(; i < argc; i++) {
+		xfire_hash(argv[i], &hash);
+		printf("Hashing value of key '%s\': %llu\n", argv[i],
+				(unsigned long long)hash);
+	}
+
+	return -EXIT_SUCCESS;
+}
+

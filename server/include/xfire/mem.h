@@ -1,5 +1,5 @@
 /*
- *  Binary operations
+ *  MEM header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BITOPS_H__
-#define __BITOPS_H__
+#ifndef __MEM_H__
+#define __MEM_H__
 
 #include <xfire/xfire.h>
 
-#if defined(__x86_64) || defined(__x86_64__)
-#define X86_64
-#endif
-
 CDECL
-int __test_bit(int nr, void *addr);
-void __swap_bit(int nr, void *addr1, void *addr2);
-void __set_bit(int nr, void *addr);
-void __clear_bit(int nr, void *addr);
-int __test_and_clear_bit(int nr, void *addr);
-int __test_and_set_bit(int nr, void *addr);
+extern void *xfire_alloc(size_t len);
+extern void *xfire_zalloc(size_t len);
+extern void *xfire_calloc(size_t num, size_t size);
+extern void xfire_free(void *region);
 CDECL_END
 
 #endif

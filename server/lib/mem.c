@@ -1,5 +1,5 @@
 /*
- *  Binary operations
+ *  MEMORY management
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,55 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BITOPS_H__
-#define __BITOPS_H__
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
 
-#if defined(__x86_64) || defined(__x86_64__)
-#define X86_64
-#endif
+void *xfire_alloc(size_t len)
+{
+	void *region;
 
-CDECL
-int __test_bit(int nr, void *addr);
-void __swap_bit(int nr, void *addr1, void *addr2);
-void __set_bit(int nr, void *addr);
-void __clear_bit(int nr, void *addr);
-int __test_and_clear_bit(int nr, void *addr);
-int __test_and_set_bit(int nr, void *addr);
-CDECL_END
+	if(len)
+		region = malloc(len);
+	else
+		return NULL;
 
-#endif
+	if(!region) {
+		fputs("Memory allocation failed!\n", stderr);
+		abort();
+	}
+
+	return region;
+}
+
+void *xfire_zalloc(size_t len)
+{
+	void *region;
+
+	region = xfire_alloc(len);
+	memset(region, 0x0, len);
+
+	return region;
+}
+
+void *xfire_calloc(size_t num, size_t size)
+{
+	void *region;
+
+	region = calloc(num, size);
+	memset(region, 0x0, num*size);
+
+	return region;
+}
+
+void xfire_free(void *region)
+{
+	if(!region)
+		return;
+
+	free(region);
+}
+

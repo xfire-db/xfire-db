@@ -1,5 +1,5 @@
 /*
- *  Binary operations
+ *  ENGINE header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,37 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BITOPS_H__
-#define __BITOPS_H__
+#ifndef __ENGINE__H__
+#define __ENGINE__H__
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
+#include <xfire/request.h>
 
-#if defined(__x86_64) || defined(__x86_64__)
-#define X86_64
-#endif
+typedef struct reply {
+	struct reply *next,
+		     *prev;
+	u16 num;
+	u32 length;
+	void *data;
+} REPLY;
+
+typedef struct rq_buff {
+	struct request *parent;
+	struct rq_buff *next,
+		       *prev;
+
+	atomic_flags_t flags;
+
+	void *data;
+	u32 length;
+} RQ_BUFF;
 
 CDECL
-int __test_bit(int nr, void *addr);
-void __swap_bit(int nr, void *addr1, void *addr2);
-void __set_bit(int nr, void *addr);
-void __clear_bit(int nr, void *addr);
-int __test_and_clear_bit(int nr, void *addr);
-int __test_and_set_bit(int nr, void *addr);
+extern void eng_init(int num);
+extern void eng_exit(void);
+extern void eng_push_request(struct request_pool *, struct request *);
 CDECL_END
 
 #endif
+
