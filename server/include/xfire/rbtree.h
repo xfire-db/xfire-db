@@ -102,19 +102,11 @@ static inline bool rb_node_has_duplicates(struct rb_node *node)
 
 static inline struct rb_node *rb_get_root(struct rb_root *root)
 {
-	struct rb_node *rv;
-
-	xfire_spin_lock(&root->lock);
-	rv = root->tree;
-	xfire_spin_unlock(&root->lock);
-
-	return rv;
+	return root->tree;
 }
 static inline void rb_set_root(struct rb_root *root, struct rb_node *n)
 {
-	xfire_spin_lock(&root->lock);
 	root->tree = n;
-	xfire_spin_unlock(&root->lock);
 }
 
 static inline bool rb_unlinked(struct rb_node *node)
