@@ -264,13 +264,18 @@ static void eng_correct_request_range(struct request *request)
 	struct database *db;
 	struct rb_node *node;
 	struct list_head *lh;
+	int end;
 
-	if(rng->end < 0) {
+	end = rng->end;
+	if(end < 0) {
+		end += 1;
+	
 		/* Get the true ending of the range */
 		db = eng_get_db(request->db_name);
 		node = rb_find(&db->root, request->hash);
 		lh = container_of(node, struct list_head, node);
-		rng->end = atomic_get(&lh->num) - 1; /* list is 0 counted */
+		rng->end = atomic_get(&lh->num) - 1;
+		rng->end -= end;
 	}
 }
 
@@ -291,14 +296,14 @@ static struct request *eng_processor(struct request_pool *pool)
 	next = eng_get_next_request(pool);
 	xfire_mutex_unlock(&pool->lock);
 
-	data = rq_buff_alloc(next);
 	time(&tstamp);
 	xfire_hash(next->key, &hash);
-
-	next->data = data;
 	next->stamp = tstamp;
 	next->hash = hash;
 	eng_correct_request_range(next);
+
+	data = rq_buff_alloc(next);
+	next->data = data;
 
 	if(test_bit(RQ_MULTI_FLAG, &next->flags)) {
 		range = next->range.end - next->range.start;

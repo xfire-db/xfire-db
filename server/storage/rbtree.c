@@ -570,9 +570,12 @@ static inline struct rb_node *rb_far_nephew(struct rb_node *node)
 #ifdef HAVE_RECURSION
 struct rb_node *rb_find_rightmost(struct rb_node *tree)
 {
+	struct rb_node *node;
+
 	if(!tree)
 		return NULL;
 
+	node = tree;
 	tree = tree->right;
 	if(!tree)
 		return node;
@@ -582,9 +585,12 @@ struct rb_node *rb_find_rightmost(struct rb_node *tree)
 
 struct rb_node *rb_find_leftmost(struct rb_node *tree)
 {
+	struct rb_node *node;
+
 	if(!tree)
 		return NULL;
-	
+
+	node = tree;
 	tree = tree->left;
 
 	if(!tree)
