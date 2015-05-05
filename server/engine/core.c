@@ -29,9 +29,64 @@
 #include <xfire/hash.h>
 #include <xfire/os.h>
 #include <xfire/mem.h>
+#include <xfire/rbtree.h>
 
 static struct request_pool **processors = NULL;
 static int proc_num;
+
+struct database {
+	char *name;
+	struct rb_root root;
+};
+
+static xfire_spinlock_t db_lock;
+static struct database **databases = NULL;
+static int db_num;
+
+static struct database *eng_alloc_db(const char *name)
+{
+	int len;
+	struct database *db = xfire_zalloc(sizeof(*db));
+
+	rb_init_root(&db->root);
+	len = strlen(name);
+
+	db->name = xfire_zalloc(len + 1);
+	memcpy(db->name, name, len);
+
+	return db;
+}
+
+static void eng_free_db(struct database *db)
+{
+	if(!db)
+		return;
+
+	xfire_free(db->name);
+	xfire_free(db);
+}
+
+void eng_create_db(const char *name)
+{
+	int idx;
+	struct database *db = eng_alloc_db(name);
+
+	xfire_spin_lock(&db_lock);
+	for(idx = 0; idx < db_num; idx++) {
+		if(databases[idx]) {
+			continue;
+		} else {
+			databases[idx] = db;
+			xfire_spin_unlock(&db_lock);
+			return;
+		}
+	}
+
+	db_num += 5;
+	databases = realloc(databases, sizeof(void*) * db_num);
+	databases[idx] = db;
+	xfire_spin_unlock(&db_lock);
+}
 
 static struct rq_buff *rq_buff_alloc(struct request *parent)
 {
@@ -253,6 +308,7 @@ void eng_push_request(struct request_pool *pool, struct request *request)
 }
 
 #define POOL_NAME_LENGTH 12
+#define XFIRE_DB_INIT_NUM 5
 
 void eng_init(int num)
 {
@@ -260,7 +316,10 @@ void eng_init(int num)
 	struct request_pool *pool;
 
 	processors = xfire_calloc(num, sizeof(void*));
+	databases = xfire_calloc(XFIRE_DB_INIT_NUM, sizeof(void*));
+	db_num = XFIRE_DB_INIT_NUM;
 	proc_num = num;
+	xfire_spinlock_init(&db_lock);
 
 	for(i = 0; i < num; i++) {
 		pool = rq_pool_alloc();
@@ -290,6 +349,13 @@ void eng_exit(void)
 		xfire_free(pool);
 	}
 
+	xfire_spin_lock(&db_lock);
+	for(i = 0; i < db_num; i++)
+		eng_free_db(databases[i]);
+	xfire_spin_unlock(&db_lock);
+
+	xfire_spinlock_destroy(&db_lock);
+	xfire_free(databases);
 	xfire_free(processors);
 }
 
