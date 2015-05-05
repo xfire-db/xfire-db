@@ -30,6 +30,7 @@
 #include <xfire/os.h>
 #include <xfire/mem.h>
 #include <xfire/rbtree.h>
+#include <xfire/list.h>
 
 static struct request_pool **processors = NULL;
 static int proc_num;
@@ -257,6 +258,22 @@ static void eng_release_reply(struct reply *reply)
 	}
 }
 
+static void eng_correct_request_range(struct request *request)
+{
+	struct rq_range *rng = &request->range;
+	struct database *db;
+	struct rb_node *node;
+	struct list_head *lh;
+
+	if(rng->end < 0) {
+		/* Get the true ending of the range */
+		db = eng_get_db(request->db_name);
+		node = rb_find(&db->root, request->hash);
+		lh = container_of(node, struct list_head, node);
+		rng->end = atomic_get(&lh->num) - 1; /* list is 0 counted */
+	}
+}
+
 static struct request *eng_processor(struct request_pool *pool)
 {
 	struct request *next;
@@ -281,6 +298,7 @@ static struct request *eng_processor(struct request_pool *pool)
 	next->data = data;
 	next->stamp = tstamp;
 	next->hash = hash;
+	eng_correct_request_range(next);
 
 	if(test_bit(RQ_MULTI_FLAG, &next->flags)) {
 		range = next->range.end - next->range.start;

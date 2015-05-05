@@ -44,6 +44,7 @@ static const int request_range_array[] = {
 };
 
 #define TEST_RQ_LENGTH 6
+#define TEST_DB_NAME "test_db"
 
 static struct request **request_array;
 
@@ -54,7 +55,8 @@ static void test_build_requests(void)
 	request_array = xfire_calloc(TEST_RQ_LENGTH, sizeof(void*));
 
 	for(i = 0; i < TEST_RQ_LENGTH; i++) {
-		request_array[i] = rq_alloc(request_key_array[i],
+		request_array[i] = rq_alloc(TEST_DB_NAME,
+						request_key_array[i],
 						request_range_array[i],
 						request_range_array[i+1]);
 		request_array[i]->fd = fileno(stdout);

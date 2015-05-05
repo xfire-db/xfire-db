@@ -42,6 +42,7 @@ typedef struct request {
 
 	rq_type_t type;
 	char *key;
+	char *db_name;
 	u64 hash;
 	struct rq_buff *data;
 
@@ -82,7 +83,9 @@ CDECL
 void *eng_processor_thread(void *arg);
 
 extern void rq_free(struct request *rq);
-extern struct request *rq_alloc(const char *key, int start, int end);
+extern struct request *rq_alloc(const char *db,
+				const char *key,
+				int start, int end);
 CDECL_END
 
 #endif

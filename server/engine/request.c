@@ -26,7 +26,7 @@
 #include <xfire/mem.h>
 #include <xfire/os.h>
 
-struct request *rq_alloc(const char *key, int start, int end)
+struct request *rq_alloc(const char *db, const char *key, int start, int end)
 {
 	struct request *request;
 	int len;
@@ -39,6 +39,10 @@ struct request *rq_alloc(const char *key, int start, int end)
 	xfire_mutex_init(&request->lock);
 	xfire_cond_init(&request->condi);
 	atomic_flags_init(&request->flags);
+
+	len = strlen(db);
+	request->db_name = xfire_zalloc(len + 1);
+	memcpy(request->db_name, db, len);
 
 	request->range.start = start;
 	request->range.end = end;
@@ -55,6 +59,7 @@ void rq_free(struct request *rq)
 		return;
 
 	xfire_free(rq->key);
+	xfire_free(rq->db_name);
 	xfire_mutex_destroy(&rq->lock);
 	xfire_cond_destroy(&rq->condi);
 	xfire_free(rq);
