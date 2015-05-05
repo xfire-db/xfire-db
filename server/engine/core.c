@@ -88,6 +88,29 @@ void eng_create_db(const char *name)
 	xfire_spin_unlock(&db_lock);
 }
 
+struct database *eng_get_db(const char *name)
+{
+	int idx;
+	struct database *db = NULL;
+
+	xfire_spin_lock(&db_num);
+	for(idx = 0; idx < db_num; idx++) {
+		db = databases[idx];
+		if(!db)
+			continue;
+
+		if(!strcmp(db->name, name)) {
+			break;
+		} else if((idx+1) >= db_num) {
+			db = NULL;
+			break;
+		}
+	}
+	xfire_spin_unlock(&db_num);
+
+	return db;
+}
+
 static struct rq_buff *rq_buff_alloc(struct request *parent)
 {
 	struct rq_buff *data;
