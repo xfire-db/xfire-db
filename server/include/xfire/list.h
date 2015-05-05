@@ -26,12 +26,12 @@
 typedef struct list {
 	struct list *next;
 	struct list *prev;
-
-	xfire_mutex_t lock;
 } LIST;
 
 typedef struct list_head {
 	struct list *head;
+
+	xfire_spinlock_t lock;
 
 	struct rb_node node;
 	atomic_t num;
@@ -44,7 +44,6 @@ extern void list_pop(struct list_head *head, u32 idx);
 
 static inline void list_node_init(struct list *node)
 {
-	xfire_mutex_init(&node->lock);
 
 	node->next = NULL;
 	node->prev = NULL;
@@ -52,6 +51,7 @@ static inline void list_node_init(struct list *node)
 
 static inline void list_head_init(struct list_head *head)
 {
+	xfire_spinlock_init(&head->lock);
 	rb_init_node(&head->node);
 
 	atomic_init(&head->num);
@@ -60,3 +60,4 @@ static inline void list_head_init(struct list_head *head)
 CDECL_END
 
 #endif
+

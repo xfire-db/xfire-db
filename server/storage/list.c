@@ -22,11 +22,13 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/list.h>
+#include <xfire/os.h>
 
 void list_rpush(struct list_head *head, struct list *node)
 {
 	struct list *it;
 
+	xfire_spin_lock(&head->lock);
 	for(it = head->head; it; it = it->next) {
 		if(!it->next)
 			break;
@@ -35,12 +37,14 @@ void list_rpush(struct list_head *head, struct list *node)
 	it->next = node;
 	node->prev = it;
 	node->next = NULL;
+	xfire_spin_unlock(&head->lock);
 }
 
 void list_lpush(struct list_head *head, struct list *node)
 {
 	struct list *next = head->head;
 
+	xfire_spin_lock(&head->lock);
 	if(next) {
 		next->prev = node;
 		node->next = next;
@@ -48,6 +52,8 @@ void list_lpush(struct list_head *head, struct list *node)
 
 	node->prev= NULL;
 	head->head = node;
+
+	xfire_spin_lock(&head->lock);
 }
 
 void list_pop(struct list_head *head, u32 num)
@@ -55,6 +61,7 @@ void list_pop(struct list_head *head, u32 num)
 	struct list *it, *prev, *next;
 	u32 idx;
 
+	xfire_spin_lock(&head->lock);
 	for(it = head->head, idx = 0; it; it = it->next, idx++) {
 		if(idx == num)
 			break;
@@ -70,5 +77,7 @@ void list_pop(struct list_head *head, u32 num)
 		next->prev = prev;
 
 	it->next = it->prev = NULL;
+
+	xfire_spin_unlock(&head->lock);
 }
 
