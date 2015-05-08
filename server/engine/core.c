@@ -274,7 +274,7 @@ static void eng_correct_request_range(struct request *request)
 		db = eng_get_db(request->db_name);
 		node = rb_find(&db->root, request->hash);
 		lh = container_of(node, struct list_head, node);
-		rng->end = atomic_get(&lh->num) - 1;
+		rng->end = atomic_get(&lh->num);
 		rng->end -= end;
 	}
 }
@@ -302,17 +302,25 @@ static struct request *eng_processor(struct request_pool *pool)
 	next->hash = hash;
 	eng_correct_request_range(next);
 
-	data = rq_buff_alloc(next);
-	next->data = data;
+	if(next->type == RQ_LIST_LOOKUP || 
+			next->type == RQ_STRING_LOOKUP) {
+		data = rq_buff_alloc(next);
+		next->data = data;
 
-	if(test_bit(RQ_MULTI_FLAG, &next->flags)) {
-		range = next->range.end - next->range.start;
-		multi = rq_buff_alloc_multi(next, range);
-		multi->prev = data;
-		data->next = multi;
-		eng_handle_multi_request(next);
+		if(test_bit(RQ_MULTI_FLAG, &next->flags)) {
+			range = next->range.end - next->range.start;
+			multi = rq_buff_alloc_multi(next, range);
+			multi->prev = data;
+			data->next = multi;
+			eng_handle_multi_request(next);
+		} else {
+			eng_handle_request(next, next->data);
+		}
 	} else {
-		eng_handle_request(next, next->data);
+		if(test_bit(RQ_MULTI_FLAG, &next->flags))
+			eng_handle_multi_request(next);
+		else
+			eng_handle_request(next, next->data);
 	}
 
 	reply = eng_build_reply(next->data);

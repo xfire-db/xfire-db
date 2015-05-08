@@ -29,9 +29,12 @@
 struct rq_buff;
 
 typedef enum {
-	RQ_INSERT,
-	RQ_REMOVE,
-	RQ_LOOKUP,
+	RQ_LIST_INSERT,
+	RQ_LIST_REMOVE,
+	RQ_LIST_LOOKUP,
+	RQ_STRING_INSERT,
+	RQ_STRING_REMOVE,
+	RQ_STRING_LOOKUP,
 } rq_type_t;
 
 typedef struct request {
