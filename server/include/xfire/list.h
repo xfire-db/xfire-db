@@ -32,8 +32,6 @@ typedef struct list_head {
 	struct list *head;
 
 	xfire_spinlock_t lock;
-
-	struct rb_node node;
 	atomic_t num;
 } LIST_HEAD;
 
@@ -54,10 +52,14 @@ static inline void list_node_init(struct list *node)
 static inline void list_head_init(struct list_head *head)
 {
 	xfire_spinlock_init(&head->lock);
-	rb_init_node(&head->node);
 
 	atomic_init(&head->num);
 	head->head = NULL;
+}
+
+static inline void list_head_destroy(struct list_head *head)
+{
+	xfire_spinlock_destroy(&head->lock);
 }
 CDECL_END
 

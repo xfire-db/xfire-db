@@ -43,6 +43,13 @@ void rb_init_node(struct rb_node *node)
 	node->prev = NULL;
 }
 
+void rb_node_destroy(struct rb_node *node)
+{
+	xfire_mutex_destroy(&node->lock);
+	xfire_cond_destroy(&node->condi);
+	atomic_flags_destroy(&node->flags);
+}
+
 void rb_init_root(struct rb_root *root)
 {
 	xfire_spinlock_init(&root->lock);

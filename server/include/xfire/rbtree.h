@@ -61,6 +61,7 @@ typedef struct rb_root {
 #define RB_BLACK 	false
 
 CDECL
+extern void rb_node_destroy(struct rb_node *node);
 extern s32 rb_get_height(struct rb_root *root);
 extern void rb_init_root(struct rb_root *root);
 extern struct rb_node *rb_insert(struct rb_root *, struct rb_node*,bool);
