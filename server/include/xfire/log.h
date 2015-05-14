@@ -1,5 +1,5 @@
 /*
- *  Binary operations
+ *  LOG library
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,29 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BITOPS_H__
-#define __BITOPS_H__
+#ifndef __LOG__H__
+#define __LOG__H__
 
 #include <xfire/xfire.h>
-#include <xfire/os.h>
 
-typedef struct {
-	unsigned long flags;
-	xfire_spinlock_t lock;
-} atomic_flags_t;
+#define XFIRE_ENGINE_LOG "ENGINE"
+#define XFIRE_STORAGE_LOG "STORAGE"
 
 CDECL
-extern int test_bit(int nr, atomic_flags_t *atom);
-extern void set_bit(int nr, atomic_flags_t *atom);
-extern void clear_bit(int nr, atomic_flags_t *atom);
-extern int test_and_clear_bit(int nr, atomic_flags_t *atom);
-extern int test_and_set_bit(int nr, atomic_flags_t *atom);
-extern void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2);
-extern int test_and_swap_bit(int, atomic_flags_t *, atomic_flags_t *);
-
-extern void atomic_flags_copy(atomic_flags_t *dst, atomic_flags_t *src);
-extern void atomic_flags_destroy(atomic_flags_t *atom);
-extern void atomic_flags_init(atomic_flags_t *atom);
+extern void xfire_log(const char *src, const char *msg, ...);
+extern void xfire_log_err(const char *src, const char *msg, ...);
 CDECL_END
 
 #endif

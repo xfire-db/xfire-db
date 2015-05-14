@@ -26,9 +26,25 @@
 
 void xfire_mutex_init(xfire_mutex_t *m)
 {
-	pthread_mutexattr_t *attr = malloc(sizeof(*attr));
-	pthread_mutexattr_settype(attr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(m, attr);
+	pthread_mutexattr_init(&m->attr);
+	pthread_mutexattr_settype(&m->attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&m->mtx, &m->attr);
+}
+
+void xfire_mutex_destroy(xfire_mutex_t *m)
+{
+	pthread_mutex_destroy(&m->mtx);
+	pthread_mutexattr_destroy(&m->attr);
+}
+
+void xfire_mutex_lock(xfire_mutex_t *m)
+{
+	pthread_mutex_lock(&m->mtx);
+}
+
+void xfire_mutex_unlock(xfire_mutex_t *m)
+{
+	pthread_mutex_unlock(&m->mtx);
 }
 
 struct thread *xfire_create_thread(const char *name,
@@ -50,6 +66,11 @@ struct thread *xfire_create_thread(const char *name,
 	memcpy(tp->name, name, strlen(name) + 1);
 
 	return tp;
+}
+
+int xfire_thread_cancel(struct thread *tp)
+{
+	return pthread_cancel(tp->thread);
 }
 
 int xfire_destroy_thread(struct thread *tp)
