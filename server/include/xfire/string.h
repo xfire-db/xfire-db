@@ -1,5 +1,5 @@
 /*
- *  MEM header
+ *  String storage
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,17 +16,24 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#ifndef __STRING_H__
+#define __STRING_H__
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
+#include <xfire/os.h>
+
+typedef struct string {
+	char *str;
+	size_t len;
+	xfire_spinlock_t lock;
+} STRING;
 
 CDECL
-extern void *xfire_alloc(size_t len);
-extern void *xfire_zalloc(size_t len);
-extern void *xfire_calloc(size_t num, size_t size);
-extern void xfire_free(void *region);
-extern void *xfire_realloc(void *region, size_t size);
+extern struct string *string_alloc(size_t len);
+extern void string_init(struct string *str);
+extern void string_free(struct string *string);
+extern void string_destroy(struct string *str);
 CDECL_END
 
 #endif

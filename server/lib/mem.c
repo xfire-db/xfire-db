@@ -60,6 +60,11 @@ void *xfire_calloc(size_t num, size_t size)
 	return region;
 }
 
+void *xfire_realloc(void *region, size_t size)
+{
+	return realloc(region, size);
+}
+
 void xfire_free(void *region)
 {
 	if(!region)
