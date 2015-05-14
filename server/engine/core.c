@@ -185,6 +185,41 @@ static struct request *eng_get_next_request(struct request_pool *pool)
 
 static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
+	struct database *db;
+	struct rb_node *node;
+	struct list_head *lh;
+
+	db = eng_get_db(rq->db_name);
+	node = rb_find(&db->root, rq->hash);
+	
+	switch(rq->type) {
+	case RQ_LIST_INSERT:
+		break;
+
+	case RQ_LIST_REMOVE:
+		break;
+
+	case RQ_LIST_LOOKUP:
+		if(!node)
+			break;
+
+		lh = container_of(node, struct list_head, node);
+		if(lh->magic != LH_MAGIC)
+			break;
+		break;
+
+	case RQ_STRING_INSERT:
+		break;
+
+	case RQ_STRING_REMOVE:
+		break;
+
+	case RQ_STRING_LOOKUP:
+		break;
+
+	default:
+		break;
+	}
 }
 
 static inline void eng_handle_multi_request(struct request *rq)

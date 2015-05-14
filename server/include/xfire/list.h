@@ -29,6 +29,7 @@ typedef struct list {
 } LIST;
 
 typedef struct list_head {
+	u32 magic;
 	struct list *head;
 
 	xfire_spinlock_t lock;
@@ -36,6 +37,8 @@ typedef struct list_head {
 	struct rb_node node;
 	atomic_t num;
 } LIST_HEAD;
+
+#define LH_MAGIC 0x87A5F947
 
 CDECL
 extern void list_lpush(struct list_head *head, struct list *node);
@@ -56,6 +59,7 @@ static inline void list_head_init(struct list_head *head)
 
 	atomic_init(&head->num);
 	head->head = NULL;
+	head->magic = LH_MAGIC;
 }
 CDECL_END
 
