@@ -1,5 +1,5 @@
 /*
- *  String storage
+ *  CONTAINER
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,26 +16,28 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STRING_H__
-#define __STRING_H__
-
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/os.h>
+#include <xfire/rbtree.h>
+#include <xfire/list.h>
+#include <xfire/string.h>
+#include <xfire/container.h>
 
-typedef struct string {
-	char *str;
-	size_t len;
-	xfire_spinlock_t lock;
-} STRING;
+void container_init(struct container *c, u32 magic)
+{
+	switch(magic) {
+	case S_MAGIC:
+		string_init(&c->data.string);
+		break;
 
-#define S_MAGIC 0x785A06B8
+	case LH_MAGIC:
+		list_head_init(&c->data.lh);
+		break;
 
-CDECL
-extern struct string *string_alloc(size_t len);
-extern void string_init(struct string *str);
-extern void string_free(struct string *string);
-extern void string_destroy(struct string *str);
-CDECL_END
+	default:
+		break;
+	}
 
-#endif
+	c->magic = magic;
+}
+

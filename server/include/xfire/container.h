@@ -1,5 +1,5 @@
 /*
- *  LIST storage header
+ *  CONTAINER header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,50 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LIST_H__
-#define __LIST_H__
+#ifndef __CONTAINER__H__
+#define __CONTAINER__H__
 
 #include <xfire/xfire.h>
+#include <xfire/types.h>
 #include <xfire/rbtree.h>
-#include <xfire/os.h>
+#include <xfire/list.h>
+#include <xfire/string.h>
 
-typedef struct list {
-	struct list *next;
-	struct list *prev;
-} LIST;
+typedef enum container_type {
+	LIST_CONTAINER,
+	STRING_CONTAINER,
+} container_type_t;
 
-typedef struct list_head {
-	struct list *head;
-
-	xfire_spinlock_t lock;
-
+typedef struct container {
+	u32 magic;
 	struct rb_node node;
-	atomic_t num;
-} LIST_HEAD;
 
-#define LH_MAGIC 0x87A5F947
-
-CDECL
-extern void list_lpush(struct list_head *head, struct list *node);
-extern void list_rpush(struct list_head *head, struct list *node);
-extern void list_pop(struct list_head *head, u32 idx);
-
-static inline void list_node_init(struct list *node)
-{
-
-	node->next = NULL;
-	node->prev = NULL;
-}
-
-static inline void list_head_init(struct list_head *head)
-{
-	xfire_spinlock_init(&head->lock);
-	rb_init_node(&head->node);
-
-	atomic_init(&head->num);
-	head->head = NULL;
-}
-CDECL_END
-
+	union {
+		struct list_head lh;
+		struct string string;
+	} data;
+} CONTAINER;
 #endif
-

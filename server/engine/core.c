@@ -31,6 +31,7 @@
 #include <xfire/mem.h>
 #include <xfire/rbtree.h>
 #include <xfire/list.h>
+#include <xfire/container.h>
 
 static struct request_pool **processors = NULL;
 static int proc_num;
@@ -187,7 +188,7 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
 	struct database *db;
 	struct rb_node *node;
-	struct list_head *lh;
+	struct container *c;
 
 	db = eng_get_db(rq->db_name);
 	node = rb_find(&db->root, rq->hash);
@@ -197,14 +198,20 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 		break;
 
 	case RQ_LIST_REMOVE:
+		if(!node)
+			break;
+
+		c = container_of(node, struct container, node);
+		if(c->magic != LH_MAGIC)
+			break;
 		break;
 
 	case RQ_LIST_LOOKUP:
 		if(!node)
 			break;
 
-		lh = container_of(node, struct list_head, node);
-		if(lh->magic != LH_MAGIC)
+		c = container_of(node, struct container, node);
+		if(c->magic != LH_MAGIC)
 			break;
 		break;
 
@@ -299,6 +306,7 @@ static void eng_correct_request_range(struct request *request)
 	struct database *db;
 	struct rb_node *node;
 	struct list_head *lh;
+	struct container *c;
 	int end;
 
 	end = rng->end;
@@ -308,7 +316,8 @@ static void eng_correct_request_range(struct request *request)
 		/* Get the true ending of the range */
 		db = eng_get_db(request->db_name);
 		node = rb_find(&db->root, request->hash);
-		lh = container_of(node, struct list_head, node);
+		c = container_of(node, struct container, node);
+		lh = &c->data.lh;
 		rng->end = atomic_get(&lh->num);
 		rng->end -= end;
 	}
