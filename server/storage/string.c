@@ -27,6 +27,7 @@ void string_init(struct string *str)
 	str->str = NULL;
 	str->len = 0UL;
 	xfire_spinlock_init(&str->lock);
+	str->magic = S_MAGIC;
 }
 
 struct string *string_alloc(size_t len)

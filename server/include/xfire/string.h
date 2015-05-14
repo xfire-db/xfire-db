@@ -24,10 +24,13 @@
 #include <xfire/os.h>
 
 typedef struct string {
+	u32 magic;
 	char *str;
 	size_t len;
 	xfire_spinlock_t lock;
 } STRING;
+
+#define S_MAGIC 0x785A06B8
 
 CDECL
 extern struct string *string_alloc(size_t len);
