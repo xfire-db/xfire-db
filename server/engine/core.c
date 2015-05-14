@@ -188,7 +188,7 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
 	struct database *db;
 	struct rb_node *node;
-	struct container *c;
+	struct list_head *lh;
 
 	db = eng_get_db(rq->db_name);
 	node = rb_find(&db->root, rq->hash);
@@ -201,18 +201,14 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 		if(!node)
 			break;
 
-		c = container_of(node, struct container, node);
-		if(c->magic != LH_MAGIC)
-			break;
+		lh = node_get_data(node, LH_MAGIC);
 		break;
 
 	case RQ_LIST_LOOKUP:
 		if(!node)
 			break;
 
-		c = container_of(node, struct container, node);
-		if(c->magic != LH_MAGIC)
-			break;
+		lh = node_get_data(node, LH_MAGIC);
 		break;
 
 	case RQ_STRING_INSERT:
@@ -306,7 +302,6 @@ static void eng_correct_request_range(struct request *request)
 	struct database *db;
 	struct rb_node *node;
 	struct list_head *lh;
-	struct container *c;
 	int end;
 
 	end = rng->end;
@@ -316,8 +311,10 @@ static void eng_correct_request_range(struct request *request)
 		/* Get the true ending of the range */
 		db = eng_get_db(request->db_name);
 		node = rb_find(&db->root, request->hash);
-		c = container_of(node, struct container, node);
-		lh = &c->data.lh;
+		lh = node_get_data(node, LH_MAGIC);
+		if(!lh)
+			return;
+
 		rng->end = atomic_get(&lh->num);
 		rng->end -= end;
 	}

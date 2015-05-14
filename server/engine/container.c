@@ -63,7 +63,14 @@ void *node_get_data(struct rb_node *node, u32 type)
 {
 	struct container *c;
 
+	if(!node)
+		return NULL;
+
 	c = container_of(node, struct container, node);
+
+	if(c->magic != type)
+		return NULL;
+
 	return container_get_data(c, type);
 }
 
