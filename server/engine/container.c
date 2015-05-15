@@ -41,6 +41,11 @@ void container_init(struct container *c, u32 magic)
 	c->magic = magic;
 }
 
+void container_set_string(struct container *c, void *data)
+{
+	string_set(&c->data.string, data);
+}
+
 void container_destroy(struct container *c, u32 type)
 {
 	rb_node_destroy(&c->node);

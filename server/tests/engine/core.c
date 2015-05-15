@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
@@ -25,6 +26,7 @@
 #include <xfire/request.h>
 #include <xfire/mem.h>
 
+#if 0
 static const char *request_key_array[] = {
 	"user:bietje:cache:GC54JKP:route",
 	"user:bietje:cache:GCJ89KP:route",
@@ -72,13 +74,40 @@ static void test_cleanup_requests(void)
 
 	xfire_free(request_array);
 }
+#endif
+
+#define TEST_STRING_ENTRY0 "abc00"
+#define TEST_STRING_ENTRY1 "bietje"
+
+static void test_string_insert(void)
+{
+	struct request *a, *b;
+
+	a = rq_alloc(DEBUG_DB_NAME, "user:bietje:password", 0, 0);
+	b = rq_alloc(DEBUG_DB_NAME, "user:bietje:email", 0, 0);
+
+	a->data = rq_buff_alloc(a);
+	a->data->data = TEST_STRING_ENTRY0;
+	a->data->length = sizeof(TEST_STRING_ENTRY0);
+	a->type = RQ_STRING_INSERT;
+
+	b->data = rq_buff_alloc(b);
+	b->data->data = TEST_STRING_ENTRY1;
+	b->data->length = sizeof(TEST_STRING_ENTRY1);
+	a->type = RQ_STRING_INSERT;
+
+	a->fd = b->fd = fileno(stdout);
+	dbg_push_request(a);
+	dbg_push_request(b);
+}
 
 int main(int argc, char **argv)
 {
 	eng_init(8);
-	test_build_requests();
-	test_cleanup_requests();
-	eng_exit();
+	eng_create_debug_db();
+	test_string_insert();
+
+	while(1);
 	return -EXIT_SUCCESS;
 }
 

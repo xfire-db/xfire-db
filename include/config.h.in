@@ -13,4 +13,9 @@ ${XFIRE_STDOUT} "${STDOUT}"
 ${HAVE_LINUX}
 ${HAVE_RECURSION}
 
+#define DEBUG_DB_NAME "dbg-db"
+#ifdef HAVE_DBG
+#define HAVE_DEBUG
+#endif
+
 #endif

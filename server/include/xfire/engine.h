@@ -46,6 +46,10 @@ CDECL
 extern void eng_init(int num);
 extern void eng_exit(void);
 extern void eng_push_request(struct request_pool *, struct request *);
+extern struct rq_buff *rq_buff_alloc(struct request *parent);
+extern void rq_buff_free(struct rq_buff *buffer);
+extern void eng_create_debug_db(void);
+extern void dbg_push_request(struct request *rq);
 CDECL_END
 
 #endif

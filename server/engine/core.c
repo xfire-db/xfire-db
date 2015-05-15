@@ -95,7 +95,7 @@ struct database *eng_get_db(const char *name)
 	int idx;
 	struct database *db = NULL;
 
-	xfire_spin_lock(&db_num);
+	xfire_spin_lock(&db_lock);
 	for(idx = 0; idx < db_num; idx++) {
 		db = databases[idx];
 		if(!db)
@@ -108,12 +108,12 @@ struct database *eng_get_db(const char *name)
 			break;
 		}
 	}
-	xfire_spin_unlock(&db_num);
+	xfire_spin_unlock(&db_lock);
 
 	return db;
 }
 
-static struct rq_buff *rq_buff_alloc(struct request *parent)
+struct rq_buff *rq_buff_alloc(struct request *parent)
 {
 	struct rq_buff *data;
 
@@ -151,13 +151,14 @@ static struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num)
 	return head;
 }
 
-static void rq_buff_free(struct rq_buff *buffer)
+void rq_buff_free(struct rq_buff *buffer)
 {
 	struct rq_buff *iterator;
 
-	for(iterator = buffer->next; buffer; buffer = iterator,
-						iterator = iterator->next) {
-		free(buffer);
+	while(buffer) {
+		iterator = buffer->next;
+		xfire_free(buffer);
+		buffer = iterator;
 	}
 }
 
@@ -184,11 +185,23 @@ static struct request *eng_get_next_request(struct request_pool *pool)
 	return rv;
 }
 
+static struct container *eng_create_string_container(struct rq_buff *data)
+{
+	struct container *c;
+
+	c = xfire_zalloc(sizeof(*c));
+	container_init(c, S_MAGIC);
+	container_set_string(c, data->data);
+
+	return c;
+}
+
 static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
 	struct database *db;
 	struct rb_node *node;
 	struct list_head *lh;
+	struct container *c;
 
 	db = eng_get_db(rq->db_name);
 	node = rb_find(&db->root, rq->hash);
@@ -212,6 +225,9 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 		break;
 
 	case RQ_STRING_INSERT:
+		c = eng_create_string_container(data);
+		rb_set_key(&c->node, rq->hash);
+		rb_insert(&db->root, &c->node, true);
 		break;
 
 	case RQ_STRING_REMOVE:
@@ -243,17 +259,11 @@ static inline void eng_handle_multi_request(struct request *rq)
 static int eng_reply(struct request *rq, struct reply *reply)
 {
 	int err;
-	size_t length = sizeof(reply->num) + sizeof(reply->length);
 
 	for(; reply; reply = reply->next) {
-		err = write(rq->fd, &reply->num, length);
-		if(!err) {
-			err = write(rq->fd, reply->data, reply->length);
-			if(err)
-				break;
-		} else {
+		err = write(rq->fd, reply->data, reply->length);
+		if(err)
 			break;
-		}
 	}
 
 	return err;
@@ -290,9 +300,11 @@ static void eng_release_reply(struct reply *reply)
 {
 	struct reply *iterator;
 
-	for(iterator = reply->next; reply; iterator = iterator->next,
-						reply = iterator) {
+	while(reply) {
+		iterator = reply->next;
+		
 		xfire_free(reply);
+		reply = iterator;
 	}
 }
 
@@ -392,13 +404,19 @@ void eng_push_request(struct request_pool *pool, struct request *request)
 
 	xfire_mutex_lock(&pool->lock);
 	tail = pool->tail;
-	if(tail)
-		tail->next = request;
-	else
-		pool->head = request;
 
-	request->prev = tail;
-	pool->tail = request;
+	if(tail && tail == pool->head)
+		pool->tail = request;
+
+	if(tail) {
+		tail->next = request;
+		request->prev = tail;
+	} else {
+		pool->head = request;
+		pool->tail = request;
+		xfire_cond_signal(&pool->condi);
+	}
+
 	xfire_mutex_unlock(&pool->lock);
 }
 
@@ -437,7 +455,7 @@ void eng_exit(void)
 		pool = processors[i];
 
 		set_bit(RQP_EXIT_FLAG, &pool->flags);
-		xfire_thread_cancel(pool->proc);
+		xfire_thread_join(pool->proc);
 		xfire_thread_destroy(pool->proc);
 		xfire_cond_destroy(&pool->condi);
 		xfire_mutex_destroy(&pool->lock);
@@ -453,4 +471,21 @@ void eng_exit(void)
 	xfire_free(databases);
 	xfire_free(processors);
 }
+
+#ifdef HAVE_DEBUG
+#define DEBUG_DB_NAME "dbg-db"
+
+void eng_create_debug_db(void)
+{
+	eng_create_db(DEBUG_DB_NAME);
+}
+
+void dbg_push_request(struct request *rq)
+{
+	struct request_pool *pool;
+
+	pool = processors[0];
+	eng_push_request(pool, rq);
+}
+#endif
 

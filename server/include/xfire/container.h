@@ -45,6 +45,7 @@ extern void *node_get_data(struct rb_node *node, u32 type);
 extern void *container_get_data(struct container *c, u32 type);
 extern void container_init(struct container *c, u32 magic);
 extern void container_destroy(struct container *c, u32 type);
+extern void container_set_string(struct container *c, void *data);
 CDECL_END
 #endif
 

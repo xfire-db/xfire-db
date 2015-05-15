@@ -71,6 +71,17 @@ int string_get(struct string *str, char *buff, size_t num)
 	return 0;
 }
 
+size_t string_length(struct string *str)
+{
+	size_t len;
+
+	xfire_spin_lock(&str->lock);
+	len = str->len;
+	xfire_spin_unlock(&str->lock);
+
+	return len;
+}
+
 void string_destroy(struct string *str)
 {
 	xfire_spinlock_destroy(&str->lock);
