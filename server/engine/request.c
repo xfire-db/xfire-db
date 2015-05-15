@@ -62,6 +62,7 @@ void rq_free(struct request *rq)
 	xfire_free(rq->db_name);
 	xfire_mutex_destroy(&rq->lock);
 	xfire_cond_destroy(&rq->condi);
+	atomic_flags_destroy(&rq->flags);
 	xfire_free(rq);
 }
 

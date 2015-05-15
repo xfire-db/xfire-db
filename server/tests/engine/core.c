@@ -110,6 +110,9 @@ static void test_string_insert(void)
 	test_rq_wait(a);
 	dbg_push_request(b);
 	test_rq_wait(b);
+
+	rq_free(a);
+	rq_free(b);
 }
 
 static void test_string_lookup(void)
@@ -126,6 +129,9 @@ static void test_string_lookup(void)
 	test_rq_wait(a);
 	dbg_push_request(b);
 	test_rq_wait(b);
+
+	rq_free(a);
+	rq_free(b);
 }
 
 int main(int argc, char **argv)
