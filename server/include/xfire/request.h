@@ -79,7 +79,7 @@ typedef struct request_pool {
 #define RQ_REMOVE_FLAG		1
 #define RQ_LOOKUP_FLAG		2
 #define RQ_FAULT_FLAG		3
-#define RQ_PROCESSING_FLAG	4
+#define RQ_PROCESSED_FLAG	4
 #define RQ_MULTI_FLAG		5
 
 CDECL

@@ -39,6 +39,12 @@ extern void string_destroy(struct string *str);
 extern void string_set(struct string *string, const char *str);
 extern int string_get(struct string *str, char *buff, size_t num);
 extern size_t string_length(struct string *str);
+
+static inline void *string_data(struct string *str)
+{
+	return str->str;
+}
+
 CDECL_END
 
 #endif

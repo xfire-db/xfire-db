@@ -25,6 +25,7 @@
 #include <xfire/engine.h>
 #include <xfire/request.h>
 #include <xfire/mem.h>
+#include <xfire/os.h>
 
 #if 0
 static const char *request_key_array[] = {
@@ -76,8 +77,16 @@ static void test_cleanup_requests(void)
 }
 #endif
 
-#define TEST_STRING_ENTRY0 "abc00"
-#define TEST_STRING_ENTRY1 "bietje"
+#define TEST_STRING_ENTRY0 "abc00\n"
+#define TEST_STRING_ENTRY1 "bietje\n"
+
+static inline void test_rq_wait(struct request *rq)
+{
+	xfire_mutex_lock(&rq->lock);
+	while(test_bit(RQ_PROCESSED_FLAG, &rq->flags))
+		xfire_cond_wait(&rq->condi, &rq->lock);
+	xfire_mutex_unlock(&rq->lock);
+}
 
 static void test_string_insert(void)
 {
@@ -94,9 +103,25 @@ static void test_string_insert(void)
 	b->data = rq_buff_alloc(b);
 	b->data->data = TEST_STRING_ENTRY1;
 	b->data->length = sizeof(TEST_STRING_ENTRY1);
-	a->type = RQ_STRING_INSERT;
+	b->type = RQ_STRING_INSERT;
 
 	a->fd = b->fd = fileno(stdout);
+	dbg_push_request(a);
+	test_rq_wait(a);
+	dbg_push_request(b);
+	test_rq_wait(b);
+}
+
+static void test_string_lookup(void)
+{
+	struct request *a, *b;
+
+	a = rq_alloc(DEBUG_DB_NAME, "user:bietje:password", 0, 0);
+	b = rq_alloc(DEBUG_DB_NAME, "user:bietje:email", 0, 0);
+
+	a->type = b->type = RQ_STRING_LOOKUP;
+	a->fd = b->fd = fileno(stdout);
+
 	dbg_push_request(a);
 	dbg_push_request(b);
 }
@@ -106,6 +131,7 @@ int main(int argc, char **argv)
 	eng_init(8);
 	eng_create_debug_db();
 	test_string_insert();
+	test_string_lookup();
 
 	while(1);
 	return -EXIT_SUCCESS;

@@ -181,7 +181,13 @@ static struct request *eng_get_next_request(struct request_pool *pool)
 	rv = pool->head;
 
 	/* set the pool head to the next request */
-	pool->head = pool->head->next;
+	if(pool->head == pool->tail) {
+		pool->head = NULL;
+		pool->tail = NULL;
+	} else {
+		pool->head = pool->head->next;
+	}
+
 	return rv;
 }
 
@@ -202,6 +208,7 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 	struct rb_node *node;
 	struct list_head *lh;
 	struct container *c;
+	struct string *string;
 
 	db = eng_get_db(rq->db_name);
 	node = rb_find(&db->root, rq->hash);
@@ -234,6 +241,12 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 		break;
 
 	case RQ_STRING_LOOKUP:
+		if(!node)
+			break;
+
+		string = node_get_data(node, S_MAGIC);
+		//memcpy(data->data, string_data(string), string_length(string));
+		//data->length = string_length(string);
 		break;
 
 	default:
@@ -391,8 +404,10 @@ void *eng_processor_thread(void *arg)
 	do {
 		handle = eng_processor(pool);
 		xfire_mutex_lock(&handle->lock);
+		set_bit(RQ_PROCESSED_FLAG, &handle->flags);
 		xfire_cond_signal(&handle->condi);
 		xfire_mutex_unlock(&handle->lock);
+
 	} while(!test_bit(RQP_EXIT_FLAG, &pool->flags));
 
 	xfire_thread_exit(NULL);
@@ -405,18 +420,16 @@ void eng_push_request(struct request_pool *pool, struct request *request)
 	xfire_mutex_lock(&pool->lock);
 	tail = pool->tail;
 
-	if(tail && tail == pool->head)
-		pool->tail = request;
+	pool->tail = request;
 
 	if(tail) {
 		tail->next = request;
 		request->prev = tail;
 	} else {
 		pool->head = request;
-		pool->tail = request;
-		xfire_cond_signal(&pool->condi);
 	}
 
+	xfire_cond_signal(&pool->condi);
 	xfire_mutex_unlock(&pool->lock);
 }
 

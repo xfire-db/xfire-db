@@ -39,6 +39,7 @@ void container_init(struct container *c, u32 magic)
 	}
 
 	c->magic = magic;
+	rb_init_node(&c->node);
 }
 
 void container_set_string(struct container *c, void *data)
