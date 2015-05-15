@@ -22,9 +22,12 @@
 #include <xfire/list.h>
 #include <xfire/string.h>
 #include <xfire/container.h>
+#include <xfire/mem.h>
 
-void container_init(struct container *c, u32 magic)
+void container_init(struct container *c, const char *key, u32 magic)
 {
+	int length;
+
 	switch(magic) {
 	case S_MAGIC:
 		string_init(&c->data.string);
@@ -39,6 +42,9 @@ void container_init(struct container *c, u32 magic)
 	}
 
 	c->magic = magic;
+	length = strlen(key);
+	c->key = xfire_zalloc(length + 1);
+	memcpy(c->key, key, length);
 	rb_init_node(&c->node);
 }
 
@@ -50,6 +56,7 @@ void container_set_string(struct container *c, void *data)
 void container_destroy(struct container *c, u32 type)
 {
 	rb_node_destroy(&c->node);
+	xfire_free(c->key);
 
 	switch(type) {
 	case S_MAGIC:

@@ -74,6 +74,7 @@ typedef struct request_pool {
 } REQUEST_POOL;
 
 #define RQP_EXIT_FLAG		0
+#define RQP_STOPPED_FLAG	1
 
 #define RQ_INSERT_FLAG		0
 #define RQ_REMOVE_FLAG		1

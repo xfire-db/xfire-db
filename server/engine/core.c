@@ -45,12 +45,21 @@ static xfire_spinlock_t db_lock;
 static struct database **databases = NULL;
 static int db_num;
 
+static bool eng_compare_db_node(struct rb_node *node, const void *key)
+{
+	struct container *c;
+
+	c = container_of(node, struct container, node);
+	return !strcmp(c->key, key);
+}
+
 static struct database *eng_alloc_db(const char *name)
 {
 	int len;
 	struct database *db = xfire_zalloc(sizeof(*db));
 
 	rb_init_root(&db->root);
+	db->root.cmp = &eng_compare_db_node;
 	len = strlen(name);
 
 	db->name = xfire_zalloc(len + 1);
@@ -194,9 +203,10 @@ static struct request *eng_get_next_request(struct request_pool *pool)
 static struct container *eng_create_string_container(struct rq_buff *data)
 {
 	struct container *c;
+	const char *key = data->parent->key;
 
 	c = xfire_zalloc(sizeof(*c));
-	container_init(c, S_MAGIC);
+	container_init(c, key, S_MAGIC);
 	container_set_string(c, data->data);
 
 	return c;
@@ -216,7 +226,7 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 	struct string *string;
 
 	db = eng_get_db(rq->db_name);
-	node = rb_find(&db->root, rq->hash);
+	node = rb_get_node(&db->root, rq->hash, rq->key);
 	
 	switch(rq->type) {
 	case RQ_LIST_INSERT:
@@ -250,8 +260,10 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 			break;
 
 		string = node_get_data(node, S_MAGIC);
-		if(!string)
+		if(!string) {
+			rb_put_node(node);
 			break;
+		}
 
 		data->length = string_length(string);
 		rq_buff_inflate(data, data->length + 1);
@@ -261,6 +273,8 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 	default:
 		break;
 	}
+
+	rb_put_node(node);
 }
 
 static inline void eng_handle_multi_request(struct request *rq)
@@ -365,9 +379,11 @@ static struct request *eng_processor(struct request_pool *pool)
 	int range;
 
 	xfire_mutex_lock(&pool->lock);
-	while(pool->head == NULL)
+	while(pool->head == NULL && !test_bit(RQP_EXIT_FLAG, &pool->flags))
 		xfire_cond_wait(&pool->condi, &pool->lock);
 
+	if(test_bit(RQP_EXIT_FLAG, &pool->flags))
+		return NULL;
 	next = eng_get_next_request(pool);
 	xfire_mutex_unlock(&pool->lock);
 
@@ -412,13 +428,17 @@ void *eng_processor_thread(void *arg)
 
 	do {
 		handle = eng_processor(pool);
-		xfire_mutex_lock(&handle->lock);
-		set_bit(RQ_PROCESSED_FLAG, &handle->flags);
-		xfire_cond_signal(&handle->condi);
-		xfire_mutex_unlock(&handle->lock);
+
+		if(handle) {
+			xfire_mutex_lock(&handle->lock);
+			set_bit(RQ_PROCESSED_FLAG, &handle->flags);
+			xfire_cond_signal(&handle->condi);
+			xfire_mutex_unlock(&handle->lock);
+		}
 
 	} while(!test_bit(RQP_EXIT_FLAG, &pool->flags));
 
+	set_bit(RQP_STOPPED_FLAG, &pool->flags);
 	xfire_thread_exit(NULL);
 }
 
@@ -477,6 +497,8 @@ void eng_exit(void)
 		pool = processors[i];
 
 		set_bit(RQP_EXIT_FLAG, &pool->flags);
+		xfire_cond_signal(&pool->condi);
+		while(!test_bit(RQP_STOPPED_FLAG, &pool->flags));
 		xfire_thread_join(pool->proc);
 		xfire_thread_destroy(pool->proc);
 		xfire_cond_destroy(&pool->condi);

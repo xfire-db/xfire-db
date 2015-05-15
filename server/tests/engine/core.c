@@ -123,7 +123,9 @@ static void test_string_lookup(void)
 	a->fd = b->fd = fileno(stdout);
 
 	dbg_push_request(a);
+	test_rq_wait(a);
 	dbg_push_request(b);
+	test_rq_wait(b);
 }
 
 int main(int argc, char **argv)
@@ -133,7 +135,7 @@ int main(int argc, char **argv)
 	test_string_insert();
 	test_string_lookup();
 
-	while(1);
+	eng_exit();
 	return -EXIT_SUCCESS;
 }
 
