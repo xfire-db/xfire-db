@@ -503,6 +503,7 @@ void eng_exit(void)
 		xfire_thread_destroy(pool->proc);
 		xfire_cond_destroy(&pool->condi);
 		xfire_mutex_destroy(&pool->lock);
+		atomic_flags_destroy(&pool->flags);
 		xfire_free(pool);
 	}
 
