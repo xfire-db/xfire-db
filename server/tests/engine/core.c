@@ -83,7 +83,7 @@ static void test_cleanup_requests(void)
 static inline void test_rq_wait(struct request *rq)
 {
 	xfire_mutex_lock(&rq->lock);
-	while(test_bit(RQ_PROCESSED_FLAG, &rq->flags))
+	while(!test_bit(RQ_PROCESSED_FLAG, &rq->flags))
 		xfire_cond_wait(&rq->condi, &rq->lock);
 	xfire_mutex_unlock(&rq->lock);
 }

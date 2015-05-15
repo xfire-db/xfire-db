@@ -202,6 +202,11 @@ static struct container *eng_create_string_container(struct rq_buff *data)
 	return c;
 }
 
+static void rq_buff_inflate(struct rq_buff *buff, size_t bytes)
+{
+	buff->data = xfire_zalloc(bytes);
+}
+
 static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
 	struct database *db;
@@ -245,8 +250,12 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 			break;
 
 		string = node_get_data(node, S_MAGIC);
-		//memcpy(data->data, string_data(string), string_length(string));
-		//data->length = string_length(string);
+		if(!string)
+			break;
+
+		data->length = string_length(string);
+		rq_buff_inflate(data, data->length + 1);
+		string_get(string, data->data, data->length + 1);
 		break;
 
 	default:
