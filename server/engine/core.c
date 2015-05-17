@@ -253,6 +253,10 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 		break;
 
 	case RQ_STRING_REMOVE:
+		if(!node)
+			break;
+
+		rb_remove(&db->root, rq->hash, rq->key);
 		break;
 
 	case RQ_STRING_LOOKUP:
