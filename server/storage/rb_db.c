@@ -46,6 +46,12 @@ struct rb_database *rbdb_alloc(const char *name)
 	return db;
 }
 
+void rbdb_free(struct database *db)
+{
+	struct rb_database *rbdb = container_of(db, struct rb_database, db);
+	xfire_free(rbdb);
+}
+
 bool rb_db_insert(struct database *db, u64 key, void *data)
 {
 	struct rbdb_node *node;

@@ -71,8 +71,19 @@ static struct database *eng_alloc_db(const char *name)
 
 static void eng_free_db(struct database *db)
 {
+	int idx;
+
 	if(!db)
 		return;
+
+	xfire_spin_lock(&db_lock);
+	for(idx = 0; idx < db_num; idx++) {
+		if(databases[idx] == db) {
+			databases[idx] = NULL;
+			break;
+		}
+	}
+	xfire_spin_unlock(&db_lock);
 
 	xfire_free(db->name);
 	xfire_free(db);
