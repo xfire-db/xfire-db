@@ -20,3 +20,5 @@ target_link_libraries(xfireengine LINK_PUBLIC xfire xfireos xfirestorage)
 install (TARGETS xfireengine
 	LIBRARY DESTINATION lib
 	)
+
+include (engine/rbdb/rbdb.cmake)

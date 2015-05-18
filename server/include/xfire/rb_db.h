@@ -34,4 +34,8 @@ typedef struct rbdb_node {
 	void *data;
 } RBDB_NODE;
 
+CDECL
+extern struct rb_database *rbdb_alloc(const char *name);
+CDECL_END
+
 #endif

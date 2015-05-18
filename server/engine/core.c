@@ -29,7 +29,6 @@
 #include <xfire/hash.h>
 #include <xfire/os.h>
 #include <xfire/mem.h>
-#include <xfire/rbtree.h>
 #include <xfire/list.h>
 #include <xfire/container.h>
 
@@ -40,36 +39,18 @@ static xfire_spinlock_t db_lock;
 static struct database **databases = NULL;
 static int db_num;
 
-static bool eng_compare_db_node(struct rb_node *node, const void *key)
-{
-	struct container *c;
-
-	c = container_of(node, struct container, node);
-	return !strcmp(c->key, key);
-}
-
 struct database *eng_init_db(struct database *db, const char *name)
 {
 	int len;
 
-	rb_init_root(&db->root);
-	db->root.cmp = &eng_compare_db_node;
 	len = strlen(name);
-
 	db->name = xfire_zalloc(len + 1);
 	memcpy(db->name, name, len);
 
 	return db;
 }
 
-static struct database *eng_alloc_db(const char *name)
-{
-	struct database *db = xfire_zalloc(sizeof(*db));
-
-	return eng_init_db(db, name);
-}
-
-static void eng_free_db(struct database *db)
+static void __eng_free_db(struct database *db)
 {
 	int idx;
 
@@ -84,9 +65,20 @@ static void eng_free_db(struct database *db)
 		}
 	}
 	xfire_spin_unlock(&db_lock);
-
 	xfire_free(db->name);
-	xfire_free(db);
+
+	db->free(db);
+}
+
+void eng_free_db(const char *name)
+{
+	struct database *db;
+
+	db = eng_get_db(name);
+	if(!db)
+		return;
+
+	__eng_free_db(db);
 }
 
 void eng_add_db(struct database *db)
@@ -108,12 +100,6 @@ void eng_add_db(struct database *db)
 	databases = realloc(databases, sizeof(void*) * db_num);
 	databases[idx] = db;
 	xfire_spin_unlock(&db_lock);
-}
-
-void eng_create_db(const char *name)
-{
-	struct database *db = eng_alloc_db(name);
-	eng_add_db(db);
 }
 
 struct database *eng_get_db(const char *name)
@@ -237,54 +223,50 @@ static void rq_buff_inflate(struct rq_buff *buff, size_t bytes)
 static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
 	struct database *db;
-	struct rb_node *node;
 	struct list_head *lh;
 	struct container *c;
 	struct string *string;
 
 	db = eng_get_db(rq->db_name);
-	node = rb_get_node(&db->root, rq->hash, rq->key);
+	c = db->lookup(db, rq->hash, rq->key);
 	
 	switch(rq->type) {
 	case RQ_LIST_INSERT:
 		break;
 
 	case RQ_LIST_REMOVE:
-		if(!node)
+		if(!c)
 			break;
 
-		lh = node_get_data(node, LH_MAGIC);
+		lh = container_get_data(c, LH_MAGIC);
 		break;
 
 	case RQ_LIST_LOOKUP:
-		if(!node)
+		if(!c)
 			break;
 
-		lh = node_get_data(node, LH_MAGIC);
+		lh = container_get_data(c, LH_MAGIC);
 		break;
 
 	case RQ_STRING_INSERT:
 		c = eng_create_string_container(data);
-		rb_set_key(&c->node, rq->hash);
-		rb_insert(&db->root, &c->node, true);
+		db->insert(db, rq->hash, c);
 		break;
 
 	case RQ_STRING_REMOVE:
-		if(!node)
+		if(!c)
 			break;
 
-		rb_remove(&db->root, rq->hash, rq->key);
+		db->remove(db, rq->hash, rq->key);
 		break;
 
 	case RQ_STRING_LOOKUP:
-		if(!node)
+		if(!c)
 			break;
 
-		string = node_get_data(node, S_MAGIC);
-		if(!string) {
-			rb_put_node(node);
+		string = container_get_data(c, S_MAGIC);
+		if(!string)
 			break;
-		}
 
 		data->length = string_length(string);
 		rq_buff_inflate(data, data->length + 1);
@@ -294,8 +276,6 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 	default:
 		break;
 	}
-
-	rb_put_node(node);
 }
 
 static inline void eng_handle_multi_request(struct request *rq)
@@ -369,7 +349,7 @@ static void eng_correct_request_range(struct request *request)
 {
 	struct rq_range *rng = &request->range;
 	struct database *db;
-	struct rb_node *node;
+	struct container *c;
 	struct list_head *lh;
 	int end;
 
@@ -379,8 +359,8 @@ static void eng_correct_request_range(struct request *request)
 	
 		/* Get the true ending of the range */
 		db = eng_get_db(request->db_name);
-		node = rb_find(&db->root, request->hash);
-		lh = node_get_data(node, LH_MAGIC);
+		c = db->lookup(db, request->hash, request->key);
+		lh = container_get_data(c, LH_MAGIC);
 		if(!lh)
 			return;
 
@@ -528,10 +508,8 @@ void eng_exit(void)
 		xfire_free(pool);
 	}
 
-	xfire_spin_lock(&db_lock);
 	for(i = 0; i < db_num; i++)
-		eng_free_db(databases[i]);
-	xfire_spin_unlock(&db_lock);
+		__eng_free_db(databases[i]);
 
 	xfire_spinlock_destroy(&db_lock);
 	xfire_free(databases);
@@ -540,11 +518,6 @@ void eng_exit(void)
 
 #ifdef HAVE_DEBUG
 #define DEBUG_DB_NAME "dbg-db"
-
-void eng_create_debug_db(void)
-{
-	eng_create_db(DEBUG_DB_NAME);
-}
 
 void dbg_push_request(struct request *rq)
 {

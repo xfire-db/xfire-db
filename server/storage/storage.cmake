@@ -8,7 +8,6 @@ add_library(xfirestorage SHARED
 	storage/database.c
 	storage/hashmap.c
 	storage/string.c
-	storage/rb_db.c
 
 	include/xfire/rbtree.h
 	include/xfire/list.h

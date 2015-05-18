@@ -18,7 +18,6 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/rbtree.h>
 #include <xfire/list.h>
 #include <xfire/string.h>
 #include <xfire/container.h>
@@ -45,7 +44,6 @@ void container_init(struct container *c, const char *key, u32 magic)
 	length = strlen(key);
 	c->key = xfire_zalloc(length + 1);
 	memcpy(c->key, key, length);
-	rb_init_node(&c->node);
 }
 
 void container_set_string(struct container *c, void *data)
@@ -55,9 +53,6 @@ void container_set_string(struct container *c, void *data)
 
 void container_destroy(struct container *c, u32 type)
 {
-	rb_node_destroy(&c->node);
-	xfire_free(c->key);
-
 	switch(type) {
 	case S_MAGIC:
 		string_destroy(&c->data.string);
@@ -70,21 +65,8 @@ void container_destroy(struct container *c, u32 type)
 	default:
 		break;
 	}
-}
 
-void *node_get_data(struct rb_node *node, u32 type)
-{
-	struct container *c;
-
-	if(!node)
-		return NULL;
-
-	c = container_of(node, struct container, node);
-
-	if(c->magic != type)
-		return NULL;
-
-	return container_get_data(c, type);
+	xfire_free(c->key);
 }
 
 void *container_get_data(struct container *c, u32 type)

@@ -20,7 +20,6 @@
 #define __LIST_H__
 
 #include <xfire/xfire.h>
-#include <xfire/rbtree.h>
 #include <xfire/os.h>
 
 typedef struct list {

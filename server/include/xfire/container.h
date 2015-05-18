@@ -21,7 +21,6 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/rbtree.h>
 #include <xfire/list.h>
 #include <xfire/string.h>
 
@@ -32,7 +31,6 @@ typedef enum container_type {
 
 typedef struct container {
 	u32 magic;
-	struct rb_node node;
 	char *key;
 
 	union {
@@ -42,7 +40,6 @@ typedef struct container {
 } CONTAINER;
 
 CDECL
-extern void *node_get_data(struct rb_node *node, u32 type);
 extern void *container_get_data(struct container *c, u32 type);
 extern void container_init(struct container *c, const char *key, u32 magic);
 extern void container_destroy(struct container *c, u32 type);

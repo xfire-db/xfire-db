@@ -45,17 +45,18 @@ typedef struct rq_buff {
 #include <xfire/rbtree.h>
 typedef struct database {
 	char *name;
-	struct rb_root root;
 
-	void *(*lookup)(struct database *db, u64 key);
+	void *(*lookup)(struct database *db, u64 key, void *arg);
 	bool (*insert)(struct database *db, u64 key, void *data);
 	bool (*remove)(struct database *db, u64 key, void *arg);
+	void (*free)(struct database *db);
 } DATABASE;
 
 CDECL
 extern void eng_init(int num);
 extern void eng_exit(void);
 extern void eng_push_request(struct request_pool *, struct request *);
+extern struct database *eng_get_db(const char *name);
 extern struct rq_buff *rq_buff_alloc(struct request *parent);
 extern void rq_buff_free(struct rq_buff *buffer);
 extern void eng_create_debug_db(void);

@@ -35,29 +35,19 @@ static bool eng_compare_db_node(struct rb_node *node, const void *key)
 	return !strcmp(c->key, key);
 }
 
-struct rb_database *rbdb_alloc(const char *name)
-{
-	struct rb_database *db;
-
-	db = xfire_zalloc(sizeof(*db));
-	rb_init_root(&db->root);
-	db->root.cmp = &eng_compare_db_node;
-
-	return db;
-}
-
-void rbdb_free(struct database *db)
+static void rbdb_free(struct database *db)
 {
 	struct rb_database *rbdb = container_of(db, struct rb_database, db);
 	xfire_free(rbdb);
 }
 
-bool rb_db_insert(struct database *db, u64 key, void *data)
+static bool rb_db_insert(struct database *db, u64 key, void *data)
 {
 	struct rbdb_node *node;
 	struct rb_database *rbdb;
 
 	node = xfire_zalloc(sizeof(*node));
+	rb_init_node(&node->node);
 	node->data = data;
 	rbdb = container_of(db, struct rb_database, db);
 
@@ -67,7 +57,7 @@ bool rb_db_insert(struct database *db, u64 key, void *data)
 	return true;
 }
 
-bool rb_db_remove(struct database *db, u64 key, void *arg)
+static bool rb_db_remove(struct database *db, u64 key, void *arg)
 {
 	struct rb_database *rbdb;
 	struct rb_node *node;
@@ -85,7 +75,7 @@ bool rb_db_remove(struct database *db, u64 key, void *arg)
 	return true;
 }
 
-void *rb_db_lookup(struct database *db, u64 key, void *arg)
+static void *rb_db_lookup(struct database *db, u64 key, void *arg)
 {
 	struct rb_database *rbdb;
 	struct rb_node *node;
@@ -93,8 +83,32 @@ void *rb_db_lookup(struct database *db, u64 key, void *arg)
 
 	rbdb = container_of(db, struct rb_database, db);
 	node = rb_find_duplicate(&rbdb->root, key, arg);
-	dnode = container_of(node, struct rbdb_node, node);
+	
+	if(node) {
+		dnode = container_of(node, struct rbdb_node, node);
+		return dnode->data;
+	} else {
+		return NULL;
+	}
+}
 
-	return dnode->data;
+struct rb_database *rbdb_alloc(const char *name)
+{
+	struct rb_database *db;
+	struct database *database;
+
+	db = xfire_zalloc(sizeof(*db));
+	rb_init_root(&db->root);
+	db->root.cmp = &eng_compare_db_node;
+	eng_init_db(&db->db, name);
+	eng_add_db(&db->db);
+
+	database = &db->db;
+	database->insert = rb_db_insert;
+	database->remove = rb_db_remove;
+	database->lookup = rb_db_lookup;
+	database->free = rbdb_free;
+
+	return db;
 }
 

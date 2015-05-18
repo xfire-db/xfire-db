@@ -26,6 +26,7 @@
 #include <xfire/request.h>
 #include <xfire/mem.h>
 #include <xfire/os.h>
+#include <xfire/rb_db.h>
 
 #if 0
 static const char *request_key_array[] = {
@@ -134,10 +135,15 @@ static void test_string_lookup(void)
 	rq_free(b);
 }
 
+static void test_create_db(void)
+{
+	rbdb_alloc(DEBUG_DB_NAME);
+}
+
 int main(int argc, char **argv)
 {
 	eng_init(8);
-	eng_create_debug_db();
+	test_create_db();
 	test_string_insert();
 	test_string_lookup();
 
