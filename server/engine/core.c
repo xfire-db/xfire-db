@@ -36,11 +36,6 @@
 static struct request_pool **processors = NULL;
 static int proc_num;
 
-struct database {
-	char *name;
-	struct rb_root root;
-};
-
 static xfire_spinlock_t db_lock;
 static struct database **databases = NULL;
 static int db_num;
@@ -53,10 +48,9 @@ static bool eng_compare_db_node(struct rb_node *node, const void *key)
 	return !strcmp(c->key, key);
 }
 
-static struct database *eng_alloc_db(const char *name)
+struct database *eng_init_db(struct database *db, const char *name)
 {
 	int len;
-	struct database *db = xfire_zalloc(sizeof(*db));
 
 	rb_init_root(&db->root);
 	db->root.cmp = &eng_compare_db_node;
@@ -66,6 +60,13 @@ static struct database *eng_alloc_db(const char *name)
 	memcpy(db->name, name, len);
 
 	return db;
+}
+
+static struct database *eng_alloc_db(const char *name)
+{
+	struct database *db = xfire_zalloc(sizeof(*db));
+
+	return eng_init_db(db, name);
 }
 
 static void eng_free_db(struct database *db)

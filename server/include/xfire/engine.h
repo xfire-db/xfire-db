@@ -42,6 +42,16 @@ typedef struct rq_buff {
 	u32 length;
 } RQ_BUFF;
 
+#include <xfire/rbtree.h>
+typedef struct database {
+	char *name;
+	struct rb_root root;
+
+	void *(*lookup)(struct database *db, u64 key);
+	bool (*insert)(struct database *db, u64 key, void *data);
+	bool (*remove)(struct database *db, u64 key, void *arg);
+} DATABASE;
+
 CDECL
 extern void eng_init(int num);
 extern void eng_exit(void);
@@ -50,6 +60,7 @@ extern struct rq_buff *rq_buff_alloc(struct request *parent);
 extern void rq_buff_free(struct rq_buff *buffer);
 extern void eng_create_debug_db(void);
 extern void dbg_push_request(struct request *rq);
+extern struct database *eng_init_db(struct database *db, const char *name);
 CDECL_END
 
 #endif
