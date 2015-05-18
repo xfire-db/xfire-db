@@ -22,6 +22,29 @@
 #include <xfire/mem.h>
 #include <xfire/rbtree.h>
 #include <xfire/rb_db.h>
+#include <xfire/container.h>
+
+static bool eng_compare_db_node(struct rb_node *node, const void *key)
+{
+	struct container *c;
+	struct rbdb_node *dnode;
+
+	dnode = container_of(node, struct rbdb_node, node);
+	c = dnode->data;
+
+	return !strcmp(c->key, key);
+}
+
+struct rb_database *rbdb_alloc(const char *name)
+{
+	struct rb_database *db;
+
+	db = xfire_zalloc(sizeof(*db));
+	rb_init_root(&db->root);
+	db->root.cmp = &eng_compare_db_node;
+
+	return db;
+}
 
 bool rb_db_insert(struct database *db, u64 key, void *data)
 {
@@ -54,5 +77,18 @@ bool rb_db_remove(struct database *db, u64 key, void *arg)
 	xfire_free(dnode);
 
 	return true;
+}
+
+void *rb_db_lookup(struct database *db, u64 key, void *arg)
+{
+	struct rb_database *rbdb;
+	struct rb_node *node;
+	struct rbdb_node *dnode;
+
+	rbdb = container_of(db, struct rb_database, db);
+	node = rb_find_duplicate(&rbdb->root, key, arg);
+	dnode = container_of(node, struct rbdb_node, node);
+
+	return dnode->data;
 }
 

@@ -61,6 +61,7 @@ extern void rq_buff_free(struct rq_buff *buffer);
 extern void eng_create_debug_db(void);
 extern void dbg_push_request(struct request *rq);
 extern struct database *eng_init_db(struct database *db, const char *name);
+extern void eng_add_db(struct database *db);
 CDECL_END
 
 #endif

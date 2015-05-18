@@ -78,10 +78,9 @@ static void eng_free_db(struct database *db)
 	xfire_free(db);
 }
 
-void eng_create_db(const char *name)
+void eng_add_db(struct database *db)
 {
 	int idx;
-	struct database *db = eng_alloc_db(name);
 
 	xfire_spin_lock(&db_lock);
 	for(idx = 0; idx < db_num; idx++) {
@@ -98,6 +97,12 @@ void eng_create_db(const char *name)
 	databases = realloc(databases, sizeof(void*) * db_num);
 	databases[idx] = db;
 	xfire_spin_unlock(&db_lock);
+}
+
+void eng_create_db(const char *name)
+{
+	struct database *db = eng_alloc_db(name);
+	eng_add_db(db);
 }
 
 struct database *eng_get_db(const char *name)
