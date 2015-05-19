@@ -135,6 +135,25 @@ static void test_string_lookup(void)
 	rq_free(b);
 }
 
+static void test_string_destroy(void)
+{
+	struct request *a, *b;
+
+	a = rq_alloc(DEBUG_DB_NAME, "user:bietje:password", 0, 0);
+	b = rq_alloc(DEBUG_DB_NAME, "user:bietje:email", 0, 0);
+
+	a->type = b->type = RQ_STRING_REMOVE;
+	a->fd = b->fd = fileno(stdout);
+
+	dbg_push_request(a);
+	test_rq_wait(a);
+	dbg_push_request(b);
+	test_rq_wait(b);
+
+	rq_free(a);
+	rq_free(b);
+}
+
 static void test_create_db(void)
 {
 	rbdb_alloc(DEBUG_DB_NAME);
@@ -146,6 +165,7 @@ int main(int argc, char **argv)
 	test_create_db();
 	test_string_insert();
 	test_string_lookup();
+	test_string_destroy();
 
 	eng_exit();
 	return -EXIT_SUCCESS;

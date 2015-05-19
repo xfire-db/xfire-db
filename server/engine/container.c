@@ -73,6 +73,9 @@ void *container_get_data(struct container *c, u32 type)
 {
 	void *rv;
 
+	if(c->magic != type)
+		return NULL;
+
 	switch(type) {
 	case S_MAGIC:
 		rv = &c->data.string;

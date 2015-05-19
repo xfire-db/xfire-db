@@ -48,11 +48,11 @@ void string_set(struct string *string, const char *str)
 {
 	int len;
 
-	len = strlen(str);
+	len = strlen(str) + 1;
 	xfire_spin_lock(&string->lock);
-	string->str = xfire_realloc(string->str, len + 1);
+	string->str = xfire_realloc(string->str, len);
 
-	memcpy(string->str, str, len + 1);
+	memcpy(string->str, str, len);
 	string->len = len;
 	xfire_spin_unlock(&string->lock);
 }
@@ -60,12 +60,12 @@ void string_set(struct string *string, const char *str)
 int string_get(struct string *str, char *buff, size_t num)
 {
 	xfire_spin_lock(&str->lock);
-	if((num - 1) < str->len) {
+	if(num < str->len) {
 		xfire_spin_unlock(&str->lock);
 		return -1;
 	}
 
-	memcpy(buff, str->str, num + 1);
+	memcpy(buff, str->str, num);
 	xfire_spin_unlock(&str->lock);
 
 	return 0;
@@ -84,13 +84,15 @@ size_t string_length(struct string *str)
 
 void string_destroy(struct string *str)
 {
+	if(str->str)
+		xfire_free(str->str);
+
 	xfire_spinlock_destroy(&str->lock);
 }
 
 void string_free(struct string *string)
 {
 	string_destroy(string);
-	xfire_free(string->str);
 	xfire_free(string);
 }
 

@@ -163,12 +163,25 @@ static struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num)
 	return head;
 }
 
+static void rq_buff_inflate(struct rq_buff *buff, size_t bytes)
+{
+	buff->data = xfire_zalloc(bytes);
+	set_bit(RQB_INFLATED_FLAG, &buff->flags);
+}
+
+static void rq_buff_deflate(struct rq_buff *buff)
+{
+	if(buff->data && test_bit(RQB_INFLATED_FLAG, &buff->flags))
+		xfire_free(buff->data);
+}
+
 void rq_buff_free(struct rq_buff *buffer)
 {
 	struct rq_buff *iterator;
 
 	while(buffer) {
 		iterator = buffer->next;
+		rq_buff_deflate(buffer);
 		xfire_free(buffer);
 		buffer = iterator;
 	}
@@ -215,9 +228,10 @@ static struct container *eng_create_string_container(struct rq_buff *data)
 	return c;
 }
 
-static void rq_buff_inflate(struct rq_buff *buff, size_t bytes)
+static void eng_destroy_container(struct container *c)
 {
-	buff->data = xfire_zalloc(bytes);
+	container_destroy(c, c->magic);
+	xfire_free(c);
 }
 
 static void eng_handle_request(struct request *rq, struct rq_buff *data)
@@ -257,7 +271,21 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 		if(!c)
 			break;
 
-		db->remove(db, rq->hash, rq->key);
+		c = db->remove(db, rq->hash, rq->key);
+		if(!c)
+			break;
+
+		string = container_get_data(c, S_MAGIC);
+		if(!string)
+			break;
+
+		if(c) {
+			data->length = string_length(string);
+			rq_buff_inflate(data, data->length);
+			string_get(string, data->data, data->length);
+			eng_destroy_container(c);
+		}
+
 		break;
 
 	case RQ_STRING_LOOKUP:
@@ -269,8 +297,8 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 			break;
 
 		data->length = string_length(string);
-		rq_buff_inflate(data, data->length + 1);
-		string_get(string, data->data, data->length + 1);
+		rq_buff_inflate(data, data->length);
+		string_get(string, data->data, data->length);
 		break;
 
 	default:
@@ -383,8 +411,11 @@ static struct request *eng_processor(struct request_pool *pool)
 	while(pool->head == NULL && !test_bit(RQP_EXIT_FLAG, &pool->flags))
 		xfire_cond_wait(&pool->condi, &pool->lock);
 
-	if(test_bit(RQP_EXIT_FLAG, &pool->flags))
+	if(test_bit(RQP_EXIT_FLAG, &pool->flags)) {
+		xfire_mutex_unlock(&pool->lock);
 		return NULL;
+	}
+
 	next = eng_get_next_request(pool);
 	xfire_mutex_unlock(&pool->lock);
 
@@ -395,7 +426,9 @@ static struct request *eng_processor(struct request_pool *pool)
 	eng_correct_request_range(next);
 
 	if(next->type == RQ_LIST_LOOKUP || 
-			next->type == RQ_STRING_LOOKUP) {
+			next->type == RQ_STRING_LOOKUP ||
+			next->type == RQ_LIST_REMOVE ||
+			next->type == RQ_STRING_REMOVE) {
 		data = rq_buff_alloc(next);
 		next->data = data;
 
@@ -497,11 +530,14 @@ void eng_exit(void)
 	for(; i < proc_num; i++) {
 		pool = processors[i];
 
+		xfire_mutex_lock(&pool->lock);
 		set_bit(RQP_EXIT_FLAG, &pool->flags);
 		xfire_cond_signal(&pool->condi);
-		while(!test_bit(RQP_STOPPED_FLAG, &pool->flags));
+		xfire_mutex_unlock(&pool->lock);
+
 		xfire_thread_join(pool->proc);
 		xfire_thread_destroy(pool->proc);
+
 		xfire_cond_destroy(&pool->condi);
 		xfire_mutex_destroy(&pool->lock);
 		atomic_flags_destroy(&pool->flags);

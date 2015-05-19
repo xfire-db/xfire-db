@@ -42,13 +42,15 @@ typedef struct rq_buff {
 	u32 length;
 } RQ_BUFF;
 
+#define RQB_INFLATED_FLAG 0
+
 #include <xfire/rbtree.h>
 typedef struct database {
 	char *name;
 
 	void *(*lookup)(struct database *db, u64 key, void *arg);
 	bool (*insert)(struct database *db, u64 key, void *data);
-	bool (*remove)(struct database *db, u64 key, void *arg);
+	void *(*remove)(struct database *db, u64 key, void *arg);
 	void (*free)(struct database *db);
 } DATABASE;
 

@@ -57,22 +57,24 @@ static bool rb_db_insert(struct database *db, u64 key, void *data)
 	return true;
 }
 
-static bool rb_db_remove(struct database *db, u64 key, void *arg)
+static void *rb_db_remove(struct database *db, u64 key, void *arg)
 {
 	struct rb_database *rbdb;
 	struct rb_node *node;
 	struct rbdb_node *dnode;
+	void *data;
 
 	rbdb = container_of(db, struct rb_database, db);
 	node = rb_remove(&rbdb->root, key, arg);
 
 	if(!node)
-		return false;
+		return NULL;
 
 	dnode = container_of(node, struct rbdb_node, node);
+	data = dnode->data;
 	xfire_free(dnode);
 
-	return true;
+	return data;
 }
 
 static void *rb_db_lookup(struct database *db, u64 key, void *arg)
