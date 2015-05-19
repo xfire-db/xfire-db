@@ -29,14 +29,19 @@ void list_rpush(struct list_head *head, struct list *node)
 	struct list *it;
 
 	xfire_spin_lock(&head->lock);
-	for(it = head->head; it; it = it->next) {
-		if(!it->next)
-			break;
-	}
+	if(!head->head) {
+		head->head = node;
+		node->next = NULL;
+	} else {
+		for(it = head->head; it; it = it->next) {
+			if(!it->next)
+				break;
+		}
 
-	it->next = node;
-	node->prev = it;
-	node->next = NULL;
+		it->next = node;
+		node->prev = it;
+		node->next = NULL;
+	}
 	xfire_spin_unlock(&head->lock);
 }
 
@@ -53,7 +58,7 @@ void list_lpush(struct list_head *head, struct list *node)
 	node->prev= NULL;
 	head->head = node;
 
-	xfire_spin_lock(&head->lock);
+	xfire_spin_unlock(&head->lock);
 }
 
 void list_pop(struct list_head *head, u32 num)

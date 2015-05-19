@@ -228,10 +228,35 @@ static struct container *eng_create_string_container(struct rq_buff *data)
 	return c;
 }
 
+static struct container *eng_create_list_container(struct rq_buff *data)
+{
+	struct container *c;
+	const char *key = data->parent->key;
+
+	c = xfire_zalloc(sizeof(*c));
+	container_init(c, key, LH_MAGIC);
+
+	return c;
+}
+
 static void eng_destroy_container(struct container *c)
 {
 	container_destroy(c, c->magic);
 	xfire_free(c);
+}
+
+static void eng_push_list(struct rq_buff *data, struct list_head *lh,
+				rq_type_t type)
+{
+	struct string *s = xfire_zalloc(sizeof(*s));
+
+	string_init(s);
+	string_set(s, data->data);
+
+	if(type == RQ_LIST_RPUSH)
+		list_rpush(lh, &s->entry);
+	else
+		list_lpush(lh, &s->entry);
 }
 
 static void eng_handle_request(struct request *rq, struct rq_buff *data)
@@ -245,7 +270,15 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 	c = db->lookup(db, rq->hash, rq->key);
 	
 	switch(rq->type) {
-	case RQ_LIST_INSERT:
+	case RQ_LIST_RPUSH:
+	case RQ_LIST_LPUSH:
+		if(!c) {
+			c = eng_create_list_container(data);
+			db->insert(db, rq->hash, c);
+		}
+
+		lh = container_get_data(c, LH_MAGIC);
+		eng_push_list(data, lh, rq->type);
 		break;
 
 	case RQ_LIST_REMOVE:
@@ -379,7 +412,7 @@ static void eng_correct_request_range(struct request *request)
 	struct database *db;
 	struct container *c;
 	struct list_head *lh;
-	int end;
+	int end, len, idx;
 
 	end = rng->end;
 	if(end < 0) {
@@ -394,6 +427,16 @@ static void eng_correct_request_range(struct request *request)
 
 		rng->end = atomic_get(&lh->num);
 		rng->end -= end;
+	}
+
+	if(rng->start != rng->end) {
+		len = rng->end - rng->start;
+		len += 1;
+
+		rng->indexes = xfire_realloc(rng->indexes, sizeof(int*) * len);
+		for(idx = 0; idx < len; idx++) {
+			rng->indexes[idx] = idx;
+		}
 	}
 }
 

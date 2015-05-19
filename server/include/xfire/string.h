@@ -22,8 +22,11 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/os.h>
+#include <xfire/list.h>
 
 typedef struct string {
+	struct list entry;
+
 	char *str;
 	size_t len;
 	xfire_spinlock_t lock;

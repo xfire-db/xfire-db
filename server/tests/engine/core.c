@@ -89,6 +89,37 @@ static inline void test_rq_wait(struct request *rq)
 	xfire_mutex_unlock(&rq->lock);
 }
 
+#define TEST_STRING_LIST_ENTRY0 "info@example.com\n"
+#define TEST_STRING_LIST_ENTRY1 "dev@example.com\n"
+
+static void test_string_list_insert(void)
+{
+	struct request *a, *b;
+
+	a = rq_alloc(DEBUG_DB_NAME, "user:email", 0, 0);
+	b = rq_alloc(DEBUG_DB_NAME, "user:email", 0, 0);
+
+	a->data = rq_buff_alloc(a);
+	a->data->data = TEST_STRING_LIST_ENTRY0;
+	a->data->length = sizeof(TEST_STRING_LIST_ENTRY0);
+	a->type = RQ_LIST_RPUSH;
+
+	b->data = rq_buff_alloc(b);
+	b->data->data = TEST_STRING_LIST_ENTRY1;
+	b->data->length = sizeof(TEST_STRING_LIST_ENTRY1);
+	b->type = RQ_LIST_LPUSH;
+
+	a->fd = fileno(stdout);
+	b->fd = fileno(stderr);
+	dbg_push_request(a);
+	test_rq_wait(a);
+	dbg_push_request(b);
+	test_rq_wait(b);
+
+	rq_free(a);
+	rq_free(b);
+}
+
 static void test_string_insert(void)
 {
 	struct request *a, *b;
@@ -163,9 +194,16 @@ int main(int argc, char **argv)
 {
 	eng_init(8);
 	test_create_db();
+
+	printf("Testing string insert:\n");
 	test_string_insert();
+	printf("\nTesting string lookup:\n");
 	test_string_lookup();
+	printf("\nTesting string remove:\n");
 	test_string_destroy();
+
+	printf("\nTesting list insert:\n");
+	test_string_list_insert();
 
 	eng_exit();
 	return -EXIT_SUCCESS;

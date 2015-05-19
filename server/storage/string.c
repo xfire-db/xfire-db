@@ -20,6 +20,7 @@
 #include <xfire/types.h>
 #include <xfire/os.h>
 #include <xfire/string.h>
+#include <xfire/list.h>
 #include <xfire/mem.h>
 
 void string_init(struct string *str)
@@ -27,6 +28,7 @@ void string_init(struct string *str)
 	str->str = NULL;
 	str->len = 0UL;
 	xfire_spinlock_init(&str->lock);
+	list_node_init(&str->entry);
 }
 
 struct string *string_alloc(size_t len)

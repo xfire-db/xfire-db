@@ -29,7 +29,8 @@
 struct rq_buff;
 
 typedef enum {
-	RQ_LIST_INSERT,
+	RQ_LIST_RPUSH,
+	RQ_LIST_LPUSH,
 	RQ_LIST_REMOVE,
 	RQ_LIST_LOOKUP,
 	RQ_STRING_INSERT,
@@ -56,6 +57,8 @@ typedef struct request {
 	struct rq_range {
 		int start,
 		    end;
+
+		int *indexes;
 	} range;
 	atomic_flags_t flags;
 } REQUEST;
