@@ -38,6 +38,16 @@ typedef enum {
 	RQ_STRING_LOOKUP,
 } rq_type_t;
 
+struct request_domain {
+	int *indexes;
+	int num;
+
+	struct request_range {
+		int start,
+		    end;
+	} range;
+};
+
 typedef struct request {
 	int fd;
 
@@ -60,6 +70,8 @@ typedef struct request {
 
 		int *indexes;
 	} range;
+
+	struct request_domain domain;
 	atomic_flags_t flags;
 } REQUEST;
 
@@ -79,16 +91,14 @@ typedef struct request_pool {
 #define RQP_EXIT_FLAG		0
 #define RQP_STOPPED_FLAG	1
 
-#define RQ_INSERT_FLAG		0
-#define RQ_REMOVE_FLAG		1
-#define RQ_LOOKUP_FLAG		2
-#define RQ_FAULT_FLAG		3
-#define RQ_PROCESSED_FLAG	4
-#define RQ_MULTI_FLAG		5
+#define RQ_HAS_RANGE_FLAG	0
+#define RQ_PROCESSED_FLAG	1
+#define RQ_MULTI_FLAG		2
 
 CDECL
 void *eng_processor_thread(void *arg);
-
+extern void rq_add_rng_index(struct request *rq, int *indexes, int num);
+extern void rq_set_range(struct request *request, int start, int end);
 extern void rq_free(struct request *rq);
 extern struct request *rq_alloc(const char *db,
 				const char *key,

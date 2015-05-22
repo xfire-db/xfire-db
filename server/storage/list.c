@@ -24,6 +24,59 @@
 #include <xfire/list.h>
 #include <xfire/os.h>
 
+static void __list_add(struct list *new, struct list *prev, struct list *next)
+{
+	next->prev = new;
+	new->next = next;
+	new->prev = prev;
+	prev->next = new;
+}
+
+void list_rpush(struct list_head *head, struct list *node)
+{
+	struct list *it;
+
+	xfire_spin_lock(&head->lock);
+	it = &head->head;
+	it = it->prev;
+
+	__list_add(node, it, it->next);
+	xfire_spin_unlock(&head->lock);
+
+	atomic_inc(head->num);
+}
+
+void list_lpush(struct list_head *head, struct list *node)
+{
+	struct list *it;
+
+	xfire_spin_lock(&head->lock);
+	it = &head->head;
+
+	__list_add(node, it, it->next);
+	xfire_spin_unlock(&head->lock);
+
+	atomic_inc(head->num);
+}
+
+static inline void __list_del(struct list *prev, struct list *next)
+{
+	next->prev = prev;
+	prev->next = next;
+}
+
+void list_del(struct list_head *lh, struct list *entry)
+{
+	xfire_spin_lock(&lh->lock);
+	__list_del(entry->prev, entry->next);
+
+	entry->next = entry;
+	entry->prev = entry;
+	xfire_spin_unlock(&lh->lock);
+	atomic_dec(lh->num);
+}
+
+#if 0
 void list_rpush(struct list_head *head, struct list *node)
 {
 	struct list *it;
@@ -60,29 +113,5 @@ void list_lpush(struct list_head *head, struct list *node)
 
 	xfire_spin_unlock(&head->lock);
 }
-
-void list_pop(struct list_head *head, u32 num)
-{
-	struct list *it, *prev, *next;
-	u32 idx;
-
-	xfire_spin_lock(&head->lock);
-	for(it = head->head, idx = 0; it; it = it->next, idx++) {
-		if(idx == num)
-			break;
-	}
-
-	prev = it->prev;
-	next = it->next;
-
-	if(prev)
-		prev->next = next;
-
-	if(next)
-		next->prev = prev;
-
-	it->next = it->prev = NULL;
-
-	xfire_spin_unlock(&head->lock);
-}
+#endif
 

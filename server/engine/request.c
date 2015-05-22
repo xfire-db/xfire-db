@@ -53,15 +53,49 @@ struct request *rq_alloc(const char *db, const char *key, int start, int end)
 	return request;
 }
 
+void rq_add_rng_index(struct request *rq, int *indexes, int num)
+{
+	int i, idx, newsize;
+	struct request_domain *dom = &rq->domain;
+	int size;
+
+	newsize = dom->num + num;
+	size = sizeof(*(dom->indexes)) * newsize;
+	dom->indexes = xfire_realloc(dom->indexes, size);
+
+	for(idx = 0, i = dom->num; i < newsize; i++, idx++)
+		dom->indexes[i] = indexes[idx];
+
+	dom->num = newsize;
+
+	if(dom->num > 1)
+		set_bit(RQ_MULTI_FLAG, &rq->flags);
+}
+
+void rq_set_range(struct request *request, int start, int end)
+{
+	struct request_domain *dom = &request->domain;
+
+	dom->range.start = start;
+	dom->range.end = end;
+	set_bit(RQ_HAS_RANGE_FLAG, &request->flags);
+
+	if(start != end)
+		set_bit(RQ_MULTI_FLAG, &request->flags);
+}
+
 void rq_free(struct request *rq)
 {
+	struct request_domain *dom = &rq->domain;
+
 	if(!rq)
 		return;
 
 	xfire_free(rq->key);
 	xfire_free(rq->db_name);
-	if(rq->range.indexes)
-		xfire_free(rq->range.indexes);
+
+	if(dom->num)
+		xfire_free(dom->indexes);
 
 	xfire_mutex_destroy(&rq->lock);
 	xfire_cond_destroy(&rq->condi);

@@ -28,13 +28,20 @@ typedef struct list {
 } LIST;
 
 typedef struct list_head {
-	struct list *head;
+	struct list head;
 
 	xfire_spinlock_t lock;
 	atomic_t num;
 } LIST_HEAD;
 
 #define LH_MAGIC 0x87A5F947
+
+#define list_for_each(__lh, __c) \
+	for(__c = (__lh)->head.next; __c != &((__lh)->head); __c = __c->next)
+
+#define list_for_each_safe(__lh, __c, __s) \
+	for(__c = (__lh)->head, __s = __c->next; __c != &((__lh)->head); \
+			__c = __s, __s = __c->next)
 
 CDECL
 extern void list_lpush(struct list_head *head, struct list *node);
@@ -44,21 +51,26 @@ extern void list_pop(struct list_head *head, u32 idx);
 static inline void list_node_init(struct list *node)
 {
 
-	node->next = NULL;
-	node->prev = NULL;
+	node->next = node;
+	node->prev = node;
 }
 
 static inline void list_head_init(struct list_head *head)
 {
 	xfire_spinlock_init(&head->lock);
+	list_node_init(&head->head);
 
 	atomic_init(&head->num);
-	head->head = NULL;
 }
 
 static inline void list_head_destroy(struct list_head *head)
 {
 	xfire_spinlock_destroy(&head->lock);
+}
+
+static inline int list_length(struct list_head *head)
+{
+	return atomic_get(&head->num);
 }
 CDECL_END
 

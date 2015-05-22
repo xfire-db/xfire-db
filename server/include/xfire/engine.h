@@ -40,6 +40,8 @@ typedef struct rq_buff {
 
 	void *data;
 	u32 length;
+
+	int index;
 } RQ_BUFF;
 
 #define RQB_INFLATED_FLAG 0

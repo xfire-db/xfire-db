@@ -91,13 +91,15 @@ static inline void test_rq_wait(struct request *rq)
 
 #define TEST_STRING_LIST_ENTRY0 "info@example.com\n"
 #define TEST_STRING_LIST_ENTRY1 "dev@example.com\n"
+#define TEST_STRING_LIST_ENTRY2 "master@example.com\n"
 
 static void test_string_list_insert(void)
 {
-	struct request *a, *b;
+	struct request *a, *b, *c;
 
 	a = rq_alloc(DEBUG_DB_NAME, "user:email", 0, 0);
 	b = rq_alloc(DEBUG_DB_NAME, "user:email", 0, 0);
+	c = rq_alloc(DEBUG_DB_NAME, "user:email", 0, 0);
 
 	a->data = rq_buff_alloc(a);
 	a->data->data = TEST_STRING_LIST_ENTRY0;
@@ -107,17 +109,40 @@ static void test_string_list_insert(void)
 	b->data = rq_buff_alloc(b);
 	b->data->data = TEST_STRING_LIST_ENTRY1;
 	b->data->length = sizeof(TEST_STRING_LIST_ENTRY1);
-	b->type = RQ_LIST_LPUSH;
+	b->type = RQ_LIST_RPUSH;
+	
+	c->data = rq_buff_alloc(c);
+	c->data->data = TEST_STRING_LIST_ENTRY2;
+	c->data->length = sizeof(TEST_STRING_LIST_ENTRY2);
+	c->type = RQ_LIST_LPUSH;
 
-	a->fd = fileno(stdout);
-	b->fd = fileno(stderr);
+	a->fd = b->fd = c->fd = fileno(stdout);
 	dbg_push_request(a);
 	test_rq_wait(a);
 	dbg_push_request(b);
+	dbg_push_request(c);
 	test_rq_wait(b);
+	test_rq_wait(c);
 
 	rq_free(a);
 	rq_free(b);
+	rq_free(c);
+}
+
+static void test_string_list_lookup(void)
+{
+	struct request *a;
+
+	a = rq_alloc(DEBUG_DB_NAME, "user:email", 0, 0);
+	rq_set_range(a, 0, -1);
+
+	a->type = RQ_LIST_LOOKUP;
+	a->fd = fileno(stdout);
+
+	dbg_push_request(a);
+	test_rq_wait(a);
+
+	rq_free(a);
 }
 
 static void test_string_insert(void)
@@ -204,6 +229,9 @@ int main(int argc, char **argv)
 
 	printf("\nTesting list insert:\n");
 	test_string_list_insert();
+
+	printf("\nTesting list lookup:\n");
+	test_string_list_lookup();
 
 	eng_exit();
 	return -EXIT_SUCCESS;

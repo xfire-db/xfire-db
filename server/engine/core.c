@@ -125,14 +125,27 @@ struct database *eng_get_db(const char *name)
 	return db;
 }
 
-struct rq_buff *rq_buff_alloc(struct request *parent)
+static struct rq_buff *__rq_buff_alloc(int index)
 {
 	struct rq_buff *data;
 
 	data = xfire_zalloc(sizeof(*data));
-	data->parent = parent;
 	atomic_flags_init(&data->flags);
+	data->index = index;
 
+	return data;
+}
+
+struct rq_buff *rq_buff_alloc(struct request *parent)
+{
+	struct rq_buff *data;
+
+	if(parent->domain.indexes)
+		data = __rq_buff_alloc(parent->domain.indexes[0]);
+	else
+		data = __rq_buff_alloc(-1);
+
+	data->parent = parent;
 	return data;
 }
 
@@ -143,15 +156,27 @@ static struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num)
 		       *head;
 	int idx = 0;
 
+	if(test_bit(RQ_HAS_RANGE_FLAG, &parent->flags))
+		num = parent->domain.range.end - parent->domain.range.start;
+
+
 	if(!parent || !num)
 		return NULL;
 
-	head = rq_buff_alloc(parent);
+	if(!test_bit(RQ_HAS_RANGE_FLAG, &parent->flags))
+		head = __rq_buff_alloc(parent->domain.indexes[idx]);
+	else
+		head = __rq_buff_alloc(-1);
 	iterator = head;
+	head->parent = parent;
 	idx++;
 
 	for(; idx < num; idx++) {
-		data = rq_buff_alloc(parent);
+		if(!test_bit(RQ_HAS_RANGE_FLAG, &parent->flags))
+			data = __rq_buff_alloc(parent->domain.indexes[idx]);
+		else
+			data = __rq_buff_alloc(-1);
+		data->parent = parent;
 
 		data->prev = iterator;
 		data->next = NULL;
@@ -259,16 +284,34 @@ static void eng_push_list(struct rq_buff *data, struct list_head *lh,
 		list_lpush(lh, &s->entry);
 }
 
-static void eng_handle_request(struct request *rq, struct rq_buff *data)
+static struct list *eng_get_list_index(struct list_head *head, int index)
 {
-	struct database *db;
-	struct list_head *lh;
-	struct container *c;
-	struct string *string;
+	int idx, len;
+	struct list *c;
 
-	db = eng_get_db(rq->db_name);
-	c = db->lookup(db, rq->hash, rq->key);
-	
+	len = list_length(head);
+	if(len <= index)
+		return NULL;
+
+	idx = 0;
+	list_for_each(head, c) {
+		if(idx == index)
+			return c;
+
+		idx++;
+	}
+
+	return NULL;
+}
+
+static void raw_eng_handle_request(struct request *rq, struct database *db,
+					struct container *c,
+					struct rq_buff *data)
+{
+	struct list_head *lh;
+	struct string *string;
+	struct list *list;
+
 	switch(rq->type) {
 	case RQ_LIST_RPUSH:
 	case RQ_LIST_LPUSH:
@@ -293,6 +336,14 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 			break;
 
 		lh = container_get_data(c, LH_MAGIC);
+		list = eng_get_list_index(lh, data->index);
+		if(!list)
+			return;
+
+		string = container_of(list, struct string, entry);
+		data->length = string_length(string);
+		rq_buff_inflate(data, data->length);
+		string_get(string, data->data, data->length);
 		break;
 
 	case RQ_STRING_INSERT:
@@ -339,16 +390,84 @@ static void eng_handle_request(struct request *rq, struct rq_buff *data)
 	}
 }
 
+
+static void eng_handle_range_request(struct request *rq, struct database *db,
+					struct container *c, struct rq_buff *d)
+{
+	struct list_head *lh;
+	struct string *string;
+	struct list *list;
+	struct request_domain *dom = &rq->domain;
+	int idx = 0;
+
+	switch(rq->type) {
+	case RQ_LIST_REMOVE:
+		if(!c)
+			break;
+
+		lh = container_get_data(c, LH_MAGIC);
+		break;
+
+	case RQ_LIST_LOOKUP:
+		if(!c)
+			break;
+
+		lh = container_get_data(c, LH_MAGIC);
+		if(list_length(lh) <= dom->range.start)
+			break;
+
+		list_for_each(lh, list) {
+			if(idx < dom->range.start)
+				continue;
+			else if(!d)
+				break;
+			
+
+			string = container_of(list, struct string, entry);
+			d->length = string_length(string);
+			rq_buff_inflate(d, d->length);
+			string_get(string, d->data, d->length);
+
+			d = d->next;
+			idx++;
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+static void eng_handle_request(struct request *rq, struct rq_buff *data)
+{
+	struct database *db;
+	struct container *c;
+
+	db = eng_get_db(rq->db_name);
+	c = db->lookup(db, rq->hash, rq->key);
+
+	if(test_bit(RQ_HAS_RANGE_FLAG, &rq->flags)) {
+		eng_handle_range_request(rq, db, c, data);
+		return;
+	}
+
+	raw_eng_handle_request(rq, db, c, data);
+}
+
 static inline void eng_handle_multi_request(struct request *rq)
 {
+	struct request_domain *dom = &rq->domain;
 	struct rq_buff *buffer;
-	int len, i;
+	int i;
 
-	len = rq->range.end - rq->range.start;
-	len += 1; /* also include the base entry */
 	buffer = rq->data;
 
-	for(i = 0; i < len && buffer; i++) {
+	if(test_bit(RQ_HAS_RANGE_FLAG, &rq->flags)) {
+		eng_handle_request(rq, buffer);
+		return;
+	}
+
+	for(i = 0; i < dom->num && buffer; i++) {
 		eng_handle_request(rq, buffer);
 		buffer = buffer->next;
 	}
@@ -358,13 +477,17 @@ static int eng_reply(struct request *rq, struct reply *reply)
 {
 	int err;
 
-	for(; reply; reply = reply->next) {
+	for(; reply; reply = reply->next)
 		err = write(rq->fd, reply->data, reply->length);
-		if(err)
-			break;
-	}
 
 	return err;
+}
+
+static void reply_add(struct reply *prev, struct reply *new)
+{
+	prev->next = new;
+	new->prev = prev;
+	new->next = NULL;
 }
 
 static struct reply *eng_build_reply(struct rq_buff *data)
@@ -373,7 +496,7 @@ static struct reply *eng_build_reply(struct rq_buff *data)
 		     *reply,
 		     *prev;
 	struct rq_buff *iterator;
-	u16 i = 0;
+	u16 i = 1;
 
 	head = xfire_zalloc(sizeof(*head));
 	head->num = 0;
@@ -381,14 +504,18 @@ static struct reply *eng_build_reply(struct rq_buff *data)
 	head->data = data->data;
 	prev = head;
 
-	for(iterator = data->next; iterator; iterator = iterator->next, i++) {
-		reply = xfire_zalloc(sizeof(*reply));
+	if(!data->next)
+		return head;
+
+	for(iterator = data->next; iterator; iterator = iterator->next) {
+		reply = xfire_zalloc(sizeof(*head));
 		reply->num = i;
 		reply->length = iterator->length;
 		reply->data = iterator->data;
 
-		prev->next = reply;
-		reply->prev = prev;
+		reply_add(prev, reply);
+		prev = reply;
+		i++;
 	}
 
 	return head;
@@ -406,45 +533,55 @@ static void eng_release_reply(struct reply *reply)
 	}
 }
 
-static void eng_correct_request_range(struct request *request)
+static int eng_get_list_size(struct request *request)
 {
-	struct rq_range *rng = &request->range;
 	struct database *db;
 	struct container *c;
 	struct list_head *lh;
-	int end, len, idx;
 
-	end = rng->end;
+	db = eng_get_db(request->db_name);
+	c = db->lookup(db, request->hash, request->key);
+	lh = container_get_data(c, LH_MAGIC);
+
+	if(!lh)
+		return -1;
+
+	return atomic_get(&lh->num);
+}
+
+static void eng_correct_request_range(struct request *request)
+{
+	struct request_domain *dom = &request->domain;
+	int end, start, size;
+
+	if(!test_bit(RQ_HAS_RANGE_FLAG, &request->flags))
+		return;
+
+	start = dom->range.start;
+	end = dom->range.end;
+	size = eng_get_list_size(request);
+
+	if(size < 0)
+		return;
+
 	if(end < 0) {
 		end += 1;
 	
-		/* Get the true ending of the range */
-		db = eng_get_db(request->db_name);
-		c = db->lookup(db, request->hash, request->key);
-		lh = container_get_data(c, LH_MAGIC);
-		if(!lh)
-			return;
-
-		rng->end = atomic_get(&lh->num);
-		rng->end -= end;
+		dom->range.end = size;
+		dom->range.end -= end;
+		end = dom->range.end;
 	}
 
-	if(rng->start != rng->end) {
-		len = rng->end - rng->start;
-		len += 1;
-
-		rng->indexes = xfire_realloc(rng->indexes, sizeof(int*) * len);
-		for(idx = 0; idx < len; idx++) {
-			rng->indexes[idx] = idx;
-		}
+	if(start == end) {
+		rq_add_rng_index(request, &start, 1);
+		clear_bit(RQ_HAS_RANGE_FLAG, &request->flags);
 	}
 }
 
 static struct request *eng_processor(struct request_pool *pool)
 {
 	struct request *next;
-	struct rq_buff *data,
-		       *multi;
+	struct rq_buff *data;
 	struct reply *reply;
 	time_t tstamp;
 	u64 hash;
@@ -472,16 +609,15 @@ static struct request *eng_processor(struct request_pool *pool)
 			next->type == RQ_STRING_LOOKUP ||
 			next->type == RQ_LIST_REMOVE ||
 			next->type == RQ_STRING_REMOVE) {
-		data = rq_buff_alloc(next);
-		next->data = data;
 
 		if(test_bit(RQ_MULTI_FLAG, &next->flags)) {
-			range = next->range.end - next->range.start;
-			multi = rq_buff_alloc_multi(next, range);
-			multi->prev = data;
-			data->next = multi;
+			range = next->domain.num;
+			data = rq_buff_alloc_multi(next, range);
+			next->data = data;
 			eng_handle_multi_request(next);
 		} else {
+			data = rq_buff_alloc(next);
+			next->data = data;
 			eng_handle_request(next, next->data);
 		}
 	} else {
