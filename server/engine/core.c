@@ -541,6 +541,9 @@ static int eng_get_list_size(struct request *request)
 
 	db = eng_get_db(request->db_name);
 	c = db->lookup(db, request->hash, request->key);
+	if(!c)
+		return -1;
+
 	lh = container_get_data(c, LH_MAGIC);
 
 	if(!lh)
@@ -552,10 +555,7 @@ static int eng_get_list_size(struct request *request)
 static void eng_correct_request_range(struct request *request)
 {
 	struct request_domain *dom = &request->domain;
-	int end, start, size;
-
-	if(!test_bit(RQ_HAS_RANGE_FLAG, &request->flags))
-		return;
+	int end, start, size, i, index;
 
 	start = dom->range.start;
 	end = dom->range.end;
@@ -563,6 +563,20 @@ static void eng_correct_request_range(struct request *request)
 
 	if(size < 0)
 		return;
+
+	if(!test_bit(RQ_HAS_RANGE_FLAG, &request->flags)) {
+		size -= 1; /* list are 0 counted */
+
+		for(i = 0; i < dom->num; i++) {
+			index = dom->indexes[i];
+			if(index < 0) {
+				index += 1;
+				dom->indexes[i] = size - index;
+			}
+		}
+
+		return;
+	}
 
 	if(end < 0) {
 		end += 1;
