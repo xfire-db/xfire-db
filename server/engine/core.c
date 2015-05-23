@@ -125,13 +125,12 @@ struct database *eng_get_db(const char *name)
 	return db;
 }
 
-static struct rq_buff *__rq_buff_alloc(int index)
+static struct rq_buff *__rq_buff_alloc(void)
 {
 	struct rq_buff *data;
 
 	data = xfire_zalloc(sizeof(*data));
 	atomic_flags_init(&data->flags);
-	data->index = index;
 
 	return data;
 }
@@ -140,12 +139,9 @@ struct rq_buff *rq_buff_alloc(struct request *parent)
 {
 	struct rq_buff *data;
 
-	if(parent->domain.indexes)
-		data = __rq_buff_alloc(parent->domain.indexes[0]);
-	else
-		data = __rq_buff_alloc(-1);
-
+	data = __rq_buff_alloc();
 	data->parent = parent;
+
 	return data;
 }
 
@@ -157,25 +153,19 @@ static struct rq_buff *rq_buff_alloc_multi(struct request *parent, int num)
 	int idx = 0;
 
 	if(test_bit(RQ_HAS_RANGE_FLAG, &parent->flags))
-		num = parent->domain.range.end - parent->domain.range.start;
+		num = parent->domain.range.end - parent->domain.range.start + 1;
 
 
 	if(!parent || !num)
 		return NULL;
 
-	if(!test_bit(RQ_HAS_RANGE_FLAG, &parent->flags))
-		head = __rq_buff_alloc(parent->domain.indexes[idx]);
-	else
-		head = __rq_buff_alloc(-1);
+	head = __rq_buff_alloc();
 	iterator = head;
 	head->parent = parent;
 	idx++;
 
 	for(; idx < num; idx++) {
-		if(!test_bit(RQ_HAS_RANGE_FLAG, &parent->flags))
-			data = __rq_buff_alloc(parent->domain.indexes[idx]);
-		else
-			data = __rq_buff_alloc(-1);
+		data = __rq_buff_alloc();
 		data->parent = parent;
 
 		data->prev = iterator;
@@ -284,6 +274,16 @@ static void eng_push_list(struct rq_buff *data, struct list_head *lh,
 		list_lpush(lh, &s->entry);
 }
 
+static void eng_pop_list(struct list_head *lh, struct list *list)
+{
+	struct string *s;
+
+	list_del(lh, list);
+	s = container_of(list, struct string, entry);
+	string_destroy(s);
+	xfire_free(s);
+}
+
 static struct list *eng_get_list_index(struct list_head *head, int index)
 {
 	int idx, len;
@@ -302,6 +302,20 @@ static struct list *eng_get_list_index(struct list_head *head, int index)
 	}
 
 	return NULL;
+}
+
+static void eng_update_domain_index(struct request *rq, struct rq_buff *data)
+{
+	int idx, index;
+	struct request_domain *dom = &rq->domain;
+
+	index = dom->indexes[data->index];
+	for(idx = data->index + 1; idx < dom->num; idx++) {
+		if(dom->indexes[idx] > index)
+			dom->indexes[idx] -= 1;
+		else
+			continue;
+	}
 }
 
 static void raw_eng_handle_request(struct request *rq, struct database *db,
@@ -329,6 +343,25 @@ static void raw_eng_handle_request(struct request *rq, struct database *db,
 			break;
 
 		lh = container_get_data(c, LH_MAGIC);
+		list = eng_get_list_index(lh, data->index);
+		if(!list)
+			return;
+
+		string = container_of(list, struct string, entry);
+		data->length = string_length(string);
+		rq_buff_inflate(data, data->length);
+		string_get(string, data->data, data->length);
+		eng_pop_list(lh, list);
+
+		if(list_length(lh) == 0) {
+			c = db->remove(db, rq->hash, rq->key);
+			if(!c)
+				break;
+
+			eng_destroy_container(c);
+		} else {
+			eng_update_domain_index(rq, data);
+		}
 		break;
 
 	case RQ_LIST_LOOKUP:
@@ -396,7 +429,7 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 {
 	struct list_head *lh;
 	struct string *string;
-	struct list *list;
+	struct list *list, *tmp;
 	struct request_domain *dom = &rq->domain;
 	int idx = 0;
 
@@ -406,6 +439,31 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 			break;
 
 		lh = container_get_data(c, LH_MAGIC);
+		list_for_each_safe(lh, list, tmp) {
+			if(idx < dom->range.start) {
+				idx++;
+				continue;
+			} else if(!d) {
+				break;
+			}
+
+			string = container_of(list, struct string, entry);
+			d->length = string_length(string);
+			rq_buff_inflate(d, d->length);
+			string_get(string, d->data, d->length);
+			eng_pop_list(lh, list);
+
+			idx++;
+			d = d->next;
+		}
+
+		if(list_length(lh) == 0) {
+			c = db->remove(db, rq->hash, rq->key);
+			if(!c)
+				break;
+
+			eng_destroy_container(c);
+		}
 		break;
 
 	case RQ_LIST_LOOKUP:
@@ -417,11 +475,12 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 			break;
 
 		list_for_each(lh, list) {
-			if(idx < dom->range.start)
+			if(idx < dom->range.start) {
+				idx++;
 				continue;
-			else if(!d)
+			} else if(!d) {
 				break;
-			
+			}
 
 			string = container_of(list, struct string, entry);
 			d->length = string_length(string);
@@ -468,6 +527,7 @@ static inline void eng_handle_multi_request(struct request *rq)
 	}
 
 	for(i = 0; i < dom->num && buffer; i++) {
+		buffer->index = dom->indexes[i];
 		eng_handle_request(rq, buffer);
 		buffer = buffer->next;
 	}
@@ -490,6 +550,9 @@ static void reply_add(struct reply *prev, struct reply *new)
 	new->next = NULL;
 }
 
+static char *nil_data = "(nil)";
+#define NIL_DATA_LENGTH 5
+
 static struct reply *eng_build_reply(struct rq_buff *data)
 {
 	struct reply *head,
@@ -500,18 +563,19 @@ static struct reply *eng_build_reply(struct rq_buff *data)
 
 	head = xfire_zalloc(sizeof(*head));
 	head->num = 0;
-	head->length = data->length;
-	head->data = data->data;
+	head->length = data && data->length ? data->length : NIL_DATA_LENGTH;
+	head->data = data && data->length ? data->data : nil_data;
 	prev = head;
 
-	if(!data->next)
+	if(!data || !data->next)
 		return head;
 
 	for(iterator = data->next; iterator; iterator = iterator->next) {
 		reply = xfire_zalloc(sizeof(*head));
 		reply->num = i;
-		reply->length = iterator->length;
-		reply->data = iterator->data;
+		reply->length = iterator->length ? iterator->length :
+					NIL_DATA_LENGTH;
+		reply->data = iterator->length ? iterator->data : nil_data;
 
 		reply_add(prev, reply);
 		prev = reply;
@@ -564,8 +628,8 @@ static void eng_correct_request_range(struct request *request)
 	if(size < 0)
 		return;
 
+	size -= 1; /* list are 0 counted */
 	if(!test_bit(RQ_HAS_RANGE_FLAG, &request->flags)) {
-		size -= 1; /* list are 0 counted */
 
 		for(i = 0; i < dom->num; i++) {
 			index = dom->indexes[i];

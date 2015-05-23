@@ -40,13 +40,14 @@ typedef struct list_head {
 	for(__c = (__lh)->head.next; __c != &((__lh)->head); __c = __c->next)
 
 #define list_for_each_safe(__lh, __c, __s) \
-	for(__c = (__lh)->head, __s = __c->next; __c != &((__lh)->head); \
+	for(__c = (__lh)->head.next, __s = __c->next; __c != &((__lh)->head); \
 			__c = __s, __s = __c->next)
 
 CDECL
 extern void list_lpush(struct list_head *head, struct list *node);
 extern void list_rpush(struct list_head *head, struct list *node);
 extern void list_pop(struct list_head *head, u32 idx);
+extern void list_del(struct list_head *lh, struct list *entry);
 
 static inline void list_node_init(struct list *node)
 {

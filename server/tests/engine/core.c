@@ -145,6 +145,24 @@ static void test_string_list_lookup(void)
 	rq_free(a);
 }
 
+static void test_string_list_remove(void)
+{
+	struct request *a;
+	//int index[] = {0,1,2};
+
+	a = rq_alloc(DEBUG_DB_NAME, "user:email", 0, 0);
+	rq_set_range(a, 0, -1);
+	//rq_add_rng_index(a, index, 3);
+
+	a->type = RQ_LIST_REMOVE;
+	a->fd = fileno(stdout);
+
+	dbg_push_request(a);
+	test_rq_wait(a);
+
+	rq_free(a);
+}
+
 static void test_string_insert(void)
 {
 	struct request *a, *b;
@@ -229,6 +247,9 @@ int main(int argc, char **argv)
 
 	printf("\nTesting list insert:\n");
 	test_string_list_insert();
+
+	printf("\nTesting list remove:\n");
+	test_string_list_remove();
 
 	printf("\nTesting list lookup:\n");
 	test_string_list_lookup();
