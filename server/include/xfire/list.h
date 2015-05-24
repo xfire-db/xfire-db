@@ -73,6 +73,16 @@ static inline int list_length(struct list_head *head)
 {
 	return atomic_get(&head->num);
 }
+
+static inline void list_lock(struct list_head *lh)
+{
+	xfire_spin_lock(&lh->lock);
+}
+
+static inline void list_unlock(struct list_head *lh)
+{
+	xfire_spin_unlock(&lh->lock);
+}
 CDECL_END
 
 #endif

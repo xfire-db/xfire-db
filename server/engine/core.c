@@ -335,7 +335,12 @@ static void raw_eng_handle_request(struct request *rq, struct database *db,
 		}
 
 		lh = container_get_data(c, LH_MAGIC);
+		if(!lh)
+			return;
+
+		list_lock(lh);
 		eng_push_list(data, lh, rq->type);
+		list_unlock(lh);
 		break;
 
 	case RQ_LIST_REMOVE:
@@ -343,9 +348,16 @@ static void raw_eng_handle_request(struct request *rq, struct database *db,
 			break;
 
 		lh = container_get_data(c, LH_MAGIC);
-		list = eng_get_list_index(lh, data->index);
-		if(!list)
+		if(!lh)
 			return;
+
+		list_lock(lh);
+		list = eng_get_list_index(lh, data->index);
+
+		if(!list) {
+			list_unlock(lh);
+			return;
+		}
 
 		string = container_of(list, struct string, entry);
 		data->length = string_length(string);
@@ -355,11 +367,13 @@ static void raw_eng_handle_request(struct request *rq, struct database *db,
 
 		if(list_length(lh) == 0) {
 			c = db->remove(db, rq->hash, rq->key);
+			list_unlock(lh);
 			if(!c)
 				break;
 
 			eng_destroy_container(c);
 		} else {
+			list_unlock(lh);
 			eng_update_domain_index(rq, data);
 		}
 		break;
@@ -369,14 +383,21 @@ static void raw_eng_handle_request(struct request *rq, struct database *db,
 			break;
 
 		lh = container_get_data(c, LH_MAGIC);
-		list = eng_get_list_index(lh, data->index);
-		if(!list)
+		if(!lh)
 			return;
+
+		list_lock(lh);
+		list = eng_get_list_index(lh, data->index);
+		if(!list) {
+			list_unlock(lh);
+			return;
+		}
 
 		string = container_of(list, struct string, entry);
 		data->length = string_length(string);
 		rq_buff_inflate(data, data->length);
 		string_get(string, data->data, data->length);
+		list_unlock(lh);
 		break;
 
 	case RQ_STRING_INSERT:
@@ -439,6 +460,7 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 			break;
 
 		lh = container_get_data(c, LH_MAGIC);
+		list_lock(lh);
 		list_for_each_safe(lh, list, tmp) {
 			if(idx < dom->range.start) {
 				idx++;
@@ -461,8 +483,11 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 			c = db->remove(db, rq->hash, rq->key);
 			if(!c)
 				break;
+			list_unlock(lh);
 
 			eng_destroy_container(c);
+		} else {
+			list_unlock(lh);
 		}
 		break;
 
@@ -474,6 +499,7 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 		if(list_length(lh) <= dom->range.start)
 			break;
 
+		list_lock(lh);
 		list_for_each(lh, list) {
 			if(idx < dom->range.start) {
 				idx++;
@@ -490,6 +516,7 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 			d = d->next;
 			idx++;
 		}
+		list_unlock(lh);
 		break;
 
 	default:

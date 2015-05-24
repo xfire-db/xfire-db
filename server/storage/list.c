@@ -36,13 +36,10 @@ void list_rpush(struct list_head *head, struct list *node)
 {
 	struct list *it;
 
-	xfire_spin_lock(&head->lock);
 	it = &head->head;
 	it = it->prev;
 
 	__list_add(node, it, it->next);
-	xfire_spin_unlock(&head->lock);
-
 	atomic_inc(head->num);
 }
 
@@ -50,12 +47,9 @@ void list_lpush(struct list_head *head, struct list *node)
 {
 	struct list *it;
 
-	xfire_spin_lock(&head->lock);
 	it = &head->head;
 
 	__list_add(node, it, it->next);
-	xfire_spin_unlock(&head->lock);
-
 	atomic_inc(head->num);
 }
 
@@ -67,12 +61,10 @@ static inline void __list_del(struct list *prev, struct list *next)
 
 void list_del(struct list_head *lh, struct list *entry)
 {
-	xfire_spin_lock(&lh->lock);
 	__list_del(entry->prev, entry->next);
 
 	entry->next = entry;
 	entry->prev = entry;
-	xfire_spin_unlock(&lh->lock);
 	atomic_dec(lh->num);
 }
 
