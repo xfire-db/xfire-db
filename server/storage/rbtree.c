@@ -400,15 +400,10 @@ static struct rb_node *rb_find_insert(struct rb_root *root,
 }
 #endif
 
-typedef enum {
-	INSERT_SUCCESS,
-	INSERT_RETRY,
-} rb_insert_t;
-
 static void rb_balance(struct rb_root *root, struct rb_node *node);
 static struct rb_node *rb_balance_rr(struct rb_root *root,
 					struct rb_node      *node);
-static void rb_fixup_bt(struct rb_root *root, struct rb_node *node)
+static void rb_fixup_rr(struct rb_root *root, struct rb_node *node)
 {
 	struct rb_node *rn;
 
@@ -425,29 +420,12 @@ static void rb_fixup_bt(struct rb_root *root, struct rb_node *node)
 	rb_set_blk(rn);
 }
 
-static inline struct rb_node *rb_push_red(struct rb_node *p, struct rb_node *n)
-{
-	bool dblk = rb_dblk(p);
-
-	rb_set_blk(n);
-	if(dblk) {
-		rb_set_blk(p);
-		return n;
-	} else {
-		rb_set_red(p);
-		return p->parent;
-	}
-
-}
-
 static struct rb_node *raw_rb_balance_rr(struct rb_root *root,
 					    struct rb_node *node)
 {
-	struct rb_node *p,
-		      *s,
-		      *tmp = NULL,
-		      *orig = node;
+	struct rb_node *gp, *p, *s;
 
+	gp = rb_grandparent(node);
 	p = node->parent;
 	s = rb_sibling(node);
 
@@ -456,41 +434,29 @@ static struct rb_node *raw_rb_balance_rr(struct rb_root *root,
 	else if(!rb_red(node->left) && !rb_red(node->right))
 		return node;
 
-	if(s && test_and_clear_bit(RB_NODE_RED_FLAG, &s->flags))
-		return rb_push_red(p, node);
+	if(s && test_and_clear_bit(RB_NODE_RED_FLAG, &s->flags)) {
+		rb_set_blk(node);
+		rb_set_red(p);
+		return gp;
+	}
 
 	if(p->left == node && rb_red(node->right)) {
 		/* rotate left */
-		tmp = node->right;
 		rb_rotate_left(root, node);
 		node = node->parent;
 	} else if(p->right == node && rb_red(node->left)) {
 		/* rotate right */
-		tmp = node->left;
 		rb_rotate_right(root, node);
 		node = node->parent;
 	}
 
 	p = node->parent;
-	if(p->left == node) {
-		if(!tmp)
-			tmp = node->left;
+	if(p->left == node)
 		rb_rotate_right(root, p);
-	} else {
-		if(!tmp)
-			tmp = node->right;
+	else
 		rb_rotate_left(root, p);
-	}
 
-	if(test_and_clear_bit(RB_NODE_DBLK_FLAG, &p->flags)) {
-		rb_set_blk(p);
-		rb_set_blk(orig);
-		rb_set_blk(tmp);
-	} else {
-		/* swap colors between n and pre-rotation parent */
-		rb_swap_color(node, p);
-	}
-
+	rb_swap_color(node, p);
 	return node;
 }
 
@@ -508,53 +474,27 @@ static struct rb_node *rb_balance_rr(struct rb_root *root,
 	return raw_rb_balance_rr(root, node);
 }
 
-static rb_insert_t rb_attempt_insert(struct rb_root *root,
-					     struct rb_node **_node,
-					     struct rb_node *new)
+static void rb_attempt_insert(struct rb_root *root,
+			      struct rb_node *node,
+			      struct rb_node *new)
 {
-	struct rb_node *node = *_node,
-		      *rn = rb_get_root(root);
-
-	rb_insert_t rv = INSERT_RETRY;
-
-	if(rn == rb_get_root(root)) {
-		if(new->key <= node->key && !node->left) {
-			node->left = new;
-			new->parent = node;
-			*_node = raw_rb_balance_rr(root, node);
-			rv = INSERT_SUCCESS;
-		} else if(new->key > node->key && !node->right) {
-			node->right = new;
-			new->parent = node;
-			*_node = raw_rb_balance_rr(root, node);
-			rv = INSERT_SUCCESS;
-		}
+	if(new->key <= node->key && !node->left) {
+		node->left = new;
+		new->parent = node;
+	} else if(new->key > node->key && !node->right) {
+		node->right = new;
+		new->parent = node;
 	}
-
-	return rv;
 }
 
 static void __rb_insert(struct rb_root *root, struct rb_node *new)
 {
 	struct rb_node *node;
-	rb_insert_t update = INSERT_RETRY;
 	
-	do {
-		node = rb_find_insert(root, new);
+	node = rb_find_insert(root, new);
+	rb_attempt_insert(root, node, new);
 
-		if(!node) {
-			if(!root->tree) {
-				root->tree = new;
-				rb_set_blk(new);
-				return;
-			} else {
-				update = INSERT_RETRY;
-				continue;
-			}
-		}
-		update = rb_attempt_insert(root, &node, new);
-	} while(update == INSERT_RETRY);
-
+	raw_rb_balance_rr(root, node);
 	rb_balance(root, node);
 }
 
@@ -717,36 +657,19 @@ static struct rb_node *rb_push_black(struct rb_node *p, struct rb_node *n,
 	sl = s->left;
 	sr = s->right;
 
-	if(rb_dblk(s)) {
-		if(rb_dblk(p))
-			return n;
+	if(!rb_red(sl) && !rb_red(sr)) {
+		if(rb_dblk(n))
+			rb_set_blk(n);
+		else
+			rb_set_red(n);
 
-		rb_set_blk(s);
-		rb_set_blk(n);
-		if(rb_red(p)) {
-			rb_set_blk(p);
-			return RB_BALANCED;
-		} else {
+		rb_set_red(s);
+		if(rb_blk(p)) {
 			rb_set_dblk(p);
 			return p;
-		}
-	} else if(!rb_red(sl) && !rb_red(sr)) {
-		if(!rb_dblk(p)) {
-			if(rb_dblk(n))
-				rb_set_blk(n);
-			else
-				rb_set_red(n);
-
-			rb_set_red(s);
-			if(rb_blk(p)) {
-				rb_set_dblk(p);
-				return p;
-			} else {
-				rb_set_blk(p);
-				return RB_BALANCED;
-			}
 		} else {
-			return n;
+			rb_set_blk(p);
+			return RB_BALANCED;
 		}
 	}
 
@@ -762,9 +685,6 @@ static struct rb_node *raw_rb_resolve_nephew(struct rb_root *root,
 {
 	assert(p != NULL);
 	assert(s != NULL);
-
-	if(rb_dblk(p))
-		return n;
 
 	if(rb_red(cn) && rb_blk(fn)) {
 		if(fn == s->left) {
@@ -850,16 +770,9 @@ static struct rb_node *rb_resolve_red_sibling(struct rb_root *root,
 	ns = ndir ? s->left : s->right;
 	assert(ns != NULL);
 
-	if(rb_dblk(p))
-		return n;
-
-	if(rb_red(ns) || rb_red(p)) {
-		goto err_l;
-	} else {
-		/* p = black */
-		rb_set_blk(s);
-		rb_set_red(p);
-	}
+	/* p = black */
+	rb_set_blk(s);
+	rb_set_red(p);
 
 	if(ndir)
 		rb_rotate_left(root, p);
@@ -867,7 +780,6 @@ static struct rb_node *rb_resolve_red_sibling(struct rb_root *root,
 		rb_rotate_right(root, p);
 
 	n = rb_resolve_black_node(root, p, n, ns, ndir);
-err_l:
 	return n;
 }
 
@@ -925,17 +837,6 @@ static struct rb_node *raw_rb_balance_bb(struct rb_root *root,
 	if(!test_bit(RB_NODE_REMOVE_FLAG, &node->flags) && !rb_dblk(node))
 		return node;
 
-	if(rb_dblk(p))
-		return node;
-
-	if(rb_red(s)) {
-		if(rb_red(ndir ? s->left : s->right)) {
-			return node;
-		} else if(rb_red(p)) {
-			return node;
-		}
-	}
-
 	if(rb_red(s))
 		rv = rb_resolve_red_sibling(root, p, node, s, ndir);
 	else if((rb_dblk(s) || rb_blk(s)) && (rb_blk(sl) && rb_blk(sr)))
@@ -951,7 +852,6 @@ static struct rb_node *rb_balance_bb(struct rb_root *root,
 				    struct rb_node *node)
 {
 	struct rb_node *p, *s;
-	bool ndir;
 
 	p = node->parent;
 	s = rb_sibling(node);
@@ -961,23 +861,6 @@ static struct rb_node *rb_balance_bb(struct rb_root *root,
 
 	if(!test_bit(RB_NODE_REMOVE_FLAG, &node->flags) && !rb_dblk(node))
 		return node;
-
-	if(rb_dblk(p)) {
-		rb_balance(root, p);
-		return node;
-	}
-
-	ndir = p->left == node;
-
-	if(rb_red(s)) {
-		if(rb_red(ndir ? s->left : s->right)) {
-			rb_balance(root, ndir ? s->left : s->right);
-			return node;
-		} else if(rb_red(p)) {
-			rb_balance(root, p);
-			return node;
-		}
-	}
 
 	return raw_rb_balance_bb(root, p, node, s);
 }
@@ -1000,7 +883,7 @@ static void rb_fixup_bb(struct rb_root *root, struct rb_node *node)
 static void rb_balance(struct rb_root *root, struct rb_node *node)
 {
 	if(rb_red(node))
-		rb_fixup_bt(root, node);
+		rb_fixup_rr(root, node);
 	else if(rb_dblk(node))
 		rb_fixup_bb(root, node);
 }
