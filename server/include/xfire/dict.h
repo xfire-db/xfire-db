@@ -22,11 +22,18 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 
+typedef enum {
+	DICT_PTR,
+	DICT_U64,
+	DICT_S64,
+	DICT_FLT,
+} dict_type_t;
+
 struct dict_entry {
 	char *key;
 
 	union {
-		void *val;
+		void *ptr;
 		u64 val_u64;
 		s64 val_s64;
 		double d;
@@ -67,10 +74,33 @@ extern void dict_rehash_step(struct dict *d);
 
 extern int dict_expand(struct dict *d, unsigned long size);
 extern int dict_rehash_ms(struct dict *d, int ms);
+extern int dict_add(struct dict *d, const char *key,
+			unsigned long *data, dict_type_t t);
 
 static inline int dict_is_rehashing(struct dict *d)
 {
 	return (d->rehashing != 0);
+}
+
+static inline void dict_set_val(struct dict_entry *e, unsigned long *data,
+				dict_type_t t)
+{
+	switch(t) {
+	case DICT_PTR:
+		e->value.ptr = (void*)data;
+		break;
+	case DICT_U64:
+		e->value.val_u64 = *((u64*)data);
+		break;
+	case DICT_S64:
+		e->value.val_s64 = *((s64*)data);
+		break;
+	case DICT_FLT:
+		e->value.d = *((double*)data);
+		break;
+	default:
+		break;
+	}
 }
 CDECL_END
 

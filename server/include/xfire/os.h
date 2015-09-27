@@ -26,6 +26,8 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 
+#define PTR_SIZE (sizeof(void*))
+
 #ifdef HAVE_LINUX
 #define xfire_cond_t pthread_cond_t
 #define xfire_mutex_t mutex_t

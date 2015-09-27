@@ -225,7 +225,7 @@ int dict_expand(struct dict *d, unsigned long size)
 	map.size = _size;
 	map.sizemask = _size - 1;
 	map.length = 0;
-	map.array = xfire_zalloc(_size * ENTRY_SIZE);
+	map.array = xfire_zalloc(_size * PTR_SIZE);
 
 	if(d->map[PRIMARY_MAP].array == NULL) {
 		d->map[PRIMARY_MAP] = map;
@@ -235,7 +235,7 @@ int dict_expand(struct dict *d, unsigned long size)
 	d->map[REHASH_MAP] = map;
 	d->rehashidx = 0;
 	d->rehashing = 1;
-	return XFIRE_OK;
+	return -XFIRE_OK;
 }
 
 int dict_rehash_ms(struct dict *d, int ms)
@@ -270,7 +270,7 @@ static inline int dict_should_expand(struct dict *d)
 static int dict_expand_if(struct dict *d)
 {
 	if(dict_is_rehashing(d))
-		return XFIRE_OK;
+		return -XFIRE_OK;
 
 	if(d->map[PRIMARY_MAP].size == 0)
 		return dict_expand(d, DICT_MINIMAL_SIZE);
@@ -281,7 +281,7 @@ static int dict_expand_if(struct dict *d)
 		return dict_expand(d, d->map[PRIMARY_MAP].length*2);
 	}
 
-	return XFIRE_OK;
+	return -XFIRE_OK;
 }
 
 static int dict_calc_index(struct dict *d, const char *key)
@@ -290,7 +290,7 @@ static int dict_calc_index(struct dict *d, const char *key)
 	struct dict_entry *de;
 
 	if(dict_expand_if(d) == -1)
-		return -1;
+		return -XFIRE_ERR;
 
 	hash = dict_hash_key(key, DICT_SEED);
 	for(table = 0; table <= 1; table++) {
@@ -300,7 +300,7 @@ static int dict_calc_index(struct dict *d, const char *key)
 		while(de) {
 			if(!strcmp(de->key, key)) {
 				/* key exists already */
-				return -1;
+				return -XFIRE_ERR;
 			}
 
 			de = de->next;
@@ -311,5 +311,45 @@ static int dict_calc_index(struct dict *d, const char *key)
 	}
 
 	return idx;
+}
+
+static inline void dict_set_key(struct dict_entry *e, const char *key)
+{
+}
+
+static struct dict_entry *__dict_add(struct dict *d, const char *key,
+					unsigned long *data, dict_type_t type)
+{
+	int index;
+	struct dict_entry *entry;
+	struct dict_map *map;
+
+	if(dict_is_rehashing(d))
+		dict_rehash_step(d);
+
+	index = dict_calc_index(d, key);
+	if(index == -XFIRE_ERR)
+		return NULL;
+
+	map = dict_is_rehashing(d) ? &d->map[REHASH_MAP] : &d->map[PRIMARY_MAP];
+	entry = xfire_zalloc(sizeof(*entry));
+	entry->next = map->array[index];
+	map->array[index] = entry;
+	map->length++;
+
+	dict_set_key(entry, key);
+	return entry;
+}
+
+int dict_add(struct dict *d, const char *key, unsigned long *data, dict_type_t t)
+{
+	struct dict_entry *e;
+
+	e = __dict_add(d, key, data, t);
+	if(!e)
+		return -XFIRE_ERR;
+
+	dict_set_val(e, data, t);
+	return -XFIRE_OK;
 }
 
