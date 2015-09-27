@@ -31,13 +31,17 @@ struct dict_entry {
 		s64 val_s64;
 		double d;
 	} value;
+
+	struct dict_entry *next;
 };
 
+#define ENTRY_SIZE sizeof(struct dict_entry)
+
 struct dict_map {
-	struct dict_entry **map;
+	struct dict_entry **array;
 	long size;
 	unsigned long sizemask;
-	long used;
+	long length;
 };
 
 #define PRIMARY_MAP 0
@@ -48,6 +52,7 @@ struct dict {
 	long rehashidx;
 
 	int rehashing : 1;
+	int iterators;
 };
 
 CDECL
@@ -56,6 +61,17 @@ extern void dict_destroy(struct dict *d);
 
 extern int dict_insert(char *key, void *data, unsigned long size);
 extern int dict_remove(char *key);
+
+extern int dict_rehash_ms(struct dict *d, int ms);
+extern void dict_rehash_step(struct dict *d);
+
+extern int dict_expand(struct dict *d, unsigned long size);
+extern int dict_rehash_ms(struct dict *d, int ms);
+
+static inline int dict_is_rehashing(struct dict *d)
+{
+	return (d->rehashing != 0);
+}
 CDECL_END
 
 #endif
