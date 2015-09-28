@@ -74,8 +74,10 @@ extern void dict_rehash_step(struct dict *d);
 
 extern int dict_expand(struct dict *d, unsigned long size);
 extern int dict_rehash_ms(struct dict *d, int ms);
+
 extern int dict_add(struct dict *d, const char *key,
 			unsigned long *data, dict_type_t t);
+extern int dict_delete(struct dict *d, const char *key, int free);
 
 static inline int dict_is_rehashing(struct dict *d)
 {

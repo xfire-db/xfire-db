@@ -69,6 +69,14 @@ struct dict *dict_alloc(void)
 	return d;
 }
 
+static inline int dict_cmp_keys(const char *key1, const char *key2)
+{
+	if(!key1 || !key2)
+		return 1;
+
+	return !strcmp(key1, key2);
+}
+
 #define MURMUR_C1 0xcc9e2d51
 #define MURMUR_C2 0x1b873593
 #define MURMUR_R1 15
@@ -315,6 +323,22 @@ static int dict_calc_index(struct dict *d, const char *key)
 
 static inline void dict_set_key(struct dict_entry *e, const char *key)
 {
+	int length;
+	char *_key;
+
+	length = strlen(key);
+	_key = xfire_zalloc(length+1);
+
+	memcpy(_key, key, length);
+	e->key = _key;
+}
+
+static inline void dict_free_entry(struct dict_entry *e)
+{
+	if(e->key)
+		xfire_free(e->key);
+
+	xfire_free(e);
 }
 
 static struct dict_entry *__dict_add(struct dict *d, const char *key,
@@ -351,5 +375,58 @@ int dict_add(struct dict *d, const char *key, unsigned long *data, dict_type_t t
 
 	dict_set_val(e, data, t);
 	return -XFIRE_OK;
+}
+
+static int __dict_delete(struct dict *d, const char *key, int free)
+{
+	u32 hash, idx;
+	struct dict_entry *e, *prev_e;
+	int table;
+
+	if(d->map[PRIMARY_MAP].size == 0L)
+		return -XFIRE_ERR;
+
+	if(dict_is_rehashing(d))
+		dict_rehash_step(d);
+
+	hash = dict_hash_key(key, DICT_SEED);
+	
+	for(table = 0; table <= 1; table++) {
+		idx = hash & d->map[table].sizemask;
+		e = d->map[table].array[idx];
+		prev_e = NULL;
+
+		while(e) {
+			if(dict_cmp_keys(key, e->key)) {
+				/* keys are confirmed and euqual, unlink the node */
+				if(prev_e)
+					prev_e->next = e->next;
+				else
+					d->map[table].array[idx] = e->next;
+
+				if(free)
+					xfire_free(e->value.ptr);
+				dict_free_entry(e);
+				d->map[table].length--;
+				return -XFIRE_OK;
+			}
+
+			prev_e = e;
+			e = e->next;
+		}
+
+		if(!dict_is_rehashing(d))
+			break;
+	}
+
+	return -XFIRE_ERR;
+}
+
+int dict_delete(struct dict *d, const char *key, int free)
+{
+	if(!d || !key)
+		return -XFIRE_ERR;
+
+	return __dict_delete(d, key, free);
 }
 
