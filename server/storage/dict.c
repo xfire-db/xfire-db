@@ -377,14 +377,14 @@ int dict_add(struct dict *d, const char *key, unsigned long *data, dict_type_t t
 	return -XFIRE_OK;
 }
 
-static int __dict_delete(struct dict *d, const char *key, int free)
+static struct dict_entry *__dict_delete(struct dict *d, const char *key)
 {
 	u32 hash, idx;
 	struct dict_entry *e, *prev_e;
 	int table;
 
 	if(d->map[PRIMARY_MAP].size == 0L)
-		return -XFIRE_ERR;
+		return NULL;
 
 	if(dict_is_rehashing(d))
 		dict_rehash_step(d);
@@ -404,11 +404,8 @@ static int __dict_delete(struct dict *d, const char *key, int free)
 				else
 					d->map[table].array[idx] = e->next;
 
-				if(free)
-					xfire_free(e->value.ptr);
-				dict_free_entry(e);
 				d->map[table].length--;
-				return -XFIRE_OK;
+				return e;
 			}
 
 			prev_e = e;
@@ -419,14 +416,84 @@ static int __dict_delete(struct dict *d, const char *key, int free)
 			break;
 	}
 
-	return -XFIRE_ERR;
+	return NULL;
 }
 
 int dict_delete(struct dict *d, const char *key, int free)
 {
+	struct dict_entry *e;
+
 	if(!d || !key)
 		return -XFIRE_ERR;
 
-	return __dict_delete(d, key, free);
+	e = __dict_delete(d, key);
+
+	if(e) {
+		if(free)
+			xfire_free(e->value.ptr);
+		dict_free_entry(e);
+		return -XFIRE_OK;
+	}
+
+	return -XFIRE_ERR;
+}
+
+static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
+{
+	struct dict_entry *e;
+	u32 hash, idx, table;
+
+	if(d->map[PRIMARY_MAP].size == 0)
+		return NULL;
+	if(dict_is_rehashing(d))
+		dict_rehash_step(d);
+
+	hash = dict_hash_key(key, DICT_SEED);
+	for(table = 0; table <= 1; table++) {
+		idx = hash & d->map[table].sizemask;
+		e = d->map[table].array[idx];
+
+		while(e) {
+			if(dict_cmp_keys(key, e->key))
+				return e;
+		}
+
+		if(!dict_is_rehashing(d))
+			return NULL;
+	}
+
+	return NULL;
+}
+
+int dict_lookup(struct dict *d, const char *key, unsigned long *data, dict_type_t type)
+{
+	struct dict_entry *e;
+
+	if(!d || !key || !data)
+		return -XFIRE_ERR;
+
+	e = __dict_lookup(d, key);
+	if(!e)
+		return -XFIRE_ERR;
+
+	switch(type) {
+	case DICT_PTR:
+		*data = (unsigned long)e->value.ptr;
+		break;
+	case DICT_U64:
+		*((u64*)data) = e->value.val_u64;
+		break;
+	case DICT_S64:
+		*((s64*)data) = e->value.val_s64;
+		break;
+	case DICT_FLT:
+		*((double*)data) = e->value.d;
+		break;
+	default:
+		return -XFIRE_ERR;
+		break;
+	}
+
+	return -XFIRE_OK;
 }
 
