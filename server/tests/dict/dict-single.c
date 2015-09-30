@@ -75,7 +75,10 @@ int main(int argc, char **argv)
 		return -EXIT_FAILURE;
 	}
 
-	printf("Storing and retrieving data\n.\n.\n.\n.\n");
+	printf("Storing and retrieving data\n");
+	dot();
+	dot();
+	dot();
 
 	dbg_setup_dict(strings);
 	dbg_empty_dict(strings);
