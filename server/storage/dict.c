@@ -174,7 +174,7 @@ static int dict_rehash(struct dict *d, int num)
 		return 0;
 
 	visits = num * 10;
-	while(num-- && d->map[PRIMARY_MAP].length) {
+	while(num-- && d->map[PRIMARY_MAP].length > 0L) {
 		assert(d->map[PRIMARY_MAP].size > d->rehashidx);
 
 		while(d->map[PRIMARY_MAP].array[d->rehashidx] == NULL) {
@@ -203,11 +203,11 @@ static int dict_rehash(struct dict *d, int num)
 
 		if(d->map[PRIMARY_MAP].length == 0L) {
 			xfire_free(d->map[PRIMARY_MAP].array);
-			d->map[PRIMARY_MAP].array = d->map[REHASH_MAP].array;
-			d->rehashidx = -1;
-			d->rehashing = 0;
+			d->map[PRIMARY_MAP] = d->map[REHASH_MAP];
 			dict_reset(&d->map[REHASH_MAP]);
 
+			d->rehashidx = -1;
+			d->rehashing = 0;
 			return 0;
 		}
 	}
@@ -378,7 +378,7 @@ static struct dict_entry *__dict_add(struct dict *d, const char *key,
 	return entry;
 }
 
-int dict_add(struct dict *d, const char *key, unsigned long *data, dict_type_t t)
+int dict_add(struct dict *d, const char *key, void *data, dict_type_t t)
 {
 	struct dict_entry *e;
 
@@ -478,7 +478,7 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 	return NULL;
 }
 
-int dict_lookup(struct dict *d, const char *key, unsigned long *data, dict_type_t type)
+int dict_lookup(struct dict *d, const char *key, void *data, dict_type_t type)
 {
 	struct dict_entry *e;
 
@@ -491,7 +491,7 @@ int dict_lookup(struct dict *d, const char *key, unsigned long *data, dict_type_
 
 	switch(type) {
 	case DICT_PTR:
-		*data = (unsigned long)e->value.ptr;
+		*((size_t*)data) = (size_t) e->value.ptr;
 		break;
 	case DICT_U64:
 		*((u64*)data) = e->value.val_u64;

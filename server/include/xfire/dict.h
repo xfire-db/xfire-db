@@ -64,10 +64,10 @@ struct dict {
 
 CDECL
 extern struct dict *dict_alloc(void);
-extern void dict_destroy(struct dict *d);
+extern void dict_free(struct dict *d);
 
-extern int dict_insert(char *key, void *data, unsigned long size);
-extern int dict_remove(char *key);
+extern int dict_add(struct dict *d, const char *key, void *data, dict_type_t t);
+extern int dict_delete(struct dict *d, const char *key, int free);
 
 extern int dict_rehash_ms(struct dict *d, int ms);
 extern void dict_rehash_step(struct dict *d);
@@ -75,11 +75,8 @@ extern void dict_rehash_step(struct dict *d);
 extern int dict_expand(struct dict *d, unsigned long size);
 extern int dict_rehash_ms(struct dict *d, int ms);
 
-extern int dict_add(struct dict *d, const char *key,
-			unsigned long *data, dict_type_t t);
-extern int dict_delete(struct dict *d, const char *key, int free);
 extern int dict_lookup(struct dict *d, const char *key,
-			unsigned long *data, dict_type_t type);
+			void *data, dict_type_t type);
 
 static inline int dict_is_rehashing(struct dict *d)
 {
