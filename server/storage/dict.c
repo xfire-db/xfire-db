@@ -69,6 +69,19 @@ struct dict *dict_alloc(void)
 	return d;
 }
 
+void dict_free(struct dict *d)
+{
+	if(!d)
+		return;
+
+	if(d->map[REHASH_MAP].array)
+		xfire_free(d->map[REHASH_MAP].array);
+	if(d->map[PRIMARY_MAP].array)
+		xfire_free(d->map[PRIMARY_MAP].array);
+
+	xfire_free(d);
+}
+
 static inline int dict_cmp_keys(const char *key1, const char *key2)
 {
 	if(!key1 || !key2)
