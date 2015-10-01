@@ -21,6 +21,7 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
+#include <xfire/os.h>
 
 typedef enum {
 	DICT_PTR,
@@ -60,6 +61,10 @@ struct dict {
 
 	int rehashing : 1;
 	int iterators;
+
+	xfire_mutex_t lock;
+	xfire_cond_t rehash_condi;
+	struct thread *worker;
 };
 
 CDECL
@@ -68,19 +73,29 @@ extern void dict_free(struct dict *d);
 
 extern int dict_add(struct dict *d, const char *key, void *data, dict_type_t t);
 extern int dict_delete(struct dict *d, const char *key, int free);
-
-extern int dict_rehash_ms(struct dict *d, int ms);
-extern void dict_rehash_step(struct dict *d);
-
-extern int dict_expand(struct dict *d, unsigned long size);
-extern int dict_rehash_ms(struct dict *d, int ms);
-
 extern int dict_lookup(struct dict *d, const char *key,
 			void *data, dict_type_t type);
 
 static inline int dict_is_rehashing(struct dict *d)
 {
-	return (d->rehashing != 0);
+	int rval;
+
+	xfire_mutex_lock(&d->lock);
+	rval = d->rehashing != 0;
+	xfire_mutex_unlock(&d->lock);
+
+	return rval;
+}
+
+static inline int dict_hash_iterators(struct dict *d)
+{
+	int rval;
+
+	xfire_mutex_lock(&d->lock);
+	rval = d->iterators != 0;
+	xfire_mutex_unlock(&d->lock);
+
+	return rval;
 }
 
 static inline void dict_set_val(struct dict_entry *e, unsigned long *data,

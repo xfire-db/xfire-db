@@ -23,6 +23,7 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/os.h>
+#include <xfire/mem.h>
 
 void xfire_mutex_init(xfire_mutex_t *m)
 {
@@ -62,8 +63,8 @@ struct thread *xfire_create_thread(const char *name,
 		return NULL;
 	}
 
-	tp->name = mzalloc(strlen(name) + 1);
-	memcpy(tp->name, name, strlen(name) + 1);
+	tp->name = xfire_zalloc(strlen(name) + 1);
+	memcpy(tp->name, name, strlen(name));
 
 	return tp;
 }
