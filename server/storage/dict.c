@@ -536,6 +536,8 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 				xfire_mutex_unlock(&d->lock);
 				return e;
 			}
+
+			e = e->next;
 		}
 
 		if(!dict_is_rehashing(d))

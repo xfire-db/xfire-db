@@ -28,12 +28,14 @@
 
 static const char *dbg_keys[] = {"key1","key2","key3","key4","key5","key6","key7",
 				"key8","key9","key10","key10","key11","key12",
-				"key13","key14","key15",
+				"key13","key14","key15","pre1","pre2","pre3","pre4",
+				"pre5","pre6","pre7","pre8","pre9","pre10",
 				};
 
 static const char *dbg_values[] = {"val1","val2","val3","val4","val5","val6","val7",
 				"val8","val9","val10","val10","val11","val12",
-				"val13","val14","val15",
+				"val13","val14","val15","preval1","preval2","preval3","preval4",
+				"preval5","preval6","preval7","preval8","preval9","preval10",
 				};
 
 void *test_thread_a(void *arg)
@@ -72,28 +74,58 @@ void *test_thread_c(void *arg)
 	return NULL;
 }
 
+void *test_thread_e(void *arg)
+{
+	int i = 20;
+
+	for(; i < 25; i++)
+		dict_delete(arg, (const char*)dbg_keys[i],
+			false);
+	return NULL;
+}
+
+void *test_thread_d(void *arg)
+{
+	int i = 15;
+
+	for(; i < 20; i++)
+		dict_delete(arg, (const char*)dbg_keys[i],
+			false);
+	return NULL;
+}
+
 int main(int argc, char **argv)
 {
 	struct dict *strings;
-	struct thread *a, *b, *c;
+	struct thread *a, *b, *c, *d, *e;
 	int i = 0;
 	char *tmp = NULL;
 
 	strings = dict_alloc();
 
+	for(i = 15; i < 25; i++)
+		dict_add(strings, (const char*)dbg_keys[i],
+			(void*)dbg_values[i], DICT_PTR);
+
 	a = xfire_create_thread("thread a", &test_thread_a, strings);
 	b = xfire_create_thread("thread b", &test_thread_b, strings);
 	c = xfire_create_thread("thread c", &test_thread_c, strings);
+	d = xfire_create_thread("thread d", &test_thread_d, strings);
+	e = xfire_create_thread("thread e", &test_thread_e, strings);
 
 	xfire_thread_join(a);
 	xfire_thread_join(b);
 	xfire_thread_join(c);
+	xfire_thread_join(d);
+	xfire_thread_join(e);
 
 	xfire_thread_destroy(a);
 	xfire_thread_destroy(b);
 	xfire_thread_destroy(c);
+	xfire_thread_destroy(d);
+	xfire_thread_destroy(e);
 
-	for(; i < 15; i++) {
+	for(i = 0; i < 15; i++) {
 		if(i == 11)
 			continue;
 		dict_delete(strings, dbg_keys[i], false);
