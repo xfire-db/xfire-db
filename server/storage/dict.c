@@ -580,3 +580,94 @@ int dict_lookup(struct dict *d, const char *key, void *data, dict_type_t type)
 	return -XFIRE_OK;
 }
 
+static struct dict_iterator *dict_create_iterator(struct dict *d)
+{
+	struct dict_iterator *i;
+
+	i = xfire_zalloc(sizeof(*i));
+	i->dict = d;
+	i->table = 0;
+	i->idx = -1L;
+	i->e = NULL;
+	i->e_next = NULL;
+
+	return i;
+}
+
+struct dict_iterator *dict_get_safe_iterator(struct dict *d)
+{
+	struct dict_iterator *it;
+
+	xfire_mutex_lock(&d->lock);
+	d->iterators++;
+	xfire_mutex_unlock(&d->lock);
+
+	it = dict_create_iterator(d);
+	it->safe = true;
+	return it;
+}
+
+struct dict_iterator *dict_get_iterator(struct dict *d)
+{
+	struct dict_iterator *it;
+
+	it = dict_create_iterator(d);
+	it->safe = false;
+	return it;
+}
+
+struct dict_entry *dict_iterator_next(struct dict_iterator *it)
+{
+	struct dict_map *map;
+	struct dict *d;
+
+	d = dict_iterator_to_dict(it);
+
+	xfire_mutex_lock(&d->lock);
+	do {
+		if(!it->e) {
+			map = &d->map[it->table];
+			it->idx++;
+
+			if(it->idx >= map->size) {
+				if(__dict_is_rehashing(d) && it->table == 0) {
+					it->table++;
+					it->idx = 0;
+					map = &d->map[REHASH_MAP];
+				} else {
+					break;
+				}
+			}
+
+			it->e = map->array[it->idx];
+		} else {
+			it->e = it->e_next;
+		}
+
+		if(it->e) {
+			it->e_next = it->e->next;
+			xfire_mutex_unlock(&d->lock);
+			return it->e;
+		}
+	} while(true);
+	xfire_mutex_unlock(&d->lock);
+
+	return NULL;
+}
+
+void dict_iterator_free(struct dict_iterator *it)
+{
+	struct dict *d = it->dict;
+
+	if(!it)
+		return;
+
+	if(it->safe) {
+		xfire_mutex_lock(&d->lock);
+		d->iterators--;
+		xfire_mutex_unlock(&d->lock);
+	}
+
+	xfire_free(it);
+}
+

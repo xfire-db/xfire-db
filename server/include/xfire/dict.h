@@ -67,6 +67,15 @@ struct dict {
 	struct thread *worker;
 };
 
+struct dict_iterator {
+	struct dict *dict;
+	struct dict_entry *e, *e_next;
+
+	long idx;
+	int table;
+	int safe : 1;
+};
+
 CDECL
 extern struct dict *dict_alloc(void);
 extern void dict_free(struct dict *d);
@@ -75,6 +84,11 @@ extern int dict_add(struct dict *d, const char *key, void *data, dict_type_t t);
 extern int dict_delete(struct dict *d, const char *key, int free);
 extern int dict_lookup(struct dict *d, const char *key,
 			void *data, dict_type_t type);
+
+extern struct dict_iterator *dict_get_safe_iterator(struct dict *d);
+extern struct dict_iterator *dict_get_iterator(struct dict *d);
+extern void dict_iterator_free(struct dict_iterator *it);
+extern struct dict_entry *dict_iterator_next(struct dict_iterator *it);
 
 static inline int dict_is_rehashing(struct dict *d)
 {
@@ -85,6 +99,14 @@ static inline int dict_is_rehashing(struct dict *d)
 	xfire_mutex_unlock(&d->lock);
 
 	return rval;
+}
+
+static inline struct dict *dict_iterator_to_dict(struct dict_iterator *it)
+{
+	if(!it)
+		return NULL;
+
+	return it->dict;
 }
 
 static inline int dict_hash_iterators(struct dict *d)

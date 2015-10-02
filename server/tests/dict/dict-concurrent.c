@@ -94,6 +94,11 @@ void *test_thread_d(void *arg)
 	return NULL;
 }
 
+static void dot()
+{
+	fputs(".\n", stdout);
+}
+
 int main(int argc, char **argv)
 {
 	struct dict *strings;
@@ -132,9 +137,12 @@ int main(int argc, char **argv)
 	}
 
 	printf("Testing lookup...\n");
+	dot();dot();dot();
 	dict_lookup(strings, dbg_keys[11], &tmp, DICT_PTR);
-	if(tmp)
+	if(tmp) {
 		printf("Found %s under key %s!\n", tmp, dbg_keys[11]);
+		printf("Concurrent dict test successful\n");
+	}
 	dict_delete(strings, dbg_keys[11], false);
 
 	dict_free(strings);
