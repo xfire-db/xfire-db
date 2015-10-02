@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup dict
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -41,6 +46,13 @@ static int dict_can_expand = 1;
 
 static void *dict_rehash_worker(void *arg);
 
+/**
+ * @brief Set the force resize ratio.
+ * @param r Ratio
+ *
+ * When the elements::size ratio is greater or equal to
+ * \p r, an expand is forced.
+ */
 void dict_set_resize_ratio(int r)
 {
 	if(r < 0)
@@ -49,6 +61,83 @@ void dict_set_resize_ratio(int r)
 	dict_resize_ratio = r;
 }
 
+/**
+ * @brief Check if the dictionary is rehashing.
+ * @param d Dictionary to check.
+ * @note struct dict::lock will be locked.
+ * @return TRUE if the dictionary is rehashing, false otherwise.
+ */
+static inline int dict_is_rehashing(struct dict *d)
+{
+	int rval;
+
+	xfire_mutex_lock(&d->lock);
+	rval = d->rehashing != 0;
+	xfire_mutex_unlock(&d->lock);
+
+	return rval;
+}
+
+/**
+ * @brief Get the dictionary associated with an iterator.
+ * @param it Iterator to get the dictionary for.
+ * @return Associated dictionary.
+ */
+static inline struct dict *dict_iterator_to_dict(struct dict_iterator *it)
+{
+	if(!it)
+		return NULL;
+
+	return it->dict;
+}
+
+/**
+ * @brief Check if a dictionary has  running safe iterators.
+ * @param d Dictionary to check.
+ * @return TRUE if there are safe iterators running, FALSE otherwise.
+ */
+static inline int dict_has_iterators(struct dict *d)
+{
+	int rval;
+
+	xfire_mutex_lock(&d->lock);
+	rval = d->iterators != 0;
+	xfire_mutex_unlock(&d->lock);
+
+	return rval;
+}
+
+/**
+ * @brief Set the value of a dictionary entry.
+ * @param e Entry to set the value for.
+ * @param data Value to set.
+ * @param t Type of \p data.
+ */
+static inline void dict_set_val(struct dict_entry *e, unsigned long *data,
+				dict_type_t t)
+{
+	switch(t) {
+	case DICT_PTR:
+		e->value.ptr = (void*)data;
+		break;
+	case DICT_U64:
+		e->value.val_u64 = *((u64*)data);
+		break;
+	case DICT_S64:
+		e->value.val_s64 = *((s64*)data);
+		break;
+	case DICT_FLT:
+		e->value.d = *((double*)data);
+		break;
+	default:
+		break;
+	}
+}
+
+/**
+ * @brief Initialise a dictionary.
+ * @param Dictionary to initialise.
+ */
 static void dict_init(struct dict *d)
 {
 	d->map[PRIMARY_MAP].array = xfire_zalloc(DICT_MINIMAL_SIZE * sizeof(size_t));
@@ -63,6 +152,10 @@ static void dict_init(struct dict *d)
 	d->iterators = 0;
 }
 
+/**
+ * @brief Allocate a new dictionary.
+ * @return Allocated dictionary. NULL if allocation failed.
+ */
 struct dict *dict_alloc(void)
 {
 	struct dict *d;
@@ -76,6 +169,12 @@ struct dict *dict_alloc(void)
 	return d;
 }
 
+/**
+ * @brief Free an allocated dictionary.
+ * @param d Dictionary to free.
+ * @note Elements that are still in the dictionary will not be
+ *       free'd. Use `dict_clear' to clear out the dictionary first.
+ */
 void dict_free(struct dict *d)
 {
 	if(!d)
@@ -99,10 +198,16 @@ void dict_free(struct dict *d)
 	xfire_free(d);
 }
 
+/**
+ * @brief Compare two keys.
+ * @param key1 First key.
+ * @param key2 Second key.
+ * @return TRUE if the keys are equal, FALSE otherwise.
+ */
 static inline int dict_cmp_keys(const char *key1, const char *key2)
 {
 	if(!key1 || !key2)
-		return 1;
+		return false;
 
 	return !strcmp(key1, key2);
 }
@@ -114,6 +219,17 @@ static inline int dict_cmp_keys(const char *key1, const char *key2)
 #define MURMUR_MIX1 5
 #define MURMUR_MIX2 0xe6546b64
 
+/**
+ * @brief Hash a dictionary key.
+ * @param key Key to be hashed.
+ * @param seed Hashing seed.
+ * @note The seed should be set to DICT_SEED in every
+ *       case.
+ *
+ * This is an implementation if the murmur version 3 hash. See
+ * https://gowalker.org/github.com/spaolacci/murmur3 for benchmark
+ * results.
+ */
 static u32 dict_hash_key(const char *key, u32 seed)
 {
 	u32 hash, nblocks, k1, k2, len;
@@ -163,6 +279,14 @@ static u32 dict_hash_key(const char *key, u32 seed)
 	return hash;
 }
 
+/**
+ * @brief Reset a dictionary map.
+ * @param map Map to reset.
+ *
+ * All fields in the given map will be reset to zero,
+ * including the data array. This means that any saved
+ * data is lost.
+ */
 static void dict_reset(struct dict_map *map)
 {
 	map->array = NULL;
@@ -171,6 +295,13 @@ static void dict_reset(struct dict_map *map)
 	map->sizemask = 0UL;
 }
 
+/**
+ * @brief Get the time in miliseconds.
+ * @return The time in miliseconds.
+ *
+ * This function utilizes gettimeofday to calculate a
+ * timestamp in miliseconds.
+ */
 static long long dict_time_in_ms(void)
 {
 	struct timeval tv;
@@ -181,11 +312,31 @@ static long long dict_time_in_ms(void)
 
 #define DICT_SEED 0x8FE3C9A1
 
+/**
+ * @brief Check if a dictionary is being rehashed.
+ * @param d Dictionary to check.
+ * @note Does not acquire any locks.
+ *
+ * This is the unsafe version of dict_is_rehashing.
+ */
 static inline int __dict_is_rehashing(struct dict *d)
 {
 	return d->rehashing != 0;
 }
 
+/**
+ * @brief Rehash a dictionary.
+ * @param d Dictionary to rehash.
+ * @param num Number of rehashing steps.
+ * @return 0 if no more rehashing is required, 1 otherwise.
+ * @note This function acquires struct dict::lock.
+ *
+ * This function will perform \p num steps of rehashing. If there
+ * are more than \p num*10 NULL elements found by this function, it will
+ * stop and return \p 1. This means that the dictionary needs further
+ * rehashing, and the dictionary worker will ensure that it happens
+ * when it gets processor time.
+ */
 static int dict_rehash(struct dict *d, int num)
 {
 	u32 hash;
@@ -244,6 +395,11 @@ static int dict_rehash(struct dict *d, int num)
 	return 1;
 }
 
+/**
+ * @brief Calculated the real size based on a given number.
+ * @param size Size to base the new real size on.
+ * @return The true real size.
+ */
 static inline unsigned long dict_real_size(unsigned long size)
 {
 	if(size >= LONG_MAX)
@@ -327,7 +483,7 @@ static void *dict_rehash_worker(void *arg)
 
 static void dict_rehash_step(struct dict *d)
 {
-	if(!dict_hash_iterators(d))
+	if(!dict_has_iterators(d))
 		dict_rehash(d, 1);
 }
 
@@ -706,4 +862,6 @@ int dict_clear(struct dict *d)
 
 	return -XFIRE_OK;
 }
+
+/** @} */
 

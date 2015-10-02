@@ -90,58 +90,6 @@ extern struct dict_iterator *dict_get_safe_iterator(struct dict *d);
 extern struct dict_iterator *dict_get_iterator(struct dict *d);
 extern void dict_iterator_free(struct dict_iterator *it);
 extern struct dict_entry *dict_iterator_next(struct dict_iterator *it);
-
-static inline int dict_is_rehashing(struct dict *d)
-{
-	int rval;
-
-	xfire_mutex_lock(&d->lock);
-	rval = d->rehashing != 0;
-	xfire_mutex_unlock(&d->lock);
-
-	return rval;
-}
-
-static inline struct dict *dict_iterator_to_dict(struct dict_iterator *it)
-{
-	if(!it)
-		return NULL;
-
-	return it->dict;
-}
-
-static inline int dict_hash_iterators(struct dict *d)
-{
-	int rval;
-
-	xfire_mutex_lock(&d->lock);
-	rval = d->iterators != 0;
-	xfire_mutex_unlock(&d->lock);
-
-	return rval;
-}
-
-static inline void dict_set_val(struct dict_entry *e, unsigned long *data,
-				dict_type_t t)
-{
-	switch(t) {
-	case DICT_PTR:
-		e->value.ptr = (void*)data;
-		break;
-	case DICT_U64:
-		e->value.val_u64 = *((u64*)data);
-		break;
-	case DICT_S64:
-		e->value.val_s64 = *((s64*)data);
-		break;
-	case DICT_FLT:
-		e->value.d = *((double*)data);
-		break;
-	default:
-		break;
-	}
-}
 CDECL_END
-
 #endif
 
