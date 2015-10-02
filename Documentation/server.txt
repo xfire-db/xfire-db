@@ -1,0 +1,4 @@
+/**
+ * @defgroup server XFireDB server
+ * @brief XFireDB server API
+ */

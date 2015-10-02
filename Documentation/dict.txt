@@ -1,0 +1,4 @@
+/**
+ * @defgroup dict Dictionary API
+ * @ingroup storage
+ */
