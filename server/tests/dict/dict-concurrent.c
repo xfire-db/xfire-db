@@ -27,13 +27,13 @@
 #include <xfire/os.h>
 
 static const char *dbg_keys[] = {"key1","key2","key3","key4","key5","key6","key7",
-				"key8","key9","key10","key10","key11","key12",
+				"key8","key9","key10","key11","key12",
 				"key13","key14","key15","pre1","pre2","pre3","pre4",
 				"pre5","pre6","pre7","pre8","pre9","pre10",
 				};
 
 static const char *dbg_values[] = {"val1","val2","val3","val4","val5","val6","val7",
-				"val8","val9","val10","val10","val11","val12",
+				"val8","val9","val10","val11","val12",
 				"val13","val14","val15","preval1","preval2","preval3","preval4",
 				"preval5","preval6","preval7","preval8","preval9","preval10",
 				};

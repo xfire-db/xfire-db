@@ -79,6 +79,7 @@ struct dict_iterator {
 CDECL
 extern struct dict *dict_alloc(void);
 extern void dict_free(struct dict *d);
+extern int dict_clear(struct dict *d);
 
 extern int dict_add(struct dict *d, const char *key, void *data, dict_type_t t);
 extern int dict_delete(struct dict *d, const char *key, int free);

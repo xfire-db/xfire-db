@@ -671,3 +671,39 @@ void dict_iterator_free(struct dict_iterator *it)
 	xfire_free(it);
 }
 
+static void __dict_clear(struct dict_map *map)
+{
+	long i;
+	struct dict_entry *e, *e_next;
+
+	for(i = 0; i < map->size && map->length > 0; i++) {
+		e = map->array[i];
+
+		if(!e)
+			continue;
+
+		while(e) {
+			e_next = e->next;
+			dict_free_entry(e);
+			map->length--;
+			e = e_next;
+		}
+	}
+
+	xfire_free(map->array);
+	dict_reset(map);
+}
+
+int dict_clear(struct dict *d)
+{
+	xfire_mutex_lock(&d->lock);
+	__dict_clear(&d->map[PRIMARY_MAP]);
+	__dict_clear(&d->map[REHASH_MAP]);
+
+	d->rehashidx = -1;
+	d->rehashing = false;
+	xfire_mutex_unlock(&d->lock);
+
+	return -XFIRE_OK;
+}
+
