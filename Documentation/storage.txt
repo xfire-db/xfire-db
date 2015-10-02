@@ -1,0 +1,18 @@
+/**
+ * @defgroup storage Storage API
+ * @ingroup server
+ * @brief The storage subsystem contains several API's
+ * to store data in several formats.
+ *
+ * The storage data structures are designed as containers. The
+ * available containers are:
+ *
+ * * Dictionary's
+ * * Strings
+ * * Lists
+ * * Sets
+ * * Binary search tree's (red-black)
+ *
+ * Check out the documentation of one of the containers for a more
+ * detailed description.
+ */
