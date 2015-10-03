@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup string
+ * @{
+ */
+
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/os.h>
@@ -23,6 +28,10 @@
 #include <xfire/list.h>
 #include <xfire/mem.h>
 
+/**
+ * @brief Initialise a new string container.
+ * @param str String to initialise.
+ */
 void string_init(struct string *str)
 {
 	str->str = NULL;
@@ -31,6 +40,11 @@ void string_init(struct string *str)
 	list_node_init(&str->entry);
 }
 
+/**
+ * @brief Allocate a string container.
+ * @param len Length of the string.
+ * @return The allocated string container.
+ */
 struct string *string_alloc(size_t len)
 {
 	struct string *string;
@@ -46,6 +60,11 @@ struct string *string_alloc(size_t len)
 	return string;
 }
 
+/**
+ * @brief Copy the data of a c string into a string container.
+ * @param string String container to copy into.
+ * @param str C string which has to be copied into \p string.
+ */
 void string_set(struct string *string, const char *str)
 {
 	int len;
@@ -59,6 +78,13 @@ void string_set(struct string *string, const char *str)
 	xfire_spin_unlock(&string->lock);
 }
 
+/**
+ * @brief Get the c string contained in \p string.
+ * @param str String to copy in.
+ * @param buff Buffer to copy into.
+ * @param num Length of buff in bytes.
+ * @return Error code. 0 on success, -1 otherwise.
+ */
 int string_get(struct string *str, char *buff, size_t num)
 {
 	xfire_spin_lock(&str->lock);
@@ -73,6 +99,11 @@ int string_get(struct string *str, char *buff, size_t num)
 	return 0;
 }
 
+/**
+ * @brief Get the length of a string.
+ * @param str String to get the length.
+ * @return Length of \p string.
+ */
 size_t string_length(struct string *str)
 {
 	size_t len;
@@ -84,6 +115,10 @@ size_t string_length(struct string *str)
 	return len;
 }
 
+/**
+ * @brief Destroy a string container.
+ * @param str String to destroy.
+ */
 void string_destroy(struct string *str)
 {
 	if(str->str)
@@ -92,9 +127,15 @@ void string_destroy(struct string *str)
 	xfire_spinlock_destroy(&str->lock);
 }
 
+/**
+ * @brief Free the memory in use by the given string container.
+ * @param string String to free.
+ */
 void string_free(struct string *string)
 {
 	string_destroy(string);
 	xfire_free(string);
 }
+
+/** @} */
 

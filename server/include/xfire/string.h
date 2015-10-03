@@ -19,19 +19,30 @@
 #ifndef __STRING_H__
 #define __STRING_H__
 
+/**
+ * @addtogroup string
+ * @{
+ */
+
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/os.h>
 #include <xfire/list.h>
 
-typedef struct string {
-	struct list entry;
+/**
+ * @brief String container.
+ */
+struct string {
+	struct list entry; //!< List entry.
 
-	char *str;
-	size_t len;
-	xfire_spinlock_t lock;
-} STRING;
+	char *str; //!< String pointer.
+	size_t len; //!< Length of \p str in bytes.
+	xfire_spinlock_t lock; //!< Lock.
+};
 
+/**
+ * @brief String magic. Used to differentiate strings and lists.
+ */
 #define S_MAGIC 0x785A06B8
 
 CDECL
@@ -43,6 +54,11 @@ extern void string_set(struct string *string, const char *str);
 extern int string_get(struct string *str, char *buff, size_t num);
 extern size_t string_length(struct string *str);
 
+/**
+ * @brief Get the c string from a string container.
+ * @param str String container.
+ * @return The c string contained in \p str.
+ */
 static inline void *string_data(struct string *str)
 {
 	return str->str;
@@ -50,4 +66,5 @@ static inline void *string_data(struct string *str)
 
 CDECL_END
 
+/** @} */
 #endif

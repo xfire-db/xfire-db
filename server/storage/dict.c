@@ -155,7 +155,7 @@ static inline void dict_set_val(struct dict_entry *e, unsigned long *data,
 
 /**
  * @brief Initialise a dictionary.
- * @param Dictionary to initialise.
+ * @param d Dictionary to initialise.
  */
 static void dict_init(struct dict *d)
 {
@@ -766,6 +766,7 @@ static struct dict_entry *__dict_delete(struct dict *d, const char *key)
 
 /**
  * @brief Delete a key-value pair from a dictionary.
+ * @param d Dictionary to delete from.
  * @param key Key which has to be deleted.
  * @param free Set to true if the stored data needs to be deallocated.
  *
