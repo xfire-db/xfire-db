@@ -16,6 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup dict
+ * @{
+ */
 #ifndef __DICT_H__
 #define __DICT_H__
 
@@ -23,57 +27,76 @@
 #include <xfire/types.h>
 #include <xfire/os.h>
 
+/**
+ * @brief Dictionary data type.
+ */
 typedef enum {
-	DICT_PTR,
-	DICT_U64,
-	DICT_S64,
-	DICT_FLT,
+	DICT_PTR, //!< Pointer type.
+	DICT_U64, //!< Unsigned 64-bit integer.
+	DICT_S64, //!< Signed 64-bit integer.
+	DICT_FLT, //!< Floating point (double) integer.
 } dict_type_t;
 
+/**
+ * @brief Dictionary data entry.
+ */
 struct dict_entry {
-	char *key;
+	char *key; //!< Data key
 
+	/**
+         * @brief Data type
+         */
 	union {
-		void *ptr;
-		u64 val_u64;
-		s64 val_s64;
-		double d;
+		void *ptr; //!< Data pointer.
+		u64 val_u64; //!< Unsigned 64-bit integer.
+		s64 val_s64; //!< Signed 64-bit integer.
+		double d; //!< Floating point integer.
 	} value;
 
-	struct dict_entry *next;
+	struct dict_entry *next; //!< Next pointer.
 };
 
+/**
+ * @brief Size of a single data entry.
+ */
 #define ENTRY_SIZE sizeof(struct dict_entry)
 
 struct dict_map {
-	struct dict_entry **array;
-	long size;
-	unsigned long sizemask;
-	long length;
+	struct dict_entry **array; //!< Data array.
+	long size; //!< Size of the data array.
+	unsigned long sizemask; //!< Mask for \p size.
+	long length; //!< Length of array (i.e. the number of elements).
 };
 
-#define PRIMARY_MAP 0
-#define REHASH_MAP  1
+#define PRIMARY_MAP 0 //!< Primary dictionary map.
+#define REHASH_MAP  1 //!< Rehash map.
 
+/**
+ * @brief Dictionary data structure
+ */
 struct dict {
-	struct dict_map map[2];
-	long rehashidx;
+	struct dict_map map[2]; //!< Hash maps
+	long rehashidx; //!< Rehashing index.
 
-	int rehashing : 1;
-	int iterators;
+	int rehashing : 1; //!< Rehashing boolean.
+	int iterators; //!< Number of safe iterators.
 
-	xfire_mutex_t lock;
-	xfire_cond_t rehash_condi;
-	struct thread *worker;
+	xfire_mutex_t lock; //!< Mutex.
+	xfire_cond_t rehash_condi; //!< Rehashing condition.
+	struct thread *worker; //!< Rehashing worker.
 };
 
+/**
+ * @brief Rehashing iterator.
+ */
 struct dict_iterator {
-	struct dict *dict;
-	struct dict_entry *e, *e_next;
+	struct dict *dict; //!< Associated dictionary.
+	struct dict_entry *e, //!< Current entry.
+                          *e_next; //!< Next entry.
 
-	long idx;
-	int table;
-	int safe : 1;
+	long idx; //!< Current index.
+	int table; //!< Current rehashing table.
+	int safe : 1; //!< Safe iterator table.
 };
 
 CDECL
@@ -92,4 +115,6 @@ extern void dict_iterator_free(struct dict_iterator *it);
 extern struct dict_entry *dict_iterator_next(struct dict_iterator *it);
 CDECL_END
 #endif
+
+/** @} */
 
