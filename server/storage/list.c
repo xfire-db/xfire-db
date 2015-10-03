@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup list
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -32,6 +37,11 @@ static void __list_add(struct list *new, struct list *prev, struct list *next)
 	prev->next = new;
 }
 
+/**
+ * @brief Push an element on the right side of \p head.
+ * @param head List head.
+ * @param node Node to add to \p head.
+ */
 void list_rpush(struct list_head *head, struct list *node)
 {
 	struct list *it;
@@ -43,6 +53,11 @@ void list_rpush(struct list_head *head, struct list *node)
 	atomic_inc(head->num);
 }
 
+/**
+ * @brief Push an element on the left side of \p head.
+ * @param head List head.
+ * @param node Node to add to \p head.
+ */
 void list_lpush(struct list_head *head, struct list *node)
 {
 	struct list *it;
@@ -59,6 +74,11 @@ static inline void __list_del(struct list *prev, struct list *next)
 	prev->next = next;
 }
 
+/**
+ * @brief Delete an entry from a given list.
+ * @param lh List to delete from.
+ * @param entry Entry which has to be deleted.
+ */
 void list_del(struct list_head *lh, struct list *entry)
 {
 	__list_del(entry->prev, entry->next);
@@ -106,4 +126,6 @@ void list_lpush(struct list_head *head, struct list *node)
 	xfire_spin_unlock(&head->lock);
 }
 #endif
+
+/** @} */
 
