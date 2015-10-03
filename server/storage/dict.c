@@ -39,12 +39,31 @@
 #define DICT_FREE -2
 
 /**
- * Default resize ratio
+ * @brief Forced resize ratio.
+ * @see dict_set_resize_ratio
+ *
+ * When the elements/size ratio is greater or equal
+ * to dict_resize_ratio, an expand will be forced upon
+ * the dictionary.
  */
 static int dict_resize_ratio = 5;
+
+/**
+ * @brief Indicator if dictionary's can be expanded.
+ * @see dict_set_can_expand
+ */
 static int dict_can_expand = 1;
 
 static void *dict_rehash_worker(void *arg);
+
+/**
+ * @brief Enable or disable the expanding of dictionary's.
+ * @param x Set to TRUE if expanding is enabled, FALSE otherwise.
+ */
+void dict_set_can_expand(int x)
+{
+	dict_can_expand = !!x;
+}
 
 /**
  * @brief Set the force resize ratio.

@@ -100,6 +100,8 @@ struct dict_iterator {
 };
 
 CDECL
+extern void dict_set_can_expand(int x);
+
 extern struct dict *dict_alloc(void);
 extern void dict_free(struct dict *d);
 extern int dict_clear(struct dict *d);
