@@ -102,7 +102,7 @@ extern struct rb_node *__rb_get_node(struct rb_node *node);
 
 /**
  * @brief Set the key of a node.
- * @param node Node to set the key for.
+ * @param tree Node to set the key for.
  * @param key Key to set.
  */
 static inline void rb_set_key(struct rb_node *tree, u64 key)
