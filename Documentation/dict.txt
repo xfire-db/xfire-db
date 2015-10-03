@@ -1,6 +1,7 @@
 /**
  * @defgroup dict Dictionary API
  * @ingroup storage
+ * @brief Dictionary user API.
  *
  * Dictionary's are implemented as a hashmap, using a consective
  * array of memory. Keys are convirted using the murmurhash3. When
