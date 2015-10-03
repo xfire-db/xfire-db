@@ -1,4 +1,24 @@
 /**
  * @defgroup dict Dictionary API
  * @ingroup storage
+ *
+ * Dictionary's are implemented as a hashmap, using a consective
+ * array of memory. Keys are convirted using the murmurhash3. When
+ * the hash of a key is calculated the index in the array is calculated
+ * as following:
+@code{.c}
+	hash = dict_hash_key(dictionary, key);
+	index = hash & dictionary->map->sizemask;
+@endcode
+ *
+ * Because an AND operator is used to calculate the index, the \p size
+ * of the data array's has to  be a power of two. This results in the above
+ * operation being equal to
+@code{.c}
+	hash = dict_hash_key(dictionary, key);
+	index = hash % dictionary->map->size;
+@endcode
+ *
+ * The use of AND is prefered however, since this operation is much, much faster.
  */
+
