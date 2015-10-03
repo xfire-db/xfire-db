@@ -330,6 +330,7 @@ static inline int __dict_is_rehashing(struct dict *d)
  * @param num Number of rehashing steps.
  * @return 0 if no more rehashing is required, 1 otherwise.
  * @note This function acquires struct dict::lock.
+ * @see dict_rehash_worker dict_rehash_step dict_rehash_ms
  *
  * This function will perform \p num steps of rehashing. If there
  * are more than \p num*10 NULL elements found by this function, it will
@@ -398,7 +399,12 @@ static int dict_rehash(struct dict *d, int num)
 /**
  * @brief Calculated the real size based on a given number.
  * @param size Size to base the new real size on.
- * @return The true real size.
+ * @return The real size to be used by the dictionary API.
+ *
+ * The size of dictionary's should always be a power of two. This
+ * function calculates the next power of two of any given number.
+ * If, for example, \p size is set to 35, this function will return
+ * 64, since 64 is the next biggest power of two.
  */
 static inline unsigned long dict_real_size(unsigned long size)
 {
@@ -417,6 +423,14 @@ static inline unsigned long dict_real_size(unsigned long size)
 	return size;
 }
 
+/**
+ * @brief Expand a dictionary.
+ * @param d Dictionary to expand.
+ * @param size Minimum number of elements to resize to.
+ *
+ * Resize to atleast \p size elements. \p size will be rounded
+ * up to the nearest power of two.
+ */
 static int dict_expand(struct dict *d, unsigned long size)
 {
 	struct dict_map map;
@@ -446,6 +460,12 @@ static int dict_expand(struct dict *d, unsigned long size)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Rehash for a number of miliseconds.
+ * @param d Dictionary to rehash.
+ * @param ms Number of miliseconds to rehash.
+ * @return Number of rehash steps done.
+ */
 static int dict_rehash_ms(struct dict *d, int ms)
 {
 	long long start = dict_time_in_ms();
@@ -460,6 +480,14 @@ static int dict_rehash_ms(struct dict *d, int ms)
 	return num;
 }
 
+/**
+ * @brief The worker thread to rehash a dictionary.
+ * @param arg Associated dictionary.
+ *
+ * Each dictionary has its own worker thread associated with it. When
+ * the dictionary has to be rehashed, this worker will rehash it when
+ * the CPU has no other important jobs to do.
+ */
 static void *dict_rehash_worker(void *arg)
 {
 	struct dict *d = arg;
@@ -481,12 +509,24 @@ static void *dict_rehash_worker(void *arg)
 	return NULL;
 }
 
+/**
+ * @brief Do one rehashing step.
+ * @param d Dictionary to rehash.
+ */
 static void dict_rehash_step(struct dict *d)
 {
 	if(!dict_has_iterators(d))
 		dict_rehash(d, 1);
 }
 
+/**
+ * @brief Determine if the dictionary should expand.
+ * @param d Dictionary to test.
+ * @return TRUE if the dictionary should expand, FALSE otherwise.
+ *
+ * Determines if the dictionary should expand based on the size,
+ * number of elements and `dict_resize_ratio'.
+ */
 static inline int dict_should_expand(struct dict *d)
 {
 	if(d->map[PRIMARY_MAP].length >= d->map[PRIMARY_MAP].size && (dict_can_expand ||
@@ -496,6 +536,13 @@ static inline int dict_should_expand(struct dict *d)
 		return 0;
 }
 
+/**
+ * @brief Expand only if necessary.
+ * @param d Dictionary which needs potential expanding.
+ * @return Error code.
+ * @retval -XFIRE_OK on success.
+ * @retval -XFIRE_ERR on error.
+ */
 static int dict_expand_if(struct dict *d)
 {
 	if(__dict_is_rehashing(d))
@@ -513,6 +560,16 @@ static int dict_expand_if(struct dict *d)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Calculate the index for a new key.
+ * @param d Dictionary where \p key is to be inserted in.
+ * @param key Key which has to be inserted.
+ * @return Index or an error code.
+ *
+ * This function returns the index for new keys. If the return value is
+ * 0 or greater, it is the index for the new key. Negative return value's
+ * indicate an error.
+ */
 static int dict_calc_index(struct dict *d, const char *key)
 {
 	u32 hash, table, idx;
@@ -542,6 +599,12 @@ static int dict_calc_index(struct dict *d, const char *key)
 	return idx;
 }
 
+/**
+ * @brief Set a key in a dictionary entry.
+ * @param e Entry to set a key for.
+ * @param key Key to set.
+ * @note New memory will be allocated to store the key.
+ */
 static inline void dict_set_key(struct dict_entry *e, const char *key)
 {
 	int length;
@@ -554,6 +617,11 @@ static inline void dict_set_key(struct dict_entry *e, const char *key)
 	e->key = _key;
 }
 
+/**
+ * @brief Free a dictionary entry.
+ * @param e Entry to free.
+ * @note Also the entry itself, \p e, will be deallocated.
+ */
 static inline void dict_free_entry(struct dict_entry *e)
 {
 	if(e->key)
@@ -562,6 +630,16 @@ static inline void dict_free_entry(struct dict_entry *e)
 	xfire_free(e);
 }
 
+/**
+ * @brief Dictionary insert backend.
+ * @param d Dictionary to add data to.
+ * @param key Key to store data under.
+ * @param data Data to store.
+ * @param type Type of data that is being stored.
+ *
+ * This function works out where and how to store the given data
+ * in the dictionary. If a resize (expand) is required, it will do so.
+ */
 static struct dict_entry *__dict_add(struct dict *d, const char *key,
 					unsigned long *data, dict_type_t type)
 {
@@ -590,6 +668,14 @@ static struct dict_entry *__dict_add(struct dict *d, const char *key,
 	return entry;
 }
 
+/**
+ * @brief Add a new key-value pair to a dictionary.
+ * @param d Dictionary to add the pair to.
+ * @param key Key to be stored.
+ * @param data Data to be stored.
+ * @param t Type of data.
+ * @return An error code. If no error occured -XFIRE_OK will be returned.
+ */
 int dict_add(struct dict *d, const char *key, void *data, dict_type_t t)
 {
 	struct dict_entry *e;
@@ -602,6 +688,16 @@ int dict_add(struct dict *d, const char *key, void *data, dict_type_t t)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Dictionary delete backend.
+ * @param d Dictionary to delete \p key from.
+ * @param key Key which needs to be deleted.
+ * @return The deleted entry.
+ *
+ * This functions finds the given entry, deletes it and then returns
+ * the deleled entry to the calling function. If the given key does
+ * not exist in the dictionary, NULL is returned.
+ */
 static struct dict_entry *__dict_delete(struct dict *d, const char *key)
 {
 	u32 hash, idx;
@@ -649,6 +745,14 @@ static struct dict_entry *__dict_delete(struct dict *d, const char *key)
 	return NULL;
 }
 
+/**
+ * @brief Delete a key-value pair from a dictionary.
+ * @param key Key which has to be deleted.
+ * @param free Set to true if the stored data needs to be deallocated.
+ *
+ * Please note that setting \p free to true is only valid if the data type
+ * is DICT_PTR.
+ */
 int dict_delete(struct dict *d, const char *key, int free)
 {
 	struct dict_entry *e;
@@ -668,6 +772,15 @@ int dict_delete(struct dict *d, const char *key, int free)
 	return -XFIRE_ERR;
 }
 
+/**
+ * @brief Dictionary lookup backend.
+ * @param d Dictionary to perform a lookup on.
+ * @param key Key to check for.
+ *
+ * Search the dictionary for \p key. After a matching hash is
+ * found, the keys will be checked again using memcmp. Only if
+ * memcmp confirms the right key is found the entry will be returned.
+ */
 static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 {
 	struct dict_entry *e;
@@ -704,6 +817,19 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 	return NULL;
 }
 
+/**
+ * @brief Performs a lookup on a dictionary.
+ * @param d Dictionary to perform a lookup on.
+ * @param key Key to look for.
+ * @param data Output parameter to store the found data.
+ * @param type Type of the stored data.
+ *
+ * Once an entry is found, it will be stored in the memeory pointed to
+ * by \p data. It is important to make sure that the memory region pointed to
+ * by \p data is big enough to hold it all. If \p type is set to
+ * DICT_PTR only the pointer will be stored, not the contents of the
+ * pointer.
+ */
 int dict_lookup(struct dict *d, const char *key, void *data, dict_type_t type)
 {
 	struct dict_entry *e;
@@ -736,6 +862,11 @@ int dict_lookup(struct dict *d, const char *key, void *data, dict_type_t type)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Create an iterator.
+ * @param d Dict to create an iterator for.
+ * @return The created iterator.
+ */
 static struct dict_iterator *dict_create_iterator(struct dict *d)
 {
 	struct dict_iterator *i;
@@ -750,6 +881,11 @@ static struct dict_iterator *dict_create_iterator(struct dict *d)
 	return i;
 }
 
+/**
+ * @brief Create a safe iterator.
+ * @param d Dict to create an iterator for.
+ * @return The created iterator.
+ */
 struct dict_iterator *dict_get_safe_iterator(struct dict *d)
 {
 	struct dict_iterator *it;
@@ -763,6 +899,11 @@ struct dict_iterator *dict_get_safe_iterator(struct dict *d)
 	return it;
 }
 
+/**
+ * @brief Create an iterator.
+ * @param d Dict to create an iterator for.
+ * @return The created iterator.
+ */
 struct dict_iterator *dict_get_iterator(struct dict *d)
 {
 	struct dict_iterator *it;
@@ -772,6 +913,13 @@ struct dict_iterator *dict_get_iterator(struct dict *d)
 	return it;
 }
 
+/**
+ * @brief Get the next entry from an iterator.
+ * @param it The iterator.
+ * @return The next entry.
+ *
+ * If there is no next entry this function will return NULL.
+ */
 struct dict_entry *dict_iterator_next(struct dict_iterator *it)
 {
 	struct dict_map *map;
@@ -811,6 +959,10 @@ struct dict_entry *dict_iterator_next(struct dict_iterator *it)
 	return NULL;
 }
 
+/**
+ * @brief Free an iterator.
+ * @param it Iterator to free.
+ */
 void dict_iterator_free(struct dict_iterator *it)
 {
 	struct dict *d = it->dict;
@@ -827,6 +979,11 @@ void dict_iterator_free(struct dict_iterator *it)
 	xfire_free(it);
 }
 
+/**
+ * @brief Clear out a dictionary map.
+ * @param map Dictionary map to clear.
+ * @note Please note that no actual data is free'd.
+ */
 static void __dict_clear(struct dict_map *map)
 {
 	long i;
@@ -850,6 +1007,11 @@ static void __dict_clear(struct dict_map *map)
 	dict_reset(map);
 }
 
+/**
+ * @brief Clear out a dictionary.
+ * @param d Dictionary to clear.
+ * @return An error code.
+ */
 int dict_clear(struct dict *d)
 {
 	xfire_mutex_lock(&d->lock);
