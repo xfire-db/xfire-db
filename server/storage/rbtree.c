@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup rbtree
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -32,6 +37,10 @@
 static void __rb_insert(struct rb_root *root, struct rb_node *new);
 static inline struct rb_node *rb_grandparent(struct rb_node *node);
 
+/**
+ * @brief Initialise a red black node.
+ * @param node Red black node to initialise.
+ */
 void rb_init_node(struct rb_node *node)
 {
 	xfire_mutex_init(&node->lock);
@@ -43,6 +52,10 @@ void rb_init_node(struct rb_node *node)
 	node->prev = NULL;
 }
 
+/**
+ * @brief Destroy a red black node.
+ * @param node Node which has to be destroyed.
+ */
 void rb_node_destroy(struct rb_node *node)
 {
 	xfire_mutex_destroy(&node->lock);
@@ -50,10 +63,75 @@ void rb_node_destroy(struct rb_node *node)
 	atomic_flags_destroy(&node->flags);
 }
 
+/**
+ * @brief Initialise a red black tree.
+ * @param root Red black root to initialise.
+ */
 void rb_init_root(struct rb_root *root)
 {
 	xfire_spinlock_init(&root->lock);
 	atomic64_init(&root->num);
+}
+
+static inline void rb_swap_color(struct rb_node *n1, struct rb_node *n2)
+{
+	swap_bit(RB_NODE_RED_FLAG, &n1->flags, &n2->flags);
+	swap_bit(RB_NODE_DBLK_FLAG, &n1->flags, &n2->flags);
+}
+
+static inline bool rb_red(struct rb_node *n)
+{
+	if(!n)
+		return false;
+
+	return test_bit(RB_NODE_RED_FLAG, &n->flags);
+}
+
+static inline bool rb_blk(struct rb_node *n)
+{
+	if(!n)
+		return true;
+
+	if(test_bit(RB_NODE_RED_FLAG, &n->flags) ||
+			test_bit(RB_NODE_DBLK_FLAG, &n->flags))
+		return false;
+	
+	return true;
+}
+
+static inline void rb_set_dblk(struct rb_node *n)
+{
+	if(!n)
+		return;
+
+	clear_bit(RB_NODE_RED_FLAG, &n->flags);
+	set_bit(RB_NODE_DBLK_FLAG, &n->flags);
+}
+
+static inline void rb_set_red(struct rb_node *n)
+{
+	if(!n)
+		return;
+
+	clear_bit(RB_NODE_DBLK_FLAG, &n->flags);
+	set_bit(RB_NODE_RED_FLAG, &n->flags);
+}
+
+static inline void rb_set_blk(struct rb_node *n)
+{
+	if(!n)
+		return;
+
+	clear_bit(RB_NODE_DBLK_FLAG, &n->flags);
+	clear_bit(RB_NODE_RED_FLAG, &n->flags);
+}
+
+static inline bool rb_dblk(struct rb_node *n)
+{
+	if(!n)
+		return false;
+
+	return test_bit(RB_NODE_DBLK_FLAG, &n->flags);
 }
 
 static inline void rb_lock_root(struct rb_root *root)
@@ -121,6 +199,12 @@ static struct rb_node *raw_rb_search(struct rb_node *tree, u64 key)
 }
 #endif
 
+/**
+ * @brief Find a key in a red black tree.
+ * @param root Red black tree to search in.
+ * @param key Key to search for.
+ * @return Found red black tree node.
+ */
 struct rb_node *rb_find(struct rb_root *root, u64 key)
 {
 	struct rb_node *rn,
@@ -132,6 +216,13 @@ struct rb_node *rb_find(struct rb_root *root, u64 key)
 	return rv;
 }
 
+/**
+ * @brief Find a key including duplicates.
+ * @param root Red black tree to search for.
+ * @param key Key to search for.
+ * @param arg Argument to pass to rb_root::cmp.
+ * @return Found red black node.
+ */
 struct rb_node *rb_find_duplicate(struct rb_root *root, u64 key,
 					const void *arg)
 {
@@ -179,6 +270,11 @@ static void rb_pop(struct rb_node *node)
 	node->next = node->prev = NULL;
 }
 
+/**
+ * @brief Mark the node as used.
+ * @param node Node to mark as in use.
+ * @return The node.
+ */
 struct rb_node *__rb_get_node(struct rb_node *node)
 {
 	if(!node)
@@ -192,6 +288,14 @@ struct rb_node *__rb_get_node(struct rb_node *node)
 	return node;
 }
 
+/**
+ * @brief Mark the given node as used.
+ * @param root Red black tree to search.
+ * @param key Key to search for.
+ * @param arg Argument to pass to struct rb_root::cmp.
+ *
+ * This function, in contradiction to `__rb_get_node' also checks for duplicates.
+ */
 struct rb_node *rb_get_node(struct rb_root *root, u64 key, const void *arg)
 {
 	struct rb_node *node;
@@ -203,6 +307,10 @@ struct rb_node *rb_get_node(struct rb_root *root, u64 key, const void *arg)
 	return __rb_get_node(node);
 }
 
+/**
+ * @brief Mark a node as unused.
+ * @param node Node to decrease in usage.
+ */
 void rb_put_node(struct rb_node *node)
 {
 	if(!node)
@@ -216,6 +324,14 @@ void rb_put_node(struct rb_node *node)
 
 static struct rb_node *rb_insert_duplicate(struct rb_root *root,
 				       struct rb_node *node);
+
+/**
+ * @brief Insert a new node.
+ * @param root Red black tree to insert into.
+ * @param node Node to insert.
+ * @param dup Set to true if duplicates are allowed, false if not.
+ * @return The inserted node.
+ */
 struct rb_node *rb_insert(struct rb_root *root, struct rb_node *node,
 		bool dup)
 {
@@ -247,6 +363,11 @@ struct rb_node *rb_insert(struct rb_root *root, struct rb_node *node,
 	return node;
 }
 
+/**
+ * @brief Get the height of the red black tree.
+ * @param root Tree to get the height of.
+ * @return The height of \p root.
+ */
 s32 rb_get_height(struct rb_root *root)
 {
 	s32 n, h;
@@ -546,6 +667,11 @@ struct rb_node *rb_find_leftmost(struct rb_node *tree)
 	return rb_find_leftmost(tree);
 }
 #else
+/**
+ * @brief Find the left mose node in a tree.
+ * @param tree Node to start searching.
+ * @return The left most node.
+ */
 struct rb_node *rb_find_leftmost(struct rb_node *tree)
 {
 	if(!tree)
@@ -559,6 +685,11 @@ struct rb_node *rb_find_leftmost(struct rb_node *tree)
 	}
 }
 
+/**
+ * @brief Find the right most node.
+ * @param tree Node to start searching in.
+ * @return The right most node.
+ */
 struct rb_node *rb_find_rightmost(struct rb_node *tree)
 {
 	if(!tree)
@@ -624,6 +755,11 @@ static void __rb_iterate(struct rb_node *node,
 	__rb_iterate(node->right, fn);
 }
 
+/**
+ * @brief Iterate over a red black tree.
+ * @param root Tree to iterate over.
+ * @param fn Iteration function.
+ */
 void rb_iterate(struct rb_root *root, void (*fn)(struct rb_node *))
 {
 	if(!root->tree)
@@ -1067,6 +1203,13 @@ static struct rb_node *raw_rb_remove(struct rb_root *root, struct rb_node *node,
 	return node;
 }
 
+/**
+ * @brief Remove a red black tree node.
+ * @param root Red black tree root.
+ * @param key Key to search for and delete.
+ * @param arg Argument to pass to struct rb_root::cmp.
+ * @return The deleted node. If no node was deleted, NULL is returned.
+ */
 struct rb_node *rb_remove(struct rb_root *root,
 			     u64 key,
 			     const void *arg)
@@ -1144,9 +1287,16 @@ static void rb_dump_node(struct rb_node *tree, FILE *stream)
 	}
 }
 
+/**
+ * @brief Dump a red black tree to an output stream.
+ * @param root Tree to dump.
+ * @param stream Stream to output to.
+ */
 void rb_dump(struct rb_root *root, FILE *stream)
 {
 	rb_dump_node(root->tree, stream);
 	fputc('\n', stream);
 }
+
+/** @} */
 

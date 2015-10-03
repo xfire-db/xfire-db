@@ -1,6 +1,7 @@
 /**
  * @defgroup string String API
  * @ingroup storage
+ * @brief C string containers.
  *
  * Container for c strings. This container is fully compatible
  * with concurrent environments.
