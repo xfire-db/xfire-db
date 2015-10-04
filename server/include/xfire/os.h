@@ -145,25 +145,25 @@ typedef struct atomic64 {
 
 /**
  * @brief Increase an atomic value.
- * @param Atom to increase.
+ * @param __a Atom to increase.
  */
 #define atomic_inc(__a) atomic_add(&__a, 1)
 
 /**
  * @brief Decrease an atomic value.
- * @param Atom to decrease.
+ * @param __a Atom to decrease.
  */
 #define atomic_dec(__a) atomic_sub(&__a, 1)
 
 /**
  * @brief Increase an atomic value.
- * @param Atom to increase.
+ * @param __a Atom to increase.
  */
 #define atomic64_inc(__a) atomic64_add(&__a, 1LL)
 
 /**
  * @brief Decrease an atomic value.
- * @param Atom to decrease.
+ * @param __a Atom to decrease.
  */
 #define atomic64_dec(__a) atomic64_sub(&__a, 1LL)
 
