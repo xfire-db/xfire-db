@@ -1,5 +1,6 @@
 /**
  * @defgroup os Operating System API
+ * @ingroup server
  * @brief API functions of which the implementation differs
  *        per operating system.
  */

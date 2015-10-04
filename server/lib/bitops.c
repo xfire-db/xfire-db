@@ -55,7 +55,7 @@ int __test_bit(int nr, void *addr)
  * @brief Swap a bit.
  * @param nr Bit to test.
  * @param addr1 Register one.
- * @paramd addr2 Register two.
+ * @param addr2 Register two.
  */
 void __swap_bit(int nr, void *addr1, void *addr2)
 {
