@@ -17,7 +17,7 @@
  */
 
 /**
- * @addtogroup flags
+ * @addtogroup bitops
  * @{
  */
 
