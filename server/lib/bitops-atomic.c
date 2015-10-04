@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup bitops
+ * @{
+ */
+
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -27,18 +32,33 @@
 
 #define BITS_PER_LONG __BITS_PER_LONG
 
+/**
+ * @brief Initialise atomic flags.
+ * @param atom Atomic flags to init.
+ */
 void atomic_flags_init(atomic_flags_t *atom)
 {
 	atom->flags = 0;
 	xfire_spinlock_init(&atom->lock);
 }
 
+/**
+ * @brief Destroy atomic flags object.
+ * @param atom Atom to destroy.
+ */
 void atomic_flags_destroy(atomic_flags_t *atom)
 {
 	atom->flags = 0;
 	xfire_spinlock_destroy(&atom->lock);
 }
 
+/**
+ * @brief Atomically copy flags.
+ * @param dst Destination atom.
+ * @param src Source atom.
+ *
+ * Copy flags from \p src to \p dst.
+ */
 void atomic_flags_copy(atomic_flags_t *dst, atomic_flags_t *src)
 {
 	xfire_spin_lock(&src->lock);
@@ -55,6 +75,11 @@ static inline int __raw_test_bit(int bit, volatile unsigned long *addr)
 	return (*addr >> bit) & 1UL;
 }
 
+/**
+ * @brief Atomically test a bit.
+ * @param nr Bit number to test.
+ * @param atom Atom to test.
+ */
 int test_bit(int nr, atomic_flags_t *atom)
 {
 	volatile unsigned long *p = &atom->flags;
@@ -77,6 +102,12 @@ static inline void raw_swap_bit(int bit,
 	*p1 = *p1 ^ (*p2 & bit);
 }
 
+/**
+ * @brief Swap a bit.
+ * @param nr Bit to swap.
+ * @param atom1 First atom.
+ * @param atom2 Second atom.
+ */
 void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 {
 	volatile unsigned long *p1 = &atom1->flags;
@@ -95,6 +126,13 @@ void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 	barrier();
 }
 
+/**
+ * @brief Test and swap a bit.
+ * @param nr Number of the bit to test n swap.
+ * @param atom1 First atom.
+ * @param atom2 Second atom.
+ * @return TRUE if the bit was set in \p atom1, FALSE otherwise.
+ */
 int test_and_swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 {
 	int old;
@@ -116,6 +154,11 @@ int test_and_swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 	return old != 0;
 }
 
+/**
+ * @brief Set a bit.
+ * @param nr Bit number to set.
+ * @param atom Atom to set \p nr in.
+ */
 void set_bit(int nr, atomic_flags_t *atom)
 {
 	volatile unsigned long *p = &atom->flags;
@@ -129,6 +172,11 @@ void set_bit(int nr, atomic_flags_t *atom)
 	barrier();
 }
 
+/**
+ * @brief Clear a bit.
+ * @param nr Bit to clear.
+ * @param atom Atom to clear \p nr in.
+ */
 void clear_bit(int nr, atomic_flags_t *atom)
 {
 	volatile unsigned long *p = &atom->flags;
@@ -143,6 +191,12 @@ void clear_bit(int nr, atomic_flags_t *atom)
 	barrier();
 }
 
+/**
+ * @brief Test and clear a bit.
+ * @param nr Bit to test and clear.
+ * @param atom Atom to clear \p nr in.
+ * @return TRUE if \p nr was set.
+ */
 int test_and_clear_bit(int nr, atomic_flags_t *atom)
 {
 	volatile unsigned long *p = &atom->flags;
@@ -159,6 +213,12 @@ int test_and_clear_bit(int nr, atomic_flags_t *atom)
 	return old != 0UL;
 }
 
+/**
+ * @brief Test and set a bit.
+ * @param nr Bit number to test and set.
+ * @param atom Atom to set \p nr in.
+ * @return TRUE if \p nr was set, FALSE otherwise.
+ */
 int test_and_set_bit(int nr, atomic_flags_t *atom)
 {
 	volatile unsigned long *p = &atom->flags;
@@ -174,3 +234,6 @@ int test_and_set_bit(int nr, atomic_flags_t *atom)
 	barrier();
 	return old != 0UL;
 }
+
+/** @} */
+

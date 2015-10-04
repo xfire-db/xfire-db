@@ -1,0 +1,8 @@
+/**
+ * @defgroup lib Libc extensions
+ * @ingroup server
+ * @brief Extended c library.
+ *
+ * This library forms an extension to the system c library's,
+ * such a glibc.
+ */

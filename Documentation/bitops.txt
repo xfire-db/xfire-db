@@ -1,0 +1,8 @@
+/**
+ * @defgroup bitops Binary operations
+ * @ingroup lib
+ * @brief Binary operations API.
+ *
+ * This library abstracts binary operations. There are both atomic
+ * and non-atomic functions available.
+ */

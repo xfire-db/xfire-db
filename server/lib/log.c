@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup log
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -27,7 +32,12 @@
 static FILE *xfire_stdout = NULL;
 static FILE *xfire_stderr = NULL;
 
-#ifdef HAVE_LOG
+#if defined(HAVE_LOG) || defined(__DOXYGEN__)
+/**
+ * @brief Initialise XFire logging.
+ * @param out stdout file name.
+ * @param err stderr file name.
+ */
 void xfire_log_init(const char *out, const char *err)
 {
 #ifdef XFIRE_STDERR
@@ -42,6 +52,9 @@ void xfire_log_init(const char *out, const char *err)
 #endif
 }
 
+/**
+ * @brief Close the logging streams.
+ */
 void xfire_log_exit(void)
 {
 #ifdef XFIRE_STDERR
@@ -55,6 +68,12 @@ void xfire_log_exit(void)
 }
 #endif
 
+/**
+ * @brief Log a message.
+ * @param src Source of the log (i.e. the subsystem.
+ * @param msg Format string.
+ * @param ... Variable arguments to match \p msg.
+ */
 void xfire_log(const char *src, const char *msg, ...)
 {
 	va_list args;
@@ -65,6 +84,12 @@ void xfire_log(const char *src, const char *msg, ...)
 	va_end(args);
 }
 
+/**
+ * @brief Log a message.
+ * @param src Source of the log (i.e. the subsystem.
+ * @param msg Format string.
+ * @param ... Variable arguments to match \p msg.
+ */
 void xfire_log_err(const char *src, const char *msg, ...)
 {
 	va_list args;
@@ -74,4 +99,6 @@ void xfire_log_err(const char *src, const char *msg, ...)
 	vfprintf(xfire_stderr, msg, args);
 	va_end(args);
 }
+
+/** @} */
 

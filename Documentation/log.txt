@@ -1,0 +1,6 @@
+/**
+ * @defgroup log Logging API
+ * @ingroup lib
+ *
+ * Logging library.
+ */
