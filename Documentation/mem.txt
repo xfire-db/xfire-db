@@ -1,5 +1,6 @@
 /**
  * @defgroup mem Memory management
+ * @ingroup os
  * @brief Memory management API.
  *
  * All XFire subsystems should use this memory management interface. This

@@ -1,4 +1,5 @@
 /**
  * @defgroup thread Concurrency API
+ * @ingroup os
  * @brief API to manage a multi threaded environment.
  */
