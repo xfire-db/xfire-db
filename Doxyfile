@@ -764,6 +764,9 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = . \
+			 ./Documentation/thread.txt \
+			 ./Documentation/os.txt \
+			 ./Documentation/mem.txt \
 			 ./Documentation/rbtree.txt \
 			 ./Documentation/list.txt \
                          ./Documentation/server.txt \

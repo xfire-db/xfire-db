@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup mem
+ * @{
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -23,6 +28,11 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 
+/**
+ * @brief Allocate a memory region.
+ * @param len Number of bytes to allocate.
+ * @return Allocated memory.
+ */
 void *xfire_alloc(size_t len)
 {
 	void *region;
@@ -40,6 +50,12 @@ void *xfire_alloc(size_t len)
 	return region;
 }
 
+/**
+ * @brief Allocate a memory region.
+ * @param len Number of bytes to allocate.
+ * @return Allocated memory.
+ * @note Allocated memory will be set to zero.
+ */
 void *xfire_zalloc(size_t len)
 {
 	void *region;
@@ -50,6 +66,12 @@ void *xfire_zalloc(size_t len)
 	return region;
 }
 
+/**
+ * @brief Allocate an array.
+ * @param num Number of elements to allocate.
+ * @param size Size of each element.
+ * @return Allocated memory.
+ */
 void *xfire_calloc(size_t num, size_t size)
 {
 	void *region;
@@ -60,11 +82,21 @@ void *xfire_calloc(size_t num, size_t size)
 	return region;
 }
 
+/**
+ * @brief Reallocate a memory region.
+ * @param region Region to reaallocate.
+ * @param size New size of the region.
+ * @return The new memory region.
+ */
 void *xfire_realloc(void *region, size_t size)
 {
 	return realloc(region, size);
 }
 
+/**
+ * @brief Return allocated memory.
+ * @param region Memory region to deallocate.
+ */
 void xfire_free(void *region)
 {
 	if(!region)
@@ -72,4 +104,6 @@ void xfire_free(void *region)
 
 	free(region);
 }
+
+/** @} */
 

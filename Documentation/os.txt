@@ -1,0 +1,5 @@
+/**
+ * @defgroup os Operating System API
+ * @brief API functions of which the implementation differs
+ *        per operating system.
+ */

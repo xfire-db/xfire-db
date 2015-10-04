@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup thread
+ * @{
+ */
+
 #ifndef __XFIRE_OS__
 #define __XFIRE_OS__
 
@@ -26,57 +31,140 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 
+/**
+ * @brief Pointer size.
+ */
 #define PTR_SIZE (sizeof(void*))
 
-#ifdef HAVE_LINUX
-#define xfire_cond_t pthread_cond_t
-#define xfire_mutex_t mutex_t
-#define xfire_spinlock_t pthread_spinlock_t
+#if defined(HAVE_LINUX) || defined(__DOXYGEN__)
+#define xfire_cond_t pthread_cond_t //!< XFire condition variable.
+#define xfire_mutex_t mutex_t //!< XFire mutex.
+#define xfire_spinlock_t pthread_spinlock_t //!< XFire spinlock.
 
+/**
+ * @brief Initialise a spinlock.
+ * @param __s Spinlock to initialise.
+ */
 #define xfire_spinlock_init(__s) pthread_spin_init(__s, PTHREAD_PROCESS_PRIVATE)
+/**
+ * @brief Destroy a spinlock.
+ * @param __s Spin lock to destroy.
+ */
 #define xfire_spinlock_destroy(__s) pthread_spin_destroy(__s)
+/**
+ * @brief Lock a spinlock.
+ * @param __s Spinlock to lock.
+ */
 #define xfire_spin_lock(__s) pthread_spin_lock(__s)
+/**
+ * @brief Attempt locking a spinlock.
+ * @param __s Spinlock to try locking.
+ *
+ * If this function is unable to lock \p __s, it will return control
+ * to the caller.
+ */
 #define xfire_spin_trylock(__s) pthread_spin_trylock(__s)
+
+/**
+ * @brief Unlock a spinlock.
+ * @param __s Spinlock to unlock.
+ */
 #define xfire_spin_unlock(__s) pthread_spin_unlock(__s)
 
+/**
+ * @brief Initialise a condition variable.
+ * @param __c Condition variable to init.
+ */
 #define xfire_cond_init(__c) pthread_cond_init(__c, NULL)
+/**
+ * @brief Destroy a condition variable.
+ * @param __c Variable to destroy.
+ */
 #define xfire_cond_destroy(__c) pthread_cond_destroy(__c)
+/**
+ * @brief Wait for a condition to come true.
+ * @param __c Condition to wait for.
+ * @param __m Mutex to use for the waiting process.
+ */
 #define xfire_cond_wait(__c, __m) pthread_cond_wait(__c, &(__m)->mtx)
+/**
+ * @brief Signal a condition.
+ * @param __c Condition to signal.
+ */
 #define xfire_cond_signal(__c) pthread_cond_signal(__c)
-
+/**
+ * @brief Exit a thread.
+ * @param __a Thread to exit.
+ */
 #define xfire_thread_exit(__a) pthread_exit(__a)
 #endif
 
+/**
+ * @brief Kill a thread.
+ * @param __tp Thread to kill.
+ */
 #define xfire_thread_destroy(__tp) xfire_destroy_thread(__tp)
 
+/**
+ * @brief Custom thread structure.
+ */
 struct thread {
-#ifdef HAVE_LINUX
-	pthread_t thread;
-	pthread_attr_t attr;
+#if defined(HAVE_LINUX) || defined(__DOXYGEN__)
+	pthread_t thread; //!< pthread thread.
+	pthread_attr_t attr; //!< pthread attributes.
 #endif
 
-	char *name;
+	char *name; //!< Thread name.
 };
 
+/**
+ * @brief Mutex data structure.
+ */
 typedef struct mutex {
-	pthread_mutex_t mtx;
-	pthread_mutexattr_t attr;
+#if defined(HAVE_LINUX) || defined(__DOXYGEN__)
+	pthread_mutex_t mtx; //!< pthread mutex
+	pthread_mutexattr_t attr; //!< pthread mutex attributes
+#endif
 } mutex_t;
 
+/**
+ * @brief 32-bit atomic type.
+ */
 typedef struct atomic {
-	s32 val;
-	xfire_spinlock_t lock;
+	s32 val; //!< Atomic value.
+	xfire_spinlock_t lock; //!< Protection lock.
 } atomic_t;
 
+/**
+ * @brief 64-bit atomic type.
+ */
 typedef struct atomic64 {
-	s64 val;
-	xfire_spinlock_t lock;
+	s64 val; //!< 64-bit atomic type.
+	xfire_spinlock_t lock; //!< Protection lock.
 } atomic64_t;
 
+/**
+ * @brief Increase an atomic value.
+ * @param Atom to increase.
+ */
 #define atomic_inc(__a) atomic_add(&__a, 1)
+
+/**
+ * @brief Decrease an atomic value.
+ * @param Atom to decrease.
+ */
 #define atomic_dec(__a) atomic_sub(&__a, 1)
 
+/**
+ * @brief Increase an atomic value.
+ * @param Atom to increase.
+ */
 #define atomic64_inc(__a) atomic64_add(&__a, 1LL)
+
+/**
+ * @brief Decrease an atomic value.
+ * @param Atom to decrease.
+ */
 #define atomic64_dec(__a) atomic64_sub(&__a, 1LL)
 
 #ifdef __GNUC__
@@ -86,30 +174,109 @@ typedef struct atomic64 {
 #endif
 
 CDECL
+/**
+ * @brief Destroy a mutex.
+ * @param m Mutex to destroy.
+ */
 extern void xfire_mutex_destroy(xfire_mutex_t *m);
+/**
+ * @brief Lock a mutex.
+ * @param m Mutex to lock.
+ */
 extern void xfire_mutex_lock(xfire_mutex_t *m);
+/**
+ * @brief Unlock a mutex.
+ * @param m Mutex to unlock.
+ */
 extern void xfire_mutex_unlock(xfire_mutex_t *m);
+/**
+ * @brief Create a new thread.
+ * @param name Thread name.
+ * @param fn Thread function pointer.
+ * @param arg Argument to be passed to the thread.
+ * @return Created thread data structure.
+ */
 extern struct thread *xfire_create_thread(const char *name,
 				      void* (*fn)(void*),
 				      void* arg);
+/**
+ * @brief Join two threads.
+ * @param tp Thread to join.
+ */
 extern void *xfire_thread_join(struct thread *tp);
+/**
+ * @brief Destroy a thread structure.
+ * @param tp Thread structure to destroy.
+ * @return An error code.
+ */
 extern int xfire_destroy_thread(struct thread *tp);
+/**
+ * @brief Stop a thread.
+ * @param tp Thread to stop.
+ * @return An error code.
+ */
 extern int xfire_thread_cancel(struct thread *tp);
 
+/**
+ * @brief Add a number atomically.
+ * @param atom Atom to add to.
+ * @param val Value to add.
+ */
 extern void atomic_add(atomic_t *atom, s32 val);
+
+/**
+ * @brief Substract a number atomically.
+ * @param atom Atom to substract from.
+ * @param val Value to substract.
+ */
 extern void atomic_sub(atomic_t *atom, s32 val);
+
+/**
+ * @brief Add a number atomically.
+ * @param atom Atom to add to.
+ * @param val Value to add.
+ */
 extern void atomic64_add(atomic64_t *atom, s64 val);
+
+/**
+ * @brief Substract a number atomically.
+ * @param atom Atom to substract from.
+ * @param val Value to substract.
+ */
 extern void atomic64_sub(atomic64_t *atom, s64 val);
+
+/**
+ * @brief Get a value atomically
+ * @param atom Atom to retrieve the value from.
+ * @return The value stored in \p atom.
+ */
 extern s32 atomic_get(atomic_t *atom);
+/**
+ * @brief Get a value atomically
+ * @param atom Atom to retrieve the value from.
+ * @return The value stored in \p atom.
+ */
 extern s64 atomic64_get(atomic64_t *atom);
+/**
+ * @brief Initialise a mutex variable.
+ * @param m Mutex variable.
+ */
 extern void xfire_mutex_init(xfire_mutex_t *m);
 
+/**
+ * @brief Initialise an atomic variable.
+ * @param atom Atom to init.
+ */
 static inline void atomic_init(atomic_t *atom)
 {
 	atom->val = 0;
 	xfire_spinlock_init(&atom->lock);
 }
 
+/**
+ * @brief Initialise an atomic variable.
+ * @param atom Atom to init.
+ */
 static inline void atomic64_init(atomic64_t *atom)
 {
 	atom->val = 0LL;
@@ -134,3 +301,6 @@ static inline void *mzalloc(size_t size)
 CDECL_END
 
 #endif
+
+/** @} */
+

@@ -1,0 +1,7 @@
+/**
+ * @defgroup mem Memory management
+ * @brief Memory management API.
+ *
+ * All XFire subsystems should use this memory management interface. This
+ * to ease the porting of the system across several operating systems.
+ */
