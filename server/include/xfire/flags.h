@@ -16,15 +16,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup flags
+ * @{
+ */
+
 #ifndef __BITOPS_H__
 #define __BITOPS_H__
 
 #include <xfire/xfire.h>
 #include <xfire/os.h>
 
+/**
+ * @brief Atomic flags data structure.
+ */
 typedef struct {
-	unsigned long flags;
-	xfire_spinlock_t lock;
+	unsigned long flags; //!< Flags register.
+	xfire_spinlock_t lock; //!< Flags lock.
 } atomic_flags_t;
 
 CDECL
@@ -42,4 +50,6 @@ extern void atomic_flags_init(atomic_flags_t *atom);
 CDECL_END
 
 #endif
+
+/** @} */
 
