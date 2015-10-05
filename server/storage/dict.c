@@ -918,6 +918,15 @@ struct dict_iterator *dict_get_iterator(struct dict *d)
 	return it;
 }
 
+/**
+ * @brief Get the previous entry of \p e.
+ * @param head List head.
+ * @param e Entry to get the previous of.
+ * @return The previous list entry of \p e.
+ *
+ * The linked list will be rolled out until e is found, then the previous of it
+ * is returned.
+ */
 static struct dict_entry *entry_prev(struct dict_entry *head, struct dict_entry *e)
 {
 	struct dict_entry *carriage;
@@ -938,6 +947,14 @@ static struct dict_entry *entry_prev(struct dict_entry *head, struct dict_entry 
 	return NULL;
 }
 
+/**
+ * @brief Iterate through a dictionary.
+ * @param it Dictionary iterator.
+ * @return A dictionary entry.
+ * @note Do not use this function and dict_iterator_next on the same iterator,
+ *       especially not on non-safe iterators, as the structure of the dictionary
+ *       might change, which will cause the iterator to get lost.
+ */
 struct dict_entry *dict_iterator_prev(struct dict_iterator *it)
 {
 	struct dict_map *map;
