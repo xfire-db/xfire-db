@@ -24,6 +24,7 @@
 #define __DICT_H__
 
 #include <xfire/xfire.h>
+#include <xfire/error.h>
 #include <xfire/types.h>
 #include <xfire/os.h>
 
@@ -46,7 +47,7 @@ struct dict_entry {
 	/**
          * @brief Data type
          */
-	union {
+	union entry_data {
 		void *ptr; //!< Data pointer.
 		u64 val_u64; //!< Unsigned 64-bit integer.
 		s64 val_s64; //!< Signed 64-bit integer.
@@ -107,9 +108,9 @@ extern void dict_free(struct dict *d);
 extern int dict_clear(struct dict *d);
 
 extern int dict_add(struct dict *d, const char *key, void *data, dict_type_t t);
-extern int dict_delete(struct dict *d, const char *key, int free);
+extern int dict_delete(struct dict *d, const char *key, union entry_data *data, int free);
 extern int dict_lookup(struct dict *d, const char *key,
-			void *data, dict_type_t type);
+			union entry_data *data);
 
 extern struct dict_iterator *dict_get_safe_iterator(struct dict *d);
 extern struct dict_iterator *dict_get_iterator(struct dict *d);

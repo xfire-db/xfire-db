@@ -26,7 +26,7 @@
 
 typedef struct rb_database {
 	struct rb_root root;
-	struct database db;
+	struct db db;
 } RB_DB;
 
 typedef struct rbdb_node {

@@ -77,9 +77,10 @@ void *test_thread_c(void *arg)
 void *test_thread_e(void *arg)
 {
 	int i = 20;
+	union entry_data val;
 
 	for(; i < 25; i++)
-		dict_delete(arg, (const char*)dbg_keys[i],
+		dict_delete(arg, (const char*)dbg_keys[i], &val,
 			false);
 	return NULL;
 }
@@ -87,9 +88,10 @@ void *test_thread_e(void *arg)
 void *test_thread_d(void *arg)
 {
 	int i = 15;
+	union entry_data val;
 
 	for(; i < 20; i++)
-		dict_delete(arg, (const char*)dbg_keys[i],
+		dict_delete(arg, (const char*)dbg_keys[i], &val,
 			false);
 	return NULL;
 }
@@ -104,7 +106,7 @@ int main(int argc, char **argv)
 	struct dict *strings;
 	struct thread *a, *b, *c, *d, *e;
 	int i = 0;
-	char *tmp = NULL;
+	union entry_data val, tmp;
 
 	strings = dict_alloc();
 
@@ -133,17 +135,17 @@ int main(int argc, char **argv)
 	for(i = 0; i < 15; i++) {
 		if(i == 11)
 			continue;
-		dict_delete(strings, dbg_keys[i], false);
+		dict_delete(strings, dbg_keys[i], &val, false);
 	}
 
 	printf("Testing lookup...\n");
 	dot();dot();dot();
-	dict_lookup(strings, dbg_keys[11], &tmp, DICT_PTR);
-	if(tmp) {
-		printf("Found %s under key %s!\n", tmp, dbg_keys[11]);
+	dict_lookup(strings, dbg_keys[11], &tmp);
+	if(tmp.ptr) {
+		printf("Found %s under key %s!\n", (char*)tmp.ptr, dbg_keys[11]);
 		printf("Concurrent dict test successful\n");
 	}
-	dict_delete(strings, dbg_keys[11], false);
+	dict_delete(strings, dbg_keys[11], &val, false);
 
 	dict_free(strings);
 	return -EXIT_SUCCESS;

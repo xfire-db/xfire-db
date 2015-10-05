@@ -35,13 +35,13 @@ static bool eng_compare_db_node(struct rb_node *node, const void *key)
 	return !strcmp(c->key, key);
 }
 
-static void rbdb_free(struct database *db)
+static void rbdb_free(struct db *db)
 {
 	struct rb_database *rbdb = container_of(db, struct rb_database, db);
 	xfire_free(rbdb);
 }
 
-static bool rb_db_insert(struct database *db, u64 key, void *data)
+static bool rb_db_insert(struct db *db, u64 key, void *data)
 {
 	struct rbdb_node *node;
 	struct rb_database *rbdb;
@@ -57,7 +57,7 @@ static bool rb_db_insert(struct database *db, u64 key, void *data)
 	return true;
 }
 
-static void *rb_db_remove(struct database *db, u64 key, void *arg)
+static void *rb_db_remove(struct db *db, u64 key, void *arg)
 {
 	struct rb_database *rbdb;
 	struct rb_node *node;
@@ -77,7 +77,7 @@ static void *rb_db_remove(struct database *db, u64 key, void *arg)
 	return data;
 }
 
-static void *rb_db_lookup(struct database *db, u64 key, void *arg)
+static void *rb_db_lookup(struct db *db, u64 key, void *arg)
 {
 	struct rb_database *rbdb;
 	struct rb_node *node;
@@ -97,7 +97,7 @@ static void *rb_db_lookup(struct database *db, u64 key, void *arg)
 struct rb_database *rbdb_alloc(const char *name)
 {
 	struct rb_database *db;
-	struct database *database;
+	struct db *database;
 
 	db = xfire_zalloc(sizeof(*db));
 	rb_init_root(&db->root);

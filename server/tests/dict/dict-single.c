@@ -56,11 +56,15 @@ static void dbg_setup_dict(struct dict *d)
 
 static void dbg_empty_dict(struct dict *d)
 {
-	dict_delete(d, KEY_1, false);
-	dict_delete(d, KEY_2, false);
-	dict_delete(d, KEY_3, false);
-	dict_delete(d, KEY_4, false);
-	dict_delete(d, KEY_5, false);
+	union entry_data val;
+
+	dict_delete(d, KEY_1, &val, false);
+	dict_delete(d, KEY_2, &val, false);
+	dict_delete(d, KEY_3, &val, false);
+	dict_delete(d, KEY_4, &val, false);
+	dict_delete(d, KEY_5, &val, false);
+
+	printf("Last entry deleted: %s\n", (char*)val.ptr);
 }
 
 int main(int argc, char **argv)

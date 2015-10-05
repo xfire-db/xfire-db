@@ -359,7 +359,7 @@ static inline int __dict_is_rehashing(struct dict *d)
  */
 static int dict_rehash(struct dict *d, int num)
 {
-	u32 hash;
+	u32 hash, idx;
 	int visits;
 	struct dict_entry *de, *next;
 
@@ -386,10 +386,11 @@ static int dict_rehash(struct dict *d, int num)
 		while(de) {
 			/* move an entry to the new map */
 			next = de->next;
-			hash = dict_hash_key(de->key, DICT_SEED) & d->map[REHASH_MAP].sizemask;
-			de->next = d->map[REHASH_MAP].array[hash];
+			hash = dict_hash_key(de->key, DICT_SEED);
+			idx = hash & d->map[REHASH_MAP].sizemask;
 
-			d->map[REHASH_MAP].array[hash] = de;
+			de->next = d->map[REHASH_MAP].array[idx];
+			d->map[REHASH_MAP].array[idx] = de;
 			d->map[REHASH_MAP].length++;
 			d->map[PRIMARY_MAP].length--;
 
@@ -773,7 +774,7 @@ static struct dict_entry *__dict_delete(struct dict *d, const char *key)
  * Please note that setting \p free to true is only valid if the data type
  * is DICT_PTR.
  */
-int dict_delete(struct dict *d, const char *key, int free)
+int dict_delete(struct dict *d, const char *key, union entry_data *data, int free)
 {
 	struct dict_entry *e;
 
@@ -785,6 +786,8 @@ int dict_delete(struct dict *d, const char *key, int free)
 	if(e) {
 		if(free)
 			xfire_free(e->value.ptr);
+		else
+			*data = e->value;
 		dict_free_entry(e);
 		return -XFIRE_OK;
 	}
@@ -850,7 +853,7 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
  * DICT_PTR only the pointer will be stored, not the contents of the
  * pointer.
  */
-int dict_lookup(struct dict *d, const char *key, void *data, dict_type_t type)
+int dict_lookup(struct dict *d, const char *key, union entry_data *data)
 {
 	struct dict_entry *e;
 
@@ -861,24 +864,7 @@ int dict_lookup(struct dict *d, const char *key, void *data, dict_type_t type)
 	if(!e)
 		return -XFIRE_ERR;
 
-	switch(type) {
-	case DICT_PTR:
-		*((size_t*)data) = (size_t) e->value.ptr;
-		break;
-	case DICT_U64:
-		*((u64*)data) = e->value.val_u64;
-		break;
-	case DICT_S64:
-		*((s64*)data) = e->value.val_s64;
-		break;
-	case DICT_FLT:
-		*((double*)data) = e->value.d;
-		break;
-	default:
-		return -XFIRE_ERR;
-		break;
-	}
-
+	*data = e->value;
 	return -XFIRE_OK;
 }
 

@@ -47,26 +47,26 @@ typedef struct rq_buff {
 #define RQB_INFLATED_FLAG 0
 
 #include <xfire/rbtree.h>
-typedef struct database {
+typedef struct db {
 	char *name;
 
-	void *(*lookup)(struct database *db, u64 key, void *arg);
-	bool (*insert)(struct database *db, u64 key, void *data);
-	void *(*remove)(struct database *db, u64 key, void *arg);
-	void (*free)(struct database *db);
+	void *(*lookup)(struct db *db, u64 key, void *arg);
+	bool (*insert)(struct db *db, u64 key, void *data);
+	void *(*remove)(struct db *db, u64 key, void *arg);
+	void (*free)(struct db *db);
 } DATABASE;
 
 CDECL
 extern void eng_init(int num);
 extern void eng_exit(void);
 extern void eng_push_request(struct request_pool *, struct request *);
-extern struct database *eng_get_db(const char *name);
+extern struct db *eng_get_db(const char *name);
 extern struct rq_buff *rq_buff_alloc(struct request *parent);
 extern void rq_buff_free(struct rq_buff *buffer);
 extern void eng_create_debug_db(void);
 extern void dbg_push_request(struct request *rq);
-extern struct database *eng_init_db(struct database *db, const char *name);
-extern void eng_add_db(struct database *db);
+extern struct db *eng_init_db(struct db *db, const char *name);
+extern void eng_add_db(struct db *db);
 CDECL_END
 
 #endif

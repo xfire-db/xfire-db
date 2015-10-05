@@ -36,10 +36,10 @@ static struct request_pool **processors = NULL;
 static int proc_num;
 
 static xfire_spinlock_t db_lock;
-static struct database **databases = NULL;
+static struct db **databases = NULL;
 static int db_num;
 
-struct database *eng_init_db(struct database *db, const char *name)
+struct db *eng_init_db(struct db *db, const char *name)
 {
 	int len;
 
@@ -50,7 +50,7 @@ struct database *eng_init_db(struct database *db, const char *name)
 	return db;
 }
 
-static void __eng_free_db(struct database *db)
+static void __eng_free_db(struct db *db)
 {
 	int idx;
 
@@ -72,7 +72,7 @@ static void __eng_free_db(struct database *db)
 
 void eng_free_db(const char *name)
 {
-	struct database *db;
+	struct db *db;
 
 	db = eng_get_db(name);
 	if(!db)
@@ -81,7 +81,7 @@ void eng_free_db(const char *name)
 	__eng_free_db(db);
 }
 
-void eng_add_db(struct database *db)
+void eng_add_db(struct db *db)
 {
 	int idx;
 
@@ -102,10 +102,10 @@ void eng_add_db(struct database *db)
 	xfire_spin_unlock(&db_lock);
 }
 
-struct database *eng_get_db(const char *name)
+struct db *eng_get_db(const char *name)
 {
 	int idx;
-	struct database *db = NULL;
+	struct db *db = NULL;
 
 	xfire_spin_lock(&db_lock);
 	for(idx = 0; idx < db_num; idx++) {
@@ -318,7 +318,7 @@ static void eng_update_domain_index(struct request *rq, struct rq_buff *data)
 	}
 }
 
-static void raw_eng_handle_request(struct request *rq, struct database *db,
+static void raw_eng_handle_request(struct request *rq, struct db *db,
 					struct container *c,
 					struct rq_buff *data)
 {
@@ -445,7 +445,7 @@ static void raw_eng_handle_request(struct request *rq, struct database *db,
 }
 
 
-static void eng_handle_range_request(struct request *rq, struct database *db,
+static void eng_handle_range_request(struct request *rq, struct db *db,
 					struct container *c, struct rq_buff *d)
 {
 	struct list_head *lh;
@@ -526,7 +526,7 @@ static void eng_handle_range_request(struct request *rq, struct database *db,
 
 static void eng_handle_request(struct request *rq, struct rq_buff *data)
 {
-	struct database *db;
+	struct db *db;
 	struct container *c;
 
 	db = eng_get_db(rq->db_name);
@@ -626,7 +626,7 @@ static void eng_release_reply(struct reply *reply)
 
 static int eng_get_list_size(struct request *request)
 {
-	struct database *db;
+	struct db *db;
 	struct container *c;
 	struct list_head *lh;
 
