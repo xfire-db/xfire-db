@@ -165,6 +165,7 @@ static void dict_init(struct dict *d)
 	d->map[PRIMARY_MAP].length = 0;
 
 	xfire_mutex_init(&d->lock);
+	xfire_mutex_init(&d->rehash_lock);
 	xfire_cond_init(&d->rehash_condi);
 	d->worker = xfire_create_thread("rehash-worker", &dict_rehash_worker, d);
 
@@ -204,16 +205,17 @@ void dict_free(struct dict *d)
 	if(d->map[PRIMARY_MAP].array)
 		xfire_free(d->map[PRIMARY_MAP].array);
 
-	xfire_mutex_lock(&d->lock);
+	xfire_mutex_lock(&d->rehash_lock);
 	d->rehashidx = DICT_FREE;
 	xfire_cond_signal(&d->rehash_condi);
-	xfire_mutex_unlock(&d->lock);
+	xfire_mutex_unlock(&d->rehash_lock);
 
 	xfire_thread_join(d->worker);
 	xfire_thread_destroy(d->worker);
 
 	xfire_cond_destroy(&d->rehash_condi);
 	xfire_mutex_destroy(&d->lock);
+	xfire_mutex_destroy(&d->rehash_lock);
 	xfire_free(d);
 }
 
@@ -475,7 +477,9 @@ static int dict_expand(struct dict *d, unsigned long size)
 	d->map[REHASH_MAP] = map;
 	d->rehashidx = 0;
 	d->rehashing = true;
+	xfire_mutex_lock(&d->rehash_lock);
 	xfire_cond_signal(&d->rehash_condi);
+	xfire_mutex_unlock(&d->rehash_lock);
 
 	return -XFIRE_OK;
 }
@@ -513,20 +517,19 @@ static void *dict_rehash_worker(void *arg)
 	struct dict *d = arg;
 
 	do {
-		xfire_mutex_lock(&d->lock);
-		while(!dict_is_rehashing(d) && d->rehashidx != DICT_FREE)
-			xfire_cond_wait(&d->rehash_condi, &d->lock);
-		xfire_mutex_unlock(&d->lock);
+		xfire_mutex_lock(&d->rehash_lock);
+		while(!__dict_is_rehashing(d) && d->rehashidx != DICT_FREE) {
+			xfire_cond_wait(&d->rehash_condi, &d->rehash_lock);
+			xfire_mutex_unlock(&d->rehash_lock);
 
-		if(d->rehashidx == DICT_FREE)
-			return NULL;
+			while(dict_is_rehashing(d) && d->rehashidx != DICT_FREE)
+				dict_rehash_ms(d, 2);
 
-		do {
-			dict_rehash_ms(d, 2);
-		} while(dict_is_rehashing(d));
-	} while(1);
+			xfire_mutex_lock(&d->rehash_lock);
+		}	
+	} while(d->rehashidx != DICT_FREE);
 
-	return NULL;
+	xfire_thread_exit(NULL);
 }
 
 /**
@@ -919,6 +922,79 @@ struct dict_iterator *dict_get_iterator(struct dict *d)
 	return it;
 }
 
+static struct dict_entry *entry_prev(struct dict_entry *head, struct dict_entry *e)
+{
+	struct dict_entry *carriage;
+
+	carriage = head;
+
+	if(head == e)
+		return NULL;
+
+	while(carriage) {
+		head = carriage;
+		carriage = carriage->next;
+		
+		if(carriage == e)
+			return head;
+	}
+
+	return NULL;
+}
+
+struct dict_entry *dict_iterator_prev(struct dict_iterator *it)
+{
+	struct dict_map *map;
+	struct dict *d;
+	struct dict_entry *e;
+
+	d = dict_iterator_to_dict(it);
+
+	xfire_mutex_lock(&d->lock);
+	do {
+		if(!it->e) {
+			map = &d->map[it->table];
+			it->idx--;
+
+			if(it->idx == -2L)
+				it->idx = d->map[it->table].size - 1;
+
+			if(it->idx <= -1L || it->idx >= map->size) {
+				if(__dict_is_rehashing(d) && it->table == 0) {
+					it->table++;
+					it->idx = d->map[REHASH_MAP].size - 1;
+					map = &d->map[REHASH_MAP];
+				} else {
+					break;
+				}
+			}
+
+			e = map->array[it->idx];
+			while(e) {
+				if(e->next)
+					e = e->next;
+				else
+					break;
+			}
+			it->e = e;
+		} else {
+			e = map->array[it->idx];
+			if(e == it->e)
+				it->e = NULL;
+			else
+				it->e = entry_prev(e, it->e);
+		}
+
+		if(it->e) {
+			xfire_mutex_unlock(&d->lock);
+			return it->e;
+		}
+	} while(1);
+
+	xfire_mutex_unlock(&d->lock);
+	return NULL;
+}
+
 /**
  * @brief Get the next entry from an iterator.
  * @param it The iterator.
@@ -960,8 +1036,8 @@ struct dict_entry *dict_iterator_next(struct dict_iterator *it)
 			return it->e;
 		}
 	} while(true);
-	xfire_mutex_unlock(&d->lock);
 
+	xfire_mutex_unlock(&d->lock);
 	return NULL;
 }
 

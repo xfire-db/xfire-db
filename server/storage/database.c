@@ -43,7 +43,7 @@ struct database *db_alloc(const char *name)
 	return db;
 }
 
-void db_add(struct database *db, const char *key, void *data)
+void db_store(struct database *db, const char *key, void *data)
 {
 	/*
 	 * add the entry to the dictionary.

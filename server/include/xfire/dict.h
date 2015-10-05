@@ -82,7 +82,8 @@ struct dict {
 	int rehashing : 1; //!< Rehashing boolean.
 	int iterators; //!< Number of safe iterators.
 
-	xfire_mutex_t lock; //!< Mutex.
+	xfire_mutex_t lock; //!< Dictionary lock.
+	xfire_mutex_t rehash_lock; //!< Rehash lock.
 	xfire_cond_t rehash_condi; //!< Rehashing condition.
 	struct thread *worker; //!< Rehashing worker.
 };
@@ -116,6 +117,7 @@ extern struct dict_iterator *dict_get_safe_iterator(struct dict *d);
 extern struct dict_iterator *dict_get_iterator(struct dict *d);
 extern void dict_iterator_free(struct dict_iterator *it);
 extern struct dict_entry *dict_iterator_next(struct dict_iterator *it);
+extern struct dict_entry *dict_iterator_prev(struct dict_iterator *it);
 CDECL_END
 #endif
 

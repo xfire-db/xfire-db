@@ -72,6 +72,15 @@ int main(int argc, char **argv)
 	}
 
 	dict_iterator_free(it);
+
+	printf("\nIterating backwards\n");
+	it = dict_get_safe_iterator(strings);
+	e = dict_iterator_prev(it);
+	for(; e; e = dict_iterator_prev(it)) {
+		printf("Found key: %s\n", e->key);
+	}
+
+	dict_iterator_free(it);
 	dict_clear(strings);
 	dict_free(strings);
 
