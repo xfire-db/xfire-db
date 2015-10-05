@@ -88,7 +88,7 @@ struct dict {
 	dict_status_t status; //!< Dictionary status.
 
 	long rehashidx; //!< Rehashing index.
-	int rehashing : 1; //!< Rehashing boolean.
+	bool rehashing; //!< Rehashing boolean.
 	int iterators; //!< Number of safe iterators.
 
 	xfire_mutex_t lock; //!< Dictionary lock.

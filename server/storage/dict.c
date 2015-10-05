@@ -515,7 +515,7 @@ static void *dict_rehash_worker(void *arg)
 
 	xfire_mutex_lock(&d->lock);
 	while(true) {
-		if(!__dict_is_rehashing(d))
+		if(!__dict_is_rehashing(d) && d->status != DICT_STATUS_FREE)
 			xfire_cond_wait(&d->rehash_condi, &d->lock);
 
 		if(d->status == DICT_STATUS_FREE)
