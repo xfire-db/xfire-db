@@ -768,6 +768,7 @@ static struct dict_entry *__dict_delete(struct dict *d, const char *key)
  * @brief Delete a key-value pair from a dictionary.
  * @param d Dictionary to delete from.
  * @param key Key which has to be deleted.
+ * @param data Pointer to store deleted data in.
  * @param free Set to true if the stored data needs to be deallocated.
  *
  * Please note that setting \p free to true is only valid if the data type
@@ -844,7 +845,6 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
  * @param d Dictionary to perform a lookup on.
  * @param key Key to look for.
  * @param data Output parameter to store the found data.
- * @param type Type of the stored data.
  *
  * Once an entry is found, it will be stored in the memeory pointed to
  * by \p data. It is important to make sure that the memory region pointed to

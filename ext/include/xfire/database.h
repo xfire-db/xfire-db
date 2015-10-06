@@ -27,18 +27,24 @@
 #include <xfire/types.h>
 #include <xfire/dict.h>
 
+/**
+ * @brief Database data type.
+ */
 typedef union entry_data db_data_t;
 
+/**
+ * @brief Database type.
+ */
 struct database {
-	char *name;
-	struct dict *container;
+	char *name; //!< Database name.
+	struct dict *container; //!< Data container.
 };
 
 CDECL
 extern struct database *db_alloc(const char *name);
 extern void db_free(struct database *db);
 
-extern void db_store(struct database *db, const char *key, void *data);
+extern int db_store(struct database *db, const char *key, void *data);
 extern int db_delete(struct database *db, const char *key, db_data_t *data);
 CDECL_END
 

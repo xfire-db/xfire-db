@@ -1,0 +1,7 @@
+/**
+ * @defgroup database Database API
+ * @ingroup storage
+ * @brief Database user interface documentation.
+ *
+ * The database API provides easy access to a key-value store.
+ */
