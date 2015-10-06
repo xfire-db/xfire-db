@@ -36,7 +36,6 @@
 #include <xfire/error.h>
 
 #define DICT_MINIMAL_SIZE 4
-#define DICT_FREE -2
 
 /**
  * @brief Forced resize ratio.
@@ -159,13 +158,13 @@ static inline void dict_set_val(struct dict_entry *e, unsigned long *data,
  */
 static void dict_init(struct dict *d)
 {
+	d->status = DICT_STATUS_NONE;
 	d->map[PRIMARY_MAP].array = xfire_zalloc(DICT_MINIMAL_SIZE * sizeof(size_t));
 	d->map[PRIMARY_MAP].size = DICT_MINIMAL_SIZE;
 	d->map[PRIMARY_MAP].sizemask = DICT_MINIMAL_SIZE - 1;
 	d->map[PRIMARY_MAP].length = 0;
 
 	xfire_mutex_init(&d->lock);
-	xfire_mutex_init(&d->rehash_lock);
 	xfire_cond_init(&d->rehash_condi);
 	d->worker = xfire_create_thread("rehash-worker", &dict_rehash_worker, d);
 
@@ -205,17 +204,16 @@ void dict_free(struct dict *d)
 	if(d->map[PRIMARY_MAP].array)
 		xfire_free(d->map[PRIMARY_MAP].array);
 
-	xfire_mutex_lock(&d->rehash_lock);
-	d->rehashidx = DICT_FREE;
+	xfire_mutex_lock(&d->lock);
+	d->status = DICT_STATUS_FREE;
 	xfire_cond_signal(&d->rehash_condi);
-	xfire_mutex_unlock(&d->rehash_lock);
+	xfire_mutex_unlock(&d->lock);
 
 	xfire_thread_join(d->worker);
 	xfire_thread_destroy(d->worker);
 
 	xfire_cond_destroy(&d->rehash_condi);
 	xfire_mutex_destroy(&d->lock);
-	xfire_mutex_destroy(&d->rehash_lock);
 	xfire_free(d);
 }
 
@@ -477,9 +475,8 @@ static int dict_expand(struct dict *d, unsigned long size)
 	d->map[REHASH_MAP] = map;
 	d->rehashidx = 0;
 	d->rehashing = true;
-	xfire_mutex_lock(&d->rehash_lock);
+
 	xfire_cond_signal(&d->rehash_condi);
-	xfire_mutex_unlock(&d->rehash_lock);
 
 	return -XFIRE_OK;
 }
@@ -516,19 +513,18 @@ static void *dict_rehash_worker(void *arg)
 {
 	struct dict *d = arg;
 
-	do {
-		xfire_mutex_lock(&d->rehash_lock);
-		while(!__dict_is_rehashing(d) && d->rehashidx != DICT_FREE) {
-			xfire_cond_wait(&d->rehash_condi, &d->rehash_lock);
-			xfire_mutex_unlock(&d->rehash_lock);
+	xfire_mutex_lock(&d->lock);
+	while(true) {
+		if(!__dict_is_rehashing(d))
+			xfire_cond_wait(&d->rehash_condi, &d->lock);
 
-			while(dict_is_rehashing(d) && d->rehashidx != DICT_FREE)
-				dict_rehash_ms(d, 2);
+		if(d->status == DICT_STATUS_FREE)
+			break;
 
-			xfire_mutex_lock(&d->rehash_lock);
-		}	
-	} while(d->rehashidx != DICT_FREE);
+		dict_rehash_ms(d, 2);
+	}
 
+	xfire_mutex_unlock(&d->lock);
 	xfire_thread_exit(NULL);
 }
 
@@ -835,7 +831,7 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 			e = e->next;
 		}
 
-		if(!dict_is_rehashing(d))
+		if(!__dict_is_rehashing(d))
 			break;
 	}
 

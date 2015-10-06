@@ -39,6 +39,14 @@ typedef enum {
 } dict_type_t;
 
 /**
+ * Dictionary status.
+ */
+typedef enum {
+	DICT_STATUS_NONE, //!< Dictionary normal state
+	DICT_STATUS_FREE, //!< Dictionary free is waiting.
+} dict_status_t;
+
+/**
  * @brief Dictionary data entry.
  */
 struct dict_entry {
@@ -76,14 +84,14 @@ struct dict_map {
  * @brief Dictionary data structure
  */
 struct dict {
-	struct dict_map map[2]; //!< Hash maps
-	long rehashidx; //!< Rehashing index.
+	struct dict_map map[2]; //!< Hash maps.
+	dict_status_t status; //!< Dictionary status.
 
+	long rehashidx; //!< Rehashing index.
 	int rehashing : 1; //!< Rehashing boolean.
 	int iterators; //!< Number of safe iterators.
 
 	xfire_mutex_t lock; //!< Dictionary lock.
-	xfire_mutex_t rehash_lock; //!< Rehash lock.
 	xfire_cond_t rehash_condi; //!< Rehashing condition.
 	struct thread *worker; //!< Rehashing worker.
 };
