@@ -29,6 +29,11 @@
 #include <xfire/dict.h>
 #include <xfire/database.h>
 
+/**
+ * @brief Allocate a new database.
+ * @param name Database name.
+ * @return The allocated database.
+ */
 struct database *db_alloc(const char *name)
 {
 	struct database *db;
@@ -43,6 +48,13 @@ struct database *db_alloc(const char *name)
 	return db;
 }
 
+/**
+ * @brief Store an entry in a database.
+ * @param db Database to store in.
+ * @param key Key to store \p data under.
+ * @param data Data to store.
+ * @return Error code.
+ */
 void db_store(struct database *db, const char *key, void *data)
 {
 	/*
@@ -51,6 +63,13 @@ void db_store(struct database *db, const char *key, void *data)
 	dict_add(db->container, key, data, DICT_PTR);
 }
 
+/**
+ * @brief Delete an entry for a given database.
+ * @param db Database to delete from.
+ * @param key Key to delete.
+ * @param data Pointer to store the delete data in.
+ * @return Error code.
+ */
 int db_delete(struct database *db, const char *key, db_data_t *data)
 {
 	union entry_data val;
@@ -61,6 +80,15 @@ int db_delete(struct database *db, const char *key, db_data_t *data)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Lookup a database key.
+ * @param db Database to perform the lookup on.
+ * @param key Key to lookup.
+ * @param data Pointer to store data in.
+ * @return Error code.
+ *
+ * Only trust the data in \p data if the return value is \p -DICT_OK.
+ */
 int db_lookup(struct database *db, const char *key, db_data_t *data)
 {
 	union entry_data val;
@@ -75,6 +103,10 @@ int db_lookup(struct database *db, const char *key, db_data_t *data)
 	return rv;
 }
 
+/**
+ * @brief Free an entire database.
+ * @param db Database to free.
+ */
 void db_free(struct database *db)
 {
 	dict_clear(db->container);

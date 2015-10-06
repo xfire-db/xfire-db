@@ -27,11 +27,17 @@
 #include <xfire/types.h>
 #include <xfire/dict.h>
 
+/**
+ * @brief Database data type.
+ */
 typedef union entry_data db_data_t;
 
+/**
+ * @brief Database type.
+ */
 struct database {
-	char *name;
-	struct dict *container;
+	char *name; //!< Database name.
+	struct dict *container; //!< Data container.
 };
 
 CDECL
