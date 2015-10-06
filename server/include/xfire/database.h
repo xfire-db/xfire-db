@@ -44,7 +44,7 @@ CDECL
 extern struct database *db_alloc(const char *name);
 extern void db_free(struct database *db);
 
-extern void db_store(struct database *db, const char *key, void *data);
+extern int db_store(struct database *db, const char *key, void *data);
 extern int db_delete(struct database *db, const char *key, db_data_t *data);
 CDECL_END
 

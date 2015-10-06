@@ -55,12 +55,12 @@ struct database *db_alloc(const char *name)
  * @param data Data to store.
  * @return Error code.
  */
-void db_store(struct database *db, const char *key, void *data)
+int db_store(struct database *db, const char *key, void *data)
 {
 	/*
 	 * add the entry to the dictionary.
 	 */
-	dict_add(db->container, key, data, DICT_PTR);
+	return dict_add(db->container, key, data, DICT_PTR);
 }
 
 /**
@@ -69,15 +69,19 @@ void db_store(struct database *db, const char *key, void *data)
  * @param key Key to delete.
  * @param data Pointer to store the delete data in.
  * @return Error code.
+ *
+ * Only trust the data in \p data if the return value is
+ * \p -DICT_OK.
  */
 int db_delete(struct database *db, const char *key, db_data_t *data)
 {
 	union entry_data val;
+	int rv;
 
-	dict_delete(db->container, key, &val, false);
+	rv = dict_delete(db->container, key, &val, false);
 	memcpy(data, &val, sizeof(val));
 
-	return -XFIRE_OK;
+	return rv;
 }
 
 /**
