@@ -841,6 +841,28 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 }
 
 /**
+ * @brief Update a data entry.
+ * @param d Dictionary containing \p key.
+ * @param key Key to update.
+ * @param data Data to set.
+ * @param type Type of \p data.
+ * @return An error code. If the data is updated or set -XFIRE_OK is returned.
+ *
+ * If the given key \p key doesn't exist yet, it will be inserted.
+ */
+int dict_update(struct dict *d, const char *key, void *data, dict_type_t type)
+{
+	struct dict_entry *e;
+
+	e = __dict_lookup(d, key);
+	if(!e)
+		return dict_add(d, key, data, type);
+
+	dict_set_val(e, data, type);
+	return -XFIRE_OK;
+}
+
+/**
  * @brief Performs a lookup on a dictionary.
  * @param d Dictionary to perform a lookup on.
  * @param key Key to look for.

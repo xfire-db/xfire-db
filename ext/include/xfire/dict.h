@@ -118,8 +118,8 @@ extern int dict_clear(struct dict *d);
 
 extern int dict_add(struct dict *d, const char *key, void *data, dict_type_t t);
 extern int dict_delete(struct dict *d, const char *key, union entry_data *data, int free);
-extern int dict_lookup(struct dict *d, const char *key,
-			union entry_data *data);
+extern int dict_lookup(struct dict *d, const char *key, union entry_data *data);
+extern int dict_update(struct dict *d, const char *key, void *data, dict_type_t type);
 
 extern struct dict_iterator *dict_get_safe_iterator(struct dict *d);
 extern struct dict_iterator *dict_get_iterator(struct dict *d);

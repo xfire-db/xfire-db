@@ -17,9 +17,12 @@ option (RECURSION
 	"Set to true if search functions should use recursion."
 	[true])
 
-set (STDOUT "" CACHE STRING
+set (DATA_PATH "$ENV{HOME}/.xfire" CACHE STRING
+	"Directory to store persistent data in.")
+
+set (STDOUT "$ENV{HOME}/.xfire/out.log" CACHE STRING
 	"Set to a file path to log standard messages to")
-set (STDERR "" CACHE STRING
+set (STDERR "$ENV{HOME}/.xfire/err.log" CACHE STRING
 	"Set to file path to log error messages to")
 
 set(HAVE_DBG "")
