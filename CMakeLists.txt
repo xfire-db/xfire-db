@@ -20,6 +20,5 @@ if(XFIRE_CLIENT)
 endif(XFIRE_CLIENT)
 
 if(XFIRE_SERVER)
-	add_subdirectory(${XFIRE_SERVER_PATH})
+	add_subdirectory(${XFIRE_EXTENSION_PATH})
 endif(XFIRE_SERVER)
-
