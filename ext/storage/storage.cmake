@@ -4,6 +4,7 @@
 
 add_library(xfirestorage SHARED
 	storage/dict.c
+	storage/disk.c
 	storage/rbtree.c
 	storage/list.c
 	storage/database.c
@@ -16,7 +17,7 @@ add_library(xfirestorage SHARED
 	include/xfire/string.h
 	)
 
-target_link_libraries(xfirestorage LINK_PUBLIC xfire xfireos)
+target_link_libraries(xfirestorage LINK_PUBLIC xfire xfireos sqlite3)
 
 install (TARGETS xfirestorage
 	LIBRARY DESTINATION lib
