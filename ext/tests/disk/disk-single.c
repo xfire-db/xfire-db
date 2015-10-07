@@ -28,8 +28,20 @@
 int main(int argc, char **argv)
 {
 	struct disk *d;
+	char *lookup;
 
 	d = disk_create(SQLITE_DB);
+	if(!disk_store(d, "test-key", "test-data", sizeof("test-data")))
+		fprintf(stdout, "Key store succesfull!\n");
+
+	if(!disk_update(d, "test-key", "test-data-update", sizeof("test-data-update")))
+		fprintf(stdout, "Key update succesfull!\n");
+
+	lookup = disk_lookup(d, "test-key");
+	if(lookup)
+		printf("%s = %s\n", "test-key", lookup);
+
+	disk_result_free(lookup);
 	disk_destroy(d);
 	return -EXIT_SUCCESS;
 }

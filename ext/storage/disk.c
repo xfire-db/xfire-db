@@ -33,8 +33,13 @@
 
 #define DISK_CREATE_TABLE \
 	"CREATE TABLE xfiredb_data(" \
-	"db_key CHAR(64) PRIMARY KEY NOT NULL," \
-	"db_value CHAR(64));"
+	"db_key CHAR(64) PRIMARY KEY NOT NULL, " \
+	"db_value BLOB);"
+
+static int insert_hook(void *arg, int argc, char **argv, char **colname)
+{
+	return 0;
+}
 
 static int init_hook(void *arg, int argc, char **argv, char **colname)
 {
@@ -94,6 +99,124 @@ struct disk *disk_create(const char *path)
 	}
 
 	return disk;
+}
+
+#define DISK_STORE_QUERY \
+	"INSERT INTO xfiredb_data (db_key, db_value) " \
+	"VALUES ('%s', '%s');"
+#define DISK_UPDATE_QUERY \
+	"UPDATE xfiredb_data SET db_value = '%s' WHERE db_key = '%s';"
+#define DISK_SELECT_QUERY \
+	"SELECT * FROM xfiredb_data WHERE db_key = '%s';"
+
+int disk_store(struct disk *d, char *key, void *data, size_t length)
+{
+	int rc;
+	char *msg, *query;
+	int len;
+
+	len = sizeof(DISK_STORE_QUERY) + strlen(key) + length + 1;
+	query = xfire_zalloc(len);
+
+	snprintf(query, len, DISK_STORE_QUERY, key, (char*)data);
+	rc = sqlite3_exec(d->handle, query, &insert_hook, d, &msg);
+
+	switch(rc) {
+	case SQLITE_OK:
+		rc = -XFIRE_OK;
+		break;
+	case SQLITE_CONSTRAINT:
+		rc = disk_update(d, key, data, length);
+		break;
+	default:
+		fprintf(stderr, "Disk store failed: %s\n", msg);
+		sqlite3_free(msg);
+		xfire_free(query);
+		return -XFIRE_ERR;
+	}
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	return rc;
+}
+
+static int lookup_hook(void *arg, int argc, char **row, char **colname)
+{
+	int len;
+	void **data = arg;
+
+	len = strlen(row[1]);
+	*data = xfire_zalloc(len + 1);
+	memcpy(*data, row[1], len);
+
+	return 0;
+}
+
+void disk_result_free(void *x)
+{
+	if(!x)
+		return;
+
+	xfire_free(x);
+}
+
+void *disk_lookup(struct disk *d, char *key)
+{
+	int rc;
+	char *msg, *query;
+	int len;
+	void *result = NULL;
+
+	len = sizeof(DISK_SELECT_QUERY) + strlen(key) + 1;
+	query = xfire_zalloc(len);
+
+	snprintf(query, len, DISK_SELECT_QUERY, key);
+	rc = sqlite3_exec(d->handle, query, &lookup_hook, &result, &msg);
+
+	switch(rc) {
+	case SQLITE_OK:
+		break;
+
+	default:
+		fprintf(stderr, "Disk update failed: %s\n", msg);
+		sqlite3_free(msg);
+		xfire_free(query);
+		return NULL;
+	}
+
+	xfire_free(query);
+	return result;
+}
+
+int disk_update(struct disk *d, char *key, void *data, size_t length)
+{
+	int rc;
+	char *msg, *query;
+	int len;
+
+	len = sizeof(DISK_UPDATE_QUERY) + strlen(key) + length + 1;
+	query = xfire_zalloc(len);
+
+	snprintf(query, len, DISK_UPDATE_QUERY, (char*)data, key);
+	rc = sqlite3_exec(d->handle, query, &insert_hook, d, &msg);
+
+	switch(rc) {
+	case SQLITE_OK:
+		rc = -XFIRE_OK;
+		break;
+/*	case SQLITE_CONSTRAINT:
+		rc = disk_update(d, key, data, length);
+		break;
+*/
+	default:
+		fprintf(stderr, "Disk update failed: %s\n", msg);
+		sqlite3_free(msg);
+		xfire_free(query);
+		return -XFIRE_ERR;
+	}
+
+	xfire_free(query);
+	return rc;
 }
 
 void disk_destroy(struct disk *disk)

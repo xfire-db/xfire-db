@@ -46,6 +46,8 @@ extern void disk_destroy(struct disk *disk);
 
 extern int disk_store(struct disk *disk, char *key, void *data, size_t length);
 extern int disk_update(struct disk *disk, char *key, void *data, size_t length);
+extern void *disk_lookup(struct disk *disk, char *key);
+extern void disk_result_free(void *x);
 
 #endif
 
