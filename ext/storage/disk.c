@@ -225,7 +225,7 @@ void *disk_lookup(struct disk *d, char *key)
  * @param d Disk to search on.
  * @param key Key to update.
  * @param data New data to set under \p key.
- * @param Length of \p data.
+ * @param length Length of \p data.
  * @return Error code.
  */
 int disk_update(struct disk *d, char *key, void *data, size_t length)
