@@ -28,6 +28,11 @@
 #include <xfire/mem.h>
 #include <xfire/error.h>
 
+/**
+ * @addtogroup disk
+ * @{
+ */
+
 #define DISK_CHECK_TABLE \
 	"SELECT name FROM sqlite_master WHERE type='table' AND name='xfiredb_data';"
 
@@ -68,6 +73,11 @@ static int disk_create_table(struct disk *disk)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Create a new persistent disk.
+ * @param path Path to the disk.
+ * @return Disk data structure.
+ */
 struct disk *disk_create(const char *path)
 {
 	sqlite3 *db;
@@ -109,6 +119,14 @@ struct disk *disk_create(const char *path)
 #define DISK_SELECT_QUERY \
 	"SELECT * FROM xfiredb_data WHERE db_key = '%s';"
 
+/**
+ * @brief Store a key-value pair on the disk.
+ * @param d Disk to store on.
+ * @param key Key to store.
+ * @param data Data to store (under \p key).
+ * @param length Length of data.
+ * @return Error code.
+ */
 int disk_store(struct disk *d, char *key, void *data, size_t length)
 {
 	int rc;
@@ -152,6 +170,13 @@ static int lookup_hook(void *arg, int argc, char **row, char **colname)
 	return 0;
 }
 
+/**
+ * @brief Free a lookup result.
+ * @param x Result to free.
+ * @see disk_lookup
+ *
+ * Used to free a result returned by disk_lookup.
+ */
 void disk_result_free(void *x)
 {
 	if(!x)
@@ -160,6 +185,13 @@ void disk_result_free(void *x)
 	xfire_free(x);
 }
 
+/**
+ * @brief Lookup a key-value pair.
+ * @param d Disk to look on.
+ * @param key Key to search.
+ * @return The result, NULL if nothing was found.
+ * @see disk_result_free
+ */
 void *disk_lookup(struct disk *d, char *key)
 {
 	int rc;
@@ -188,6 +220,14 @@ void *disk_lookup(struct disk *d, char *key)
 	return result;
 }
 
+/**
+ * @brief Update a key-value pair.
+ * @param d Disk to search on.
+ * @param key Key to update.
+ * @param data New data to set under \p key.
+ * @param Length of \p data.
+ * @return Error code.
+ */
 int disk_update(struct disk *d, char *key, void *data, size_t length)
 {
 	int rc;
@@ -219,6 +259,10 @@ int disk_update(struct disk *d, char *key, void *data, size_t length)
 	return rc;
 }
 
+/**
+ * @brief Destroy a disk data structure.
+ * @param disk Disk to destroy.
+ */
 void disk_destroy(struct disk *disk)
 {
 	sqlite3 *db;
@@ -233,4 +277,6 @@ void disk_destroy(struct disk *disk)
 	xfire_free(disk->dbpath);
 	xfire_free(disk);
 }
+
+/** @} */
 
