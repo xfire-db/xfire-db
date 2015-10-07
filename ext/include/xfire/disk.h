@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup disk
+ * @{
+ */
+
 #ifndef __DISK_H__
 #define __DISK_H__
 
@@ -50,4 +55,6 @@ extern void *disk_lookup(struct disk *disk, char *key);
 extern void disk_result_free(void *x);
 
 #endif
+
+/** @} */
 
