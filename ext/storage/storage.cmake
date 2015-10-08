@@ -11,6 +11,7 @@ add_library(xfirestorage SHARED
 	storage/string.c
 
 	include/xfire/dict.h
+	include/xfire/disk.h
 	include/xfire/rbtree.h
 	include/xfire/list.h
 	include/xfire/database.h
