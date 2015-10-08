@@ -1,6 +1,5 @@
 /**
  * @defgroup storage Storage API
- * @ingroup server
  * @brief The storage subsystem contains several API's
  * to store data in several formats.
  *

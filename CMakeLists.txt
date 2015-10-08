@@ -15,10 +15,6 @@ include(scripts/link.cmake)
 
 include_directories(${XFIRE_INCLUDE_DIR})
 
-if(XFIRE_CLIENT)
-	add_subdirectory(${XFIRE_CLIENT_PATH})
-endif(XFIRE_CLIENT)
-
 if(XFIRE_SERVER)
 	add_subdirectory(${XFIRE_EXTENSION_PATH})
 endif(XFIRE_SERVER)
