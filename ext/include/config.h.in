@@ -13,6 +13,8 @@ ${XFIRE_STDOUT} "${STDOUT}"
 ${HAVE_LINUX}
 ${HAVE_RECURSION}
 
+#define XFIRE_STACK_SIZE ${STACK_SIZE}
+
 #define SQLITE_DB "${DATA_PATH}/xfire.db"
 
 #define DEBUG_DB_NAME "dbg-db"

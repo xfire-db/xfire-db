@@ -477,7 +477,6 @@ static int dict_expand(struct dict *d, unsigned long size)
 	d->rehashing = true;
 
 	xfire_cond_signal(&d->rehash_condi);
-
 	return -XFIRE_OK;
 }
 
@@ -987,8 +986,8 @@ struct dict_entry *dict_iterator_prev(struct dict_iterator *it)
 
 	xfire_mutex_lock(&d->lock);
 	do {
+		map = &d->map[it->table];
 		if(!it->e) {
-			map = &d->map[it->table];
 			it->idx--;
 
 			if(it->idx == -2L)

@@ -9,9 +9,10 @@ include (storage/storage.cmake)
 
 add_library (xfire SHARED
 	bg.c
-	bitops-atomic.c
 	bitops.c
 	log.c)
+
+target_link_libraries(xfire LINK_PUBLIC xfirestorage xfireos)
 
 install (TARGETS xfire
 	LIBRARY DESTINATION lib
