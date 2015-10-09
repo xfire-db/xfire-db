@@ -40,6 +40,28 @@ struct database {
 	struct dict *container; //!< Data container.
 };
 
+#define db_iterator dict_iterator //!< Iterator typedef
+#define db_entry dict_entry //!< Data entry typedef
+
+/**
+ * @brief Get a database iterator.
+ * @param __db Database to get an iterator for.
+ */
+#define db_get_iterator(__db) \
+	dict_get_safe_iterator((__db)->container)
+/**
+ * @brief Get the next entry from an iterator.
+ * @param __it Iterator to get the next from.
+ */
+#define db_iterator_next(__it) \
+	dict_iterator_next(__it)
+/**
+ * @brief Release an iterator.
+ * @param __it Iterator to release.
+ */
+#define db_iterator_free(__it) \
+	dict_iterator_free(__it)
+
 CDECL
 extern struct database *db_alloc(const char *name);
 extern void db_free(struct database *db);

@@ -87,9 +87,33 @@ int bg_process_signal(const char *name)
 		return -XFIRE_ERR;
 
 	job = data.ptr;
+	if(!job)
+		return -XFIRE_ERR;
+
 	xfire_mutex_lock(&job->lock);
 	xfire_cond_signal(&job->condi);
 	xfire_mutex_unlock(&job->lock);
+
+	return -XFIRE_OK;
+}
+
+static int __bg_process_stop(struct job *job)
+{
+	if(!job)
+		return -XFIRE_ERR;
+
+	xfire_mutex_lock(&job->lock);
+	job->done = true;
+	xfire_cond_signal(&job->condi);
+	xfire_mutex_unlock(&job->lock);
+
+	xfire_thread_join(job->tp);
+	xfire_thread_destroy(job->tp);
+	xfire_cond_destroy(&job->condi);
+	xfire_mutex_destroy(&job->lock);
+
+	xfire_free(job->name);
+	xfire_free(job);
 
 	return -XFIRE_OK;
 }
@@ -103,18 +127,32 @@ int bg_process_stop(const char *name)
 		return -XFIRE_ERR;
 
 	job = data.ptr;
-	xfire_mutex_lock(&job->lock);
-	job->done = true;
-	xfire_cond_signal(&job->condi);
-	xfire_mutex_unlock(&job->lock);
+	return __bg_process_stop(job);
+}
 
-	xfire_thread_join(job->tp);
-	xfire_thread_destroy(job->tp);
-	xfire_cond_destroy(&job->condi);
-	xfire_mutex_destroy(&job->lock);
+void bg_processes_exit(void)
+{
+	struct job *job;
+	struct db_iterator *it;
+	struct db_entry *e;
+	db_data_t data;
+	int rv;
 
-	xfire_free(job->name);
-	xfire_free(job);
-	return -XFIRE_OK;
+	it = db_get_iterator(job_db);
+	e = db_iterator_next(it);
+
+	while(e) {
+		rv = db_delete(job_db, e->key, &data);
+		if(rv)
+			continue;
+		job = data.ptr;
+		if(!job)
+			continue;
+
+		__bg_process_stop(job);
+	}
+
+	db_iterator_free(it);
+	return;
 }
 
