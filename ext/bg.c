@@ -50,10 +50,21 @@ void bg_processes_init(void)
 
 static void *job_processor(void *arg)
 {
-	return NULL;
+	struct job *j = arg;
+
+	xfire_mutex_lock(&j->lock);
+	while(true) {
+		if(!j->done)
+			xfire_cond_wait(&j->condi, &j->lock);
+		if(j->done)
+			j->handle(j->arg);
+	}
+
+	xfire_mutex_unlock(&j->lock);
+	xfire_thread_exit(NULL);
 }
 
-int bg_process_create(const char *name, void (*handle)(void*))
+int bg_process_create(const char *name, void (*handle)(void*), void *arg)
 {
 	int l;
 	char *_name;
@@ -66,6 +77,7 @@ int bg_process_create(const char *name, void (*handle)(void*))
 	job = xfire_zalloc(sizeof(*job));
 	job->name = _name;
 	job->handle = handle;
+	job->arg = arg;
 	xfire_mutex_init(&job->lock);
 	xfire_cond_init(&job->condi);
 	db_store(job_db, name, job);

@@ -1,5 +1,5 @@
 /*
- *  Background process header
+ *  Background processes
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,37 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BG_H__
-#define __BG_H__
-
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/os.h>
+#include <xfire/bg.h>
+#include <xfire/mem.h>
+#include <xfire/error.h>
 
-struct job {
-	char *name;
-	time_t stamp;
-	bool done;
-
-	void (*handle)(void *arg);
-	void *arg;
-	xfire_mutex_t lock;
-	xfire_cond_t condi;
-	struct thread *tp;
-};
-
-CDECL
-extern void bg_processes_init(void);
-extern void bg_processes_exit(void);
-
-extern int bg_process_create(const char *name, 
-			void (*handle)(void *arg), void *arg);
-extern int bg_process_signal(const char *name);
-extern int bg_process_stop(const char *name);
-CDECL_END
-
-#endif
+int main(int argc, char **argv)
+{
+	return -EXIT_SUCCESS;
+}
 
