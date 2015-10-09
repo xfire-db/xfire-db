@@ -22,3 +22,5 @@ include (tests/bitops/bitops-test.cmake)
 include (tests/rbtree/rb-test.cmake)
 include (tests/dict/dict-test.cmake)
 include (tests/disk/disk.cmake)
+include (tests/bg/bg.cmake)
+

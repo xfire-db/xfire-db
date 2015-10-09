@@ -52,15 +52,18 @@ static void *job_processor(void *arg)
 {
 	struct job *j = arg;
 
-	xfire_mutex_lock(&j->lock);
 	while(true) {
+		xfire_mutex_lock(&j->lock);
 		if(!j->done)
 			xfire_cond_wait(&j->condi, &j->lock);
+		xfire_mutex_unlock(&j->lock);
+
 		if(j->done)
-			j->handle(j->arg);
+			break;
+		else
+			j->handle(arg);
 	}
 
-	xfire_mutex_unlock(&j->lock);
 	xfire_thread_exit(NULL);
 }
 
@@ -162,9 +165,11 @@ void bg_processes_exit(void)
 			continue;
 
 		__bg_process_stop(job);
+		e = db_iterator_next(it);
 	}
 
 	db_iterator_free(it);
+	db_free(job_db);
 	return;
 }
 

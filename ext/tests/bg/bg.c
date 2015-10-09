@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
@@ -25,8 +26,36 @@
 #include <xfire/mem.h>
 #include <xfire/error.h>
 
+static void job1_handler(void *arg)
+{
+	printf("Job 1 handler fired\n");
+}
+
+static void job2_handler(void *arg)
+{
+	printf("Job 2 handler fired\n");
+}
+
+static void job3_handler(void *arg)
+{
+	printf("Job 3 handler fired\n");
+}
+
 int main(int argc, char **argv)
 {
+	bg_processes_init();
+	bg_process_create("job1", &job1_handler, NULL);
+	bg_process_create("job3", &job3_handler, NULL);
+	bg_process_create("job2", &job2_handler, NULL);
+
+	sleep(2);
+
+	bg_process_signal("job1");
+	bg_process_signal("job3");
+	bg_process_signal("job2");
+	sleep(2);
+
+	bg_processes_exit();
 	return -EXIT_SUCCESS;
 }
 
