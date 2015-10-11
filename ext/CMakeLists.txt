@@ -8,6 +8,7 @@ include (storage/storage.cmake)
 # libs
 
 add_library (xfire SHARED
+	bio.c
 	bg.c
 	bitops.c
 	log.c)

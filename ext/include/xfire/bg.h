@@ -42,7 +42,7 @@ CDECL
 extern void bg_processes_init(void);
 extern void bg_processes_exit(void);
 
-extern int bg_process_create(const char *name, 
+extern struct job *bg_process_create(const char *name, 
 			void (*handle)(void *arg), void *arg);
 extern int bg_process_signal(const char *name);
 extern int bg_process_stop(const char *name);

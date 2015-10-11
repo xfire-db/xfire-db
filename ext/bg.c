@@ -67,7 +67,8 @@ static void *job_processor(void *arg)
 	xfire_thread_exit(NULL);
 }
 
-int bg_process_create(const char *name, void (*handle)(void*), void *arg)
+struct job *bg_process_create(const char *name,
+				void (*handle)(void*), void *arg)
 {
 	int l;
 	char *_name;
@@ -88,9 +89,9 @@ int bg_process_create(const char *name, void (*handle)(void*), void *arg)
 
 	job->tp = __xfire_create_thread(name, &bg_proc_stack, &job_processor, job);
 	if(!job->tp)
-		return -XFIRE_ERR;
+		return NULL;
 
-	return -XFIRE_OK;
+	return job;
 }
 
 int bg_process_signal(const char *name)
