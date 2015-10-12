@@ -477,7 +477,6 @@ static int dict_expand(struct dict *d, unsigned long size)
 	d->rehashing = true;
 
 	xfire_cond_signal(&d->rehash_condi);
-
 	return -XFIRE_OK;
 }
 

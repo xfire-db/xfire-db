@@ -8,10 +8,12 @@ include (storage/storage.cmake)
 # libs
 
 add_library (xfire SHARED
+	bio.c
 	bg.c
-	bitops-atomic.c
 	bitops.c
 	log.c)
+
+target_link_libraries(xfire LINK_PUBLIC xfirestorage xfireos)
 
 install (TARGETS xfire
 	LIBRARY DESTINATION lib
@@ -21,3 +23,5 @@ include (tests/bitops/bitops-test.cmake)
 include (tests/rbtree/rb-test.cmake)
 include (tests/dict/dict-test.cmake)
 include (tests/disk/disk.cmake)
+include (tests/bg/bg.cmake)
+

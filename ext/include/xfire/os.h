@@ -40,6 +40,28 @@
 #define xfire_cond_t pthread_cond_t //!< XFire condition variable.
 #define xfire_mutex_t mutex_t //!< XFire mutex.
 #define xfire_spinlock_t pthread_spinlock_t //!< XFire spinlock.
+#define xfire_attr_t pthread_attr_t //!< Thread attributes
+#define xfire_attr_init(_atr) pthread_attr_init(_atr) //!< Init thread attributes
+
+/**
+ * @brief Get the stack size.
+ * @param attr Thread attributes.
+ * @param stack Pointer to store the stack size in.
+ */
+static inline void xfire_get_stack_size(xfire_attr_t *attr, size_t *stack)
+{
+	pthread_attr_getstacksize(attr, stack);
+}
+
+/**
+ * @brief Set the stack size.
+ * @param attr Attributes to set the stack size for.
+ * @param stack Stack size to set.
+ */
+static inline void xfire_set_stack_size(xfire_attr_t *attr, size_t *stack)
+{
+	pthread_attr_setstacksize(attr, *stack);
+}
 
 /**
  * @brief Initialise a spinlock.
@@ -199,6 +221,10 @@ extern void xfire_mutex_unlock(xfire_mutex_t *m);
 extern struct thread *xfire_create_thread(const char *name,
 				      void* (*fn)(void*),
 				      void* arg);
+struct thread *__xfire_create_thread(const char *name,
+				size_t *stack,
+				void *(*fn)(void*),
+				void *arg);
 /**
  * @brief Join two threads.
  * @param tp Thread to join.
