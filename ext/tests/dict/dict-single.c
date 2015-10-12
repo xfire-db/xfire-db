@@ -50,6 +50,7 @@ static void dot()
 static void dbg_setup_dict(struct dict *d)
 {
 	union entry_data val;
+	size_t size;
 
 	dict_add(d, KEY_1, TEST_1, DICT_PTR);
 	dict_add(d, KEY_2, TEST_2, DICT_PTR);
@@ -57,11 +58,11 @@ static void dbg_setup_dict(struct dict *d)
 	dict_add(d, KEY_4, TEST_4, DICT_PTR);
 	dict_add(d, KEY_5, TEST_5, DICT_PTR);
 
-	dict_lookup(d, KEY_3, &val);
+	dict_lookup(d, KEY_3, &val, &size);
 	printf("Current data of %s: %s - Updating\n", KEY_3, (char*)val.ptr);
 	dict_update(d, KEY_3, UPDATE_DATA, DICT_PTR);
 
-	dict_lookup(d, KEY_3, &val);
+	dict_lookup(d, KEY_3, &val, &size);
 	printf("Current data of %s: %s\n", KEY_3, (char*)val.ptr);
 }
 

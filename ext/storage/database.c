@@ -96,9 +96,10 @@ int db_delete(struct database *db, const char *key, db_data_t *data)
 int db_lookup(struct database *db, const char *key, db_data_t *data)
 {
 	union entry_data val;
+	size_t tmp;
 	int rv;
 
-	rv = dict_lookup(db->container, key, &val);
+	rv = dict_lookup(db->container, key, &val, &tmp);
 	if(rv != -XFIRE_OK)
 		return rv;
 	else

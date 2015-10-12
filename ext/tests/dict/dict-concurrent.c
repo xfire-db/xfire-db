@@ -41,11 +41,13 @@ static const char *dbg_values[] = {"val1","val2","val3","val4","val5","val6","va
 void *test_thread_a(void *arg)
 {
 	int i = 0;
+	int rc;
 
 	printf("Insert thread \"a\" starting!\n");
 	for(; i < 5; i++) {
-		dict_add(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i], DICT_PTR);
+		rc = strlen((char*)dbg_values[i]);
+		raw_dict_add(arg, (const char*)dbg_keys[i],
+			(void*)dbg_values[i], DICT_PTR, rc);
 	}
 	return NULL;
 }
@@ -107,6 +109,7 @@ int main(int argc, char **argv)
 	struct thread *a, *b, *c, *d, *e;
 	int i = 0;
 	union entry_data val, tmp;
+	size_t size;
 
 	strings = dict_alloc();
 
@@ -140,7 +143,7 @@ int main(int argc, char **argv)
 
 	printf("Testing lookup...\n");
 	dot();dot();dot();
-	dict_lookup(strings, dbg_keys[11], &tmp);
+	dict_lookup(strings, dbg_keys[11], &tmp, &size);
 	if(tmp.ptr) {
 		printf("Found %s under key %s!\n", (char*)tmp.ptr, dbg_keys[11]);
 		printf("Concurrent dict test successful\n");
