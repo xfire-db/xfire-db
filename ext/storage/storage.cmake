@@ -4,10 +4,11 @@
 
 add_library(xfirestorage SHARED
 	storage/dict.c
+	storage/database.c
 	storage/disk.c
+	storage/bio.c
 	storage/rbtree.c
 	storage/list.c
-	storage/database.c
 	storage/string.c
 
 	include/xfire/dict.h
