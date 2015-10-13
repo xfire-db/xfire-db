@@ -61,4 +61,8 @@ public:
 		const typeof( ((type *)0)->member) *__mptr = (ptr); \
 		(type *)( ( char *)__mptr - offsetof(type,member) );})
 
+CDECL
+extern int xfire_sprintf(char **buf, char *format, ...);
+CDECL_END
+
 #endif

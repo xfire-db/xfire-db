@@ -38,6 +38,7 @@ void string_init(struct string *str)
 	str->len = 0UL;
 	xfire_spinlock_init(&str->lock);
 	list_node_init(&str->entry);
+	rb_init_node(&str->node);
 }
 
 /**
@@ -85,15 +86,10 @@ void string_set(struct string *string, const char *str)
  * @param num Length of buff in bytes.
  * @return Error code. 0 on success, -1 otherwise.
  */
-int string_get(struct string *str, char *buff, size_t num)
+int string_get(struct string *str, char **buff)
 {
 	xfire_spin_lock(&str->lock);
-	if(num < str->len) {
-		xfire_spin_unlock(&str->lock);
-		return -1;
-	}
-
-	memcpy(buff, str->str, num);
+	xfire_sprintf(buff, "%s", str->str);
 	xfire_spin_unlock(&str->lock);
 
 	return 0;
@@ -124,6 +120,7 @@ void string_destroy(struct string *str)
 	if(str->str)
 		xfire_free(str->str);
 
+	rb_node_destroy(&str->node);
 	xfire_spinlock_destroy(&str->lock);
 }
 

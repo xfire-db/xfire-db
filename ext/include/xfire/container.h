@@ -1,5 +1,5 @@
 /*
- *  Background I/O header
+ *  Containers
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,32 +16,33 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BIO_H__
-#define __BIO_H__
+#ifndef __CONTAINER_H__
+#define __CONTAINER_H__
 
 #include <xfire/xfire.h>
+#include <xfire/error.h>
 #include <xfire/types.h>
-#include <xfire/dict.h>
-#include <xfire/database.h>
+#include <xfire/list.h>
+#include <xfire/string.h>
 
-struct bio_q;
+#define CONTAINER_STRING_MAGIC 0xFFAABBCC
+#define CONTAINER_LIST_MAGIC   0xEEAABBCC
+#define CONTAINER_HM_MAGIC     0xDDAABBCC
 
-struct bio_q_head {
-	struct bio_q *next,
-		     *tail;
-	struct job *job;
+typedef enum {
+	CONTAINER_STRING,
+	CONTAINER_LIST,
+	CONTAINER_HASHMAP,
+} container_type_t;
+
+struct container {
+	container_type_t type;
+
+	union {
+		struct list_head list;
+		struct string string;
+	} data;
 };
-
-struct bio_q {
-	struct bio_q *next,
-		     *prev;
-};
-
-CDECL
-extern void bio_init(struct database *db);
-extern int bio_update(struct dict_entry *e);
-extern void bio_exit(void);
-CDECL_END
 
 #endif
 

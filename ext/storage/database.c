@@ -28,6 +28,7 @@
 #include <xfire/mem.h>
 #include <xfire/dict.h>
 #include <xfire/database.h>
+#include <xfire/container.h>
 
 /**
  * @brief Allocate a new database.
@@ -55,12 +56,12 @@ struct database *db_alloc(const char *name)
  * @param data Data to store.
  * @return Error code.
  */
-int db_store(struct database *db, const char *key, void *data)
+int db_store(struct database *db, const char *key, struct container *c)
 {
 	/*
 	 * add the entry to the dictionary.
 	 */
-	return dict_add(db->container, key, data, DICT_PTR);
+	return dict_add(db->container, key, c, DICT_PTR);
 }
 
 /**

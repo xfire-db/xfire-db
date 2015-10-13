@@ -28,12 +28,14 @@
 #include <xfire/types.h>
 #include <xfire/os.h>
 #include <xfire/list.h>
+#include <xfire/rbtree.h>
 
 /**
  * @brief String container.
  */
 struct string {
 	struct list entry; //!< List entry.
+	struct rb_node node;
 
 	char *str; //!< String pointer.
 	size_t len; //!< Length of \p str in bytes.
@@ -51,7 +53,7 @@ extern void string_init(struct string *str);
 extern void string_free(struct string *string);
 extern void string_destroy(struct string *str);
 extern void string_set(struct string *string, const char *str);
-extern int string_get(struct string *str, char *buff, size_t num);
+extern int string_get(struct string *str, char **buf);
 extern size_t string_length(struct string *str);
 
 /**

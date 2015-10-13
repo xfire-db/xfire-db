@@ -6,16 +6,18 @@ include (os/os.cmake)
 include (storage/storage.cmake)
 
 # libs
+add_library (xfireio SHARED
+	sprintf.c
+	)
 
 add_library (xfire SHARED
-	bio.c
-	bg.c
+	container.c
 	bitops.c
 	log.c)
 
 target_link_libraries(xfire LINK_PUBLIC xfirestorage xfireos)
 
-install (TARGETS xfire
+install (TARGETS xfire xfireio
 	LIBRARY DESTINATION lib
 	)
 

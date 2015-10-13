@@ -30,6 +30,10 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/os.h>
+#include <xfire/string.h>
+#include <xfire/list.h>
+#include <xfire/rbtree.h>
+#include <xfire/container.h>
 
 /**
  * @brief Persistent disk structure.
@@ -49,8 +53,9 @@ CDECL
 extern struct disk *disk_create(const char *path);
 extern void disk_destroy(struct disk *disk);
 
-extern int disk_store(struct disk *disk, char *key, void *data, size_t length);
-extern int disk_update(struct disk *disk, char *key, void *data, size_t length);
+extern int disk_store_list(struct disk *d, char *key, struct list_head *lh);
+extern int disk_store_string(struct disk *d, char *key, struct string *s);
+extern int disk_update(struct disk *d, char *key, void *data, container_type_t type);
 extern void *disk_lookup(struct disk *disk, char *key);
 extern void disk_result_free(void *x);
 

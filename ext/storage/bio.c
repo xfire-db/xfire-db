@@ -23,14 +23,21 @@
 #include <xfire/types.h>
 #include <xfire/bg.h>
 #include <xfire/bio.h>
+#include <xfire/database.h>
 #include <xfire/mem.h>
 #include <xfire/os.h>
 #include <xfire/error.h>
 
 static struct bio_q_head *bio_q;
 
-void bio_init(void)
+static void bio_worker(void *arg)
+{
+}
+
+void bio_init(struct database *db)
 {
 	bio_q = xfire_zalloc(sizeof(*bio_q));
+
+	bio_q->job = bg_process_create("bio-worker", &bio_worker, db);
 }
 

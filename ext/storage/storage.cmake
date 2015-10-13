@@ -19,7 +19,7 @@ add_library(xfirestorage SHARED
 	include/xfire/string.h
 	)
 
-target_link_libraries(xfirestorage LINK_PUBLIC xfireos sqlite3)
+target_link_libraries(xfirestorage LINK_PUBLIC xfireos xfireio sqlite3)
 
 install (TARGETS xfirestorage
 	LIBRARY DESTINATION lib

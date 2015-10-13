@@ -701,7 +701,7 @@ static size_t dict_get_entry_length(dict_type_t t, void *data)
 
 	switch(t) {
 	case DICT_PTR:
-		rc = strlen(data);
+		rc = sizeof(void*);
 		break;
 	case DICT_U64:
 	case DICT_S64:

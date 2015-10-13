@@ -25,6 +25,7 @@
 #include <xfire/types.h>
 #include <xfire/database.h>
 #include <xfire/os.h>
+#include <xfire/container.h>
 
 static const char *dbg_keys[] = {"key1","key2","key3","key4","key5","key6","key7",
 				"key8","key9","key10","key11","key12",

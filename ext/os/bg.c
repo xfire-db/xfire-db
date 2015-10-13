@@ -25,9 +25,9 @@
 #include <xfire/mem.h>
 #include <xfire/os.h>
 #include <xfire/error.h>
-#include <xfire/database.h>
+#include <xfire/dict.h>
 
-static struct database *job_db;
+static struct dict *job_db;
 static size_t bg_proc_stack = 0;
 
 void bg_processes_init(void)
@@ -35,7 +35,7 @@ void bg_processes_init(void)
 	size_t stack;
 	xfire_attr_t attr;
 
-	job_db = db_alloc("job-db");
+	job_db = dict_alloc();
 	xfire_attr_init(&attr);
 	xfire_get_stack_size(&attr, &stack);
 
@@ -84,7 +84,7 @@ struct job *bg_process_create(const char *name,
 	job->arg = arg;
 	xfire_mutex_init(&job->lock);
 	xfire_cond_init(&job->condi);
-	db_store(job_db, name, job);
+	dict_add(job_db, name, job, DICT_PTR);
 	job->stamp = time(NULL);
 
 	job->tp = __xfire_create_thread(name, &bg_proc_stack, &job_processor, job);
@@ -96,10 +96,11 @@ struct job *bg_process_create(const char *name,
 
 int bg_process_signal(const char *name)
 {
-	db_data_t data;
+	union entry_data data;
+	size_t tmp;
 	struct job *job;
 
-	if(db_lookup(job_db, name, &data))
+	if(dict_lookup(job_db, name, &data, &tmp))
 		return -XFIRE_ERR;
 
 	job = data.ptr;
@@ -136,10 +137,10 @@ static int __bg_process_stop(struct job *job)
 
 int bg_process_stop(const char *name)
 {
-	db_data_t data;
+	union entry_data data;
 	struct job *job;
 
-	if(db_delete(job_db, name, &data))
+	if(dict_delete(job_db, name, &data, false))
 		return -XFIRE_ERR;
 
 	job = data.ptr;
@@ -149,16 +150,16 @@ int bg_process_stop(const char *name)
 void bg_processes_exit(void)
 {
 	struct job *job;
-	struct db_iterator *it;
-	struct db_entry *e;
-	db_data_t data;
+	struct dict_iterator *it;
+	struct dict_entry *e;
+	union entry_data data;
 	int rv;
 
-	it = db_get_iterator(job_db);
-	e = db_iterator_next(it);
+	it = dict_get_iterator(job_db);
+	e = dict_iterator_next(it);
 
 	while(e) {
-		rv = db_delete(job_db, e->key, &data);
+		rv = dict_delete(job_db, e->key, &data, false);
 		if(rv)
 			continue;
 		job = data.ptr;
@@ -166,11 +167,11 @@ void bg_processes_exit(void)
 			continue;
 
 		__bg_process_stop(job);
-		e = db_iterator_next(it);
+		e = dict_iterator_next(it);
 	}
 
-	db_iterator_free(it);
-	db_free(job_db);
+	dict_iterator_free(it);
+	dict_free(job_db);
 	return;
 }
 

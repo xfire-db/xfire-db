@@ -4,6 +4,7 @@
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIRE_OS_FILES
+		os/bg.c
 		os/linux.c
 		os/mem.c
 		os/bitops-atomic.c

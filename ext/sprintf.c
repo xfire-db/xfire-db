@@ -1,5 +1,5 @@
 /*
- *  Background I/O header
+ *  sprintf implementation
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,32 +16,41 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BIO_H__
-#define __BIO_H__
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/dict.h>
-#include <xfire/database.h>
+#include <xfire/mem.h>
+#include <xfire/error.h>
 
-struct bio_q;
+static int xfire_vsprintf(char **str, const char *fmt, va_list args)
+{
+	int size = 0;
+	va_list tmpa;
 
-struct bio_q_head {
-	struct bio_q *next,
-		     *tail;
-	struct job *job;
-};
+	va_copy(tmpa, args);
+	size = vsnprintf(NULL, size, fmt, tmpa);
+	va_end(tmpa);
 
-struct bio_q {
-	struct bio_q *next,
-		     *prev;
-};
+	if(size < 0)
+		return -XFIRE_ERR;
 
-CDECL
-extern void bio_init(struct database *db);
-extern int bio_update(struct dict_entry *e);
-extern void bio_exit(void);
-CDECL_END
+	*str = xfire_zalloc(size + 1);
+	size = vsprintf(*str, fmt, args);
 
-#endif
+	return size;
+}
+
+int xfire_sprintf(char **buf, char *format, ...)
+{
+	int size;
+	va_list args;
+
+	va_start(args, format);
+	size = xfire_vsprintf(buf, format, args);
+	va_end(args);
+
+	return size;
+}
 

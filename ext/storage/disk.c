@@ -27,6 +27,10 @@
 #include <xfire/disk.h>
 #include <xfire/mem.h>
 #include <xfire/error.h>
+#include <xfire/container.h>
+#include <xfire/string.h>
+#include <xfire/list.h>
+#include <xfire/rbtree.h>
 
 /**
  * @addtogroup disk
@@ -36,12 +40,23 @@
 #define DISK_CHECK_TABLE \
 	"SELECT name FROM sqlite_master WHERE type='table' AND name='xfiredb_data';"
 
+#define DISK_GEN_CHECK_TABLE \
+	"SELECT name FROM sqlite_master WHERE type='table' AND name='%s';"
+
 #define DISK_CREATE_TABLE \
 	"CREATE TABLE xfiredb_data(" \
-	"db_key CHAR(64) PRIMARY KEY NOT NULL, " \
+	"db_key CHAR(64) NOT NULL, " \
+	"db_secondary_key, " \
+	"db_type CHAR(64), " \
 	"db_value BLOB);"
 
-static int insert_hook(void *arg, int argc, char **argv, char **colname)
+#define DISK_CREATE_TABLE2 \
+	"CREATE TABLE xfiredb_%s(" \
+	"db_id INT, " \
+	"db_key CHAR(64), " \
+	"db_value BLOB);"
+
+static int dummy_hook(void *arg, int argc, char **argv, char **colname)
 {
 	return 0;
 }
@@ -54,7 +69,7 @@ static int init_hook(void *arg, int argc, char **argv, char **colname)
 	return 0;
 }
 
-static int disk_create_table(struct disk *disk)
+static int disk_create_main_table(struct disk *disk)
 {
 	int rc;
 	char *errmsg;
@@ -104,7 +119,7 @@ struct disk *disk_create(const char *path)
 	disk->records = 0ULL;
 	xfire_mutex_init(&disk->lock);
 
-	if(disk_create_table(disk) != -XFIRE_OK) {
+	if(disk_create_main_table(disk) != -XFIRE_OK) {
 		fprintf(stderr, "Could not create tables, exiting.\n");
 	}
 
@@ -112,12 +127,54 @@ struct disk *disk_create(const char *path)
 }
 
 #define DISK_STORE_QUERY \
-	"INSERT INTO xfiredb_data (db_key, db_value) " \
-	"VALUES ('%s', '%s');"
+	"INSERT INTO xfiredb_data (db_key, db_secondary_key, db_type, db_value) " \
+	"VALUES ('%s', '%s', '%s', '%s');"
 #define DISK_UPDATE_QUERY \
 	"UPDATE xfiredb_data SET db_value = '%s' WHERE db_key = '%s';"
 #define DISK_SELECT_QUERY \
 	"SELECT * FROM xfiredb_data WHERE db_key = '%s';"
+
+int disk_store_hm(struct disk *d, char *key, struct rb_root *root)
+{
+	return -1;
+}
+
+/**
+ * @brief Store a string list.
+ * @param d Disk to store to.
+ * @param key Key to store the list under.
+ * @param lh List head to store.
+ * @return An error code.
+ */
+int disk_store_list(struct disk *d, char *key, struct list_head *lh)
+{
+	int rc;
+	struct list *c;
+	struct string *s;
+	char *data, *msg, *query;
+
+	list_for_each(lh, c) {
+		s = container_of(c, struct string, entry);
+		string_get(s, &data);
+
+		xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "list", data);
+		rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+		if(rc != SQLITE_OK) {
+			fprintf(stderr, "Disk store failed: %s\n", msg);
+			sqlite3_free(msg);
+			xfire_free(query);
+			xfire_free(data);
+			return -XFIRE_ERR;
+		}
+
+		xfire_free(query);
+		xfire_free(data);
+		sqlite3_free(msg);
+	}
+
+	return -XFIRE_OK;
+}
 
 /**
  * @brief Store a key-value pair on the disk.
@@ -127,26 +184,16 @@ struct disk *disk_create(const char *path)
  * @param length Length of data.
  * @return Error code.
  */
-int disk_store(struct disk *d, char *key, void *data, size_t length)
+int disk_store_string(struct disk *d, char *key, struct string *s)
 {
 	int rc;
-	char *msg, *query;
-	int len;
+	char *msg, *query, *data;
 
-	len = sizeof(DISK_STORE_QUERY) + strlen(key) + length + 1;
-	query = xfire_zalloc(len);
+	string_get(s, &data);
+	xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "string", data);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
-	snprintf(query, len, DISK_STORE_QUERY, key, (char*)data);
-	rc = sqlite3_exec(d->handle, query, &insert_hook, d, &msg);
-
-	switch(rc) {
-	case SQLITE_OK:
-		rc = -XFIRE_OK;
-		break;
-	case SQLITE_CONSTRAINT:
-		rc = disk_update(d, key, data, length);
-		break;
-	default:
+	if(rc != SQLITE_OK) {
 		fprintf(stderr, "Disk store failed: %s\n", msg);
 		sqlite3_free(msg);
 		xfire_free(query);
@@ -154,18 +201,23 @@ int disk_store(struct disk *d, char *key, void *data, size_t length)
 	}
 
 	sqlite3_free(msg);
+	xfire_free(data);
 	xfire_free(query);
 	return rc;
 }
 
 static int lookup_hook(void *arg, int argc, char **row, char **colname)
 {
-	int len;
+	int i;
 	void **data = arg;
 
-	len = strlen(row[1]);
-	*data = xfire_zalloc(len + 1);
-	memcpy(*data, row[1], len);
+	for(i = 0; i < argc; i+=4)
+		printf("%s = %s\n", row[i+3], colname[i+3]);
+
+	*data = NULL;
+	//len = strlen(row[1]);
+	//*data = xfire_zalloc(len + 1);
+	//memcpy(*data, row[1], len);
 
 	return 0;
 }
@@ -196,13 +248,9 @@ void *disk_lookup(struct disk *d, char *key)
 {
 	int rc;
 	char *msg, *query;
-	int len;
 	void *result = NULL;
 
-	len = sizeof(DISK_SELECT_QUERY) + strlen(key) + 1;
-	query = xfire_zalloc(len);
-
-	snprintf(query, len, DISK_SELECT_QUERY, key);
+	xfire_sprintf(&query, DISK_SELECT_QUERY, key);
 	rc = sqlite3_exec(d->handle, query, &lookup_hook, &result, &msg);
 
 	switch(rc) {
@@ -228,17 +276,13 @@ void *disk_lookup(struct disk *d, char *key)
  * @param length Length of \p data.
  * @return Error code.
  */
-int disk_update(struct disk *d, char *key, void *data, size_t length)
+int disk_update(struct disk *d, char *key, void *data, container_type_t type)
 {
 	int rc;
 	char *msg, *query;
-	int len;
 
-	len = sizeof(DISK_UPDATE_QUERY) + strlen(key) + length + 1;
-	query = xfire_zalloc(len);
-
-	snprintf(query, len, DISK_UPDATE_QUERY, (char*)data, key);
-	rc = sqlite3_exec(d->handle, query, &insert_hook, d, &msg);
+	xfire_sprintf(&query, DISK_UPDATE_QUERY, data, key);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	switch(rc) {
 	case SQLITE_OK:

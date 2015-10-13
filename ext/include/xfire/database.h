@@ -23,9 +23,11 @@
 
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
+
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/dict.h>
+#include <xfire/container.h>
 
 /**
  * @brief Database data type.
@@ -66,7 +68,7 @@ CDECL
 extern struct database *db_alloc(const char *name);
 extern void db_free(struct database *db);
 
-extern int db_store(struct database *db, const char *key, void *data);
+extern int db_store(struct database *db, const char *key, struct container *c);
 extern int db_delete(struct database *db, const char *key, db_data_t *data);
 extern int db_lookup(struct database *db, const char *key, db_data_t *data);
 CDECL_END
