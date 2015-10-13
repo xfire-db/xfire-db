@@ -290,6 +290,18 @@ extern s64 atomic64_get(atomic64_t *atom);
 extern void xfire_mutex_init(xfire_mutex_t *m);
 
 /**
+ * @brief Destroy a 32-bit atomic.
+ * @param atom Atomic to kill.
+ */
+extern void atomic_destroy(atomic_t *atom);
+
+/**
+ * @brief Destroy a 64-bit atomic.
+ * @param atom Atomic to kill.
+ */
+extern void atomic64_destroy(atomic64_t *atom);
+
+/**
  * @brief Initialise an atomic variable.
  * @param atom Atom to init.
  */

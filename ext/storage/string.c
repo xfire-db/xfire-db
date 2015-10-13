@@ -38,7 +38,6 @@ void string_init(struct string *str)
 	str->len = 0UL;
 	xfire_spinlock_init(&str->lock);
 	list_node_init(&str->entry);
-	rb_init_node(&str->node);
 }
 
 /**
@@ -120,7 +119,6 @@ void string_destroy(struct string *str)
 	if(str->str)
 		xfire_free(str->str);
 
-	rb_node_destroy(&str->node);
 	xfire_spinlock_destroy(&str->lock);
 }
 

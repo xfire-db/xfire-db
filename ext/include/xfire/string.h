@@ -35,7 +35,6 @@
  */
 struct string {
 	struct list entry; //!< List entry.
-	struct rb_node node;
 
 	char *str; //!< String pointer.
 	size_t len; //!< Length of \p str in bytes.

@@ -107,6 +107,16 @@ void *xfire_thread_join(struct thread *tp)
 	return rv;
 }
 
+void atomic_destroy(atomic_t *atom)
+{
+	xfire_spinlock_destroy(&atom->lock);
+}
+
+void atomic64_destroy(atomic64_t *atom)
+{
+	xfire_spinlock_destroy(&atom->lock);
+}
+
 void atomic_add(atomic_t *atom, s32 val)
 {
 	xfire_spin_lock(&atom->lock);

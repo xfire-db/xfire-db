@@ -64,6 +64,16 @@ void rb_node_destroy(struct rb_node *node)
 }
 
 /**
+ * @brief Destroy a red-black tree root.
+ * @param root Root to destroy.
+ */
+void rb_destroy_root(struct rb_root *root)
+{
+	xfire_spinlock_destroy(&root->lock);
+	atomic64_destroy(&root->num);
+}
+
+/**
  * @brief Initialise a red black tree.
  * @param root Red black root to initialise.
  */
@@ -71,6 +81,7 @@ void rb_init_root(struct rb_root *root)
 {
 	xfire_spinlock_init(&root->lock);
 	atomic64_init(&root->num);
+	root->tree = NULL;
 }
 
 static inline void rb_swap_color(struct rb_node *n1, struct rb_node *n2)
@@ -744,15 +755,20 @@ static void rb_replace_node(struct rb_root *root,
 	clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
 }
 
-static void __rb_iterate(struct rb_node *node,
-			     void (*fn)(struct rb_node *))
+static void __rb_iterate(struct rb_root *root, struct rb_node *node,
+			     void (*fn)(struct rb_root *,struct rb_node *,void*), void *arg)
 {
+	struct rb_node *left, *right;
+
 	if(!node)
 		return;
 
-	fn(node);
-	__rb_iterate(node->left, fn);
-	__rb_iterate(node->right, fn);
+	left = node->left;
+	right = node->right;
+
+	fn(root, node, arg);
+	__rb_iterate(root, left, fn, arg);
+	__rb_iterate(root, right, fn, arg);
 }
 
 /**
@@ -760,15 +776,19 @@ static void __rb_iterate(struct rb_node *node,
  * @param root Tree to iterate over.
  * @param fn Iteration function.
  */
-void rb_iterate(struct rb_root *root, void (*fn)(struct rb_node *))
+void rb_iterate(struct rb_root *root, void (*fn)(struct rb_root *,struct rb_node *,void*), void *arg)
 {
+	struct rb_node *left, *right;
+
 	if(!root->tree)
 		return;
+	
+	left = root->tree->left;
+	right = root->tree->right;
 
-	__rb_iterate(root->tree->left, fn);
-	__rb_iterate(root->tree->right, fn);
-
-	fn(root->tree);
+	__rb_iterate(root, left, fn, arg);
+	__rb_iterate(root, right, fn, arg);
+	fn(root, root->tree, arg);
 }
 
 typedef enum {
