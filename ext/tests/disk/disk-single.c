@@ -27,6 +27,14 @@
 #include <xfire/disk.h>
 #include <xfire/string.h>
 
+static void test_hm_insert(struct hashmap *map)
+{
+	hashmap_add(map, "key1", "test-val-1");
+	hashmap_add(map, "key2", "test-val-2");
+	hashmap_add(map, "key3", "test-val-3");
+	hashmap_add(map, "key4", "test-val-4");
+}
+
 static struct string *dbg_get_string(const char *c)
 {
 	struct string *s = xfire_zalloc(sizeof(*s));
@@ -34,6 +42,18 @@ static struct string *dbg_get_string(const char *c)
 	string_init(s);
 	string_set(s, c);
 	return s;
+}
+
+static void dbg_hm_store(struct disk *d)
+{
+	struct hashmap map;
+
+	hashmap_init(&map);
+	test_hm_insert(&map);
+	disk_store_hm(d, "hm-key", &map);
+	hashmap_destroy(&map);
+
+	disk_lookup(d, "hm-key");
 }
 
 static void dbg_list_store(struct disk *d)
@@ -89,6 +109,7 @@ int main(int argc, char **argv)
 	xfire_free(s);
 
 	dbg_list_store(d);
+	dbg_hm_store(d);
 	disk_destroy(d);
 	return -EXIT_SUCCESS;
 }

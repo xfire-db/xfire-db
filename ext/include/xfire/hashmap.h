@@ -29,7 +29,7 @@
 
 struct hashmap {
 	struct rb_root root;
-	void *arg;
+	void *privdata;
 };
 
 struct hashmap_node {

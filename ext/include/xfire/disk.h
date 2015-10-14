@@ -32,7 +32,7 @@
 #include <xfire/os.h>
 #include <xfire/string.h>
 #include <xfire/list.h>
-#include <xfire/rbtree.h>
+#include <xfire/hashmap.h>
 #include <xfire/container.h>
 
 /**
@@ -55,6 +55,7 @@ extern void disk_destroy(struct disk *disk);
 
 extern int disk_store_list(struct disk *d, char *key, struct list_head *lh);
 extern int disk_store_string(struct disk *d, char *key, struct string *s);
+extern int disk_store_hm(struct disk *d, char *key, struct hashmap *map);
 extern int disk_update(struct disk *d, char *key, void *data, container_type_t type);
 extern void *disk_lookup(struct disk *disk, char *key);
 extern void disk_result_free(void *x);

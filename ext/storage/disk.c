@@ -30,7 +30,7 @@
 #include <xfire/container.h>
 #include <xfire/string.h>
 #include <xfire/list.h>
-#include <xfire/rbtree.h>
+#include <xfire/hashmap.h>
 
 /**
  * @addtogroup disk
@@ -134,9 +134,40 @@ struct disk *disk_create(const char *path)
 #define DISK_SELECT_QUERY \
 	"SELECT * FROM xfiredb_data WHERE db_key = '%s';"
 
-int disk_store_hm(struct disk *d, char *key, struct rb_root *root)
+struct hm_store_data {
+	char *key;
+	struct disk *d;
+};
+
+static void disk_hm_iterate(struct hashmap *map, struct hashmap_node *node)
 {
-	return -1;
+	int rc;
+	char *data, *msg, *query;
+	struct hm_store_data *priv = map->privdata;
+
+	string_get(&node->s, &data);
+	xfire_sprintf(&query, DISK_STORE_QUERY, priv->key, node->key, "hashmap", data);
+	rc = sqlite3_exec(priv->d->handle, query, &dummy_hook, priv->d, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk store failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	xfire_free(data);
+}
+
+int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
+{
+	struct hm_store_data data;
+
+	data.key = key;
+	data.d = d;
+	map->privdata = &data;
+	hashmap_iterate(map, &disk_hm_iterate);
+	map->privdata = NULL;
+
+	return -XFIRE_OK;
 }
 
 /**
@@ -212,7 +243,8 @@ static int lookup_hook(void *arg, int argc, char **row, char **colname)
 	void **data = arg;
 
 	for(i = 0; i < argc; i+=4)
-		printf("%s = %s\n", row[i+3], colname[i+3]);
+		printf("%s = %s :: %s = %s :: %s = %s :: %s = %s\n", row[i], colname[i],
+				row[i+1], colname[i+1], row[i+2], colname[i+2], row[i+3], colname[i+3]);
 
 	*data = NULL;
 	//len = strlen(row[1]);
