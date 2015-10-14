@@ -155,6 +155,25 @@ static void disk_hm_iterate(struct hashmap *map, struct hashmap_node *node)
 	xfire_free(data);
 }
 
+int disk_store_hm_node(struct disk *d, char *key, struct hashmap_node *node)
+{
+	int rc;
+	char *data, *msg, *query;
+
+	string_get(&node->s, &data);
+	xfire_sprintf(&query, DISK_STORE_QUERY, key, node->key, "hashmap", data);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk store failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	xfire_free(data);
+	
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
 int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 {
 	struct hm_store_data data;
@@ -325,6 +344,27 @@ int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data)
 	return (rc == SQLITE_OK) ? -XFIRE_OK : -XFIRE_ERR;
 }
 
+#define DISK_UPDATE_LIST_QUERY \
+	"UPDATE xfiredb_data SET db_value = '%s' " \
+	"WHERE ROWID IN (SELECT ROWID FROM xfiredb_data WHERE " \
+	"db_key = '%s' AND db_value = '%s' AND db_type = 'list' LIMIT 1);"
+
+int disk_update_list(struct disk *d, char *key, char *data, char *newdata)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_UPDATE_LIST_QUERY, newdata, key, data);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk update failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
 #define DISK_UPDATE_QUERY \
 	"UPDATE xfiredb_data SET db_value = '%s' " \
 	"WHERE db_key = '%s' AND db_type = 'string';"
@@ -343,6 +383,66 @@ int disk_update_string(struct disk *d, char *key, void *data)
 	char *msg, *query;
 
 	xfire_sprintf(&query, DISK_UPDATE_QUERY, data, key);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk update failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
+#define DISK_DELETE_STRING_QUERY \
+	"DELETE FROM xfiredb_data " \
+	"WHERE db_type = 'string' AND db_key = '%s';"
+#define DISK_DELETE_LIST_QUERY \
+	"DELETE FROM xfiredb_data WHERE ROWID in (" \
+	"SELECT ROWID FROM xfiredb_data WHERE db_key = '%s' AND " \
+	"db_value = '%s' AND db_type = 'list' LIMIT 1);"
+
+#define DISK_DELETE_HM_QUERY \
+	"DELETE FROM xfiredb_data " \
+	"WHERE db_type = 'hashmap' AND db_key = '%s' AND db_secondary_key = '%s';"
+
+int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_DELETE_HM_QUERY, key, nodekey);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk update failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
+int disk_delete_list(struct disk *d, char *key, char *data)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_DELETE_LIST_QUERY, key, data);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk update failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
+int disk_delete_string(struct disk *d, char *key, char *data)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_DELETE_STRING_QUERY, key);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)

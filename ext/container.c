@@ -22,6 +22,7 @@
 #include <xfire/container.h>
 #include <xfire/string.h>
 #include <xfire/list.h>
+#include <xfire/hashmap.h>
 
 void container_init(struct container *c, container_type_t type)
 {
@@ -33,6 +34,7 @@ void container_init(struct container *c, container_type_t type)
 		list_head_init(&c->data.list);
 		break;
 	case CONTAINER_HASHMAP:
+		hashmap_init(&c->data.map);
 		break;
 	default:
 		break;
@@ -53,7 +55,7 @@ void *container_get_data(struct container *c)
 		data = &c->data.list;
 		break;
 	case CONTAINER_HASHMAP:
-		data = NULL;
+		data = &c->data.map;
 		break;
 	default:
 		data = NULL;
@@ -73,6 +75,7 @@ void container_destroy(struct container *c)
 		list_head_destroy(&c->data.list);
 		break;
 	case CONTAINER_HASHMAP:
+		hashmap_destroy(&c->data.map);
 		break;
 	default:
 		break;

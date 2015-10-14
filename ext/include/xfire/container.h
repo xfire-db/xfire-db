@@ -24,6 +24,7 @@
 #include <xfire/types.h>
 #include <xfire/list.h>
 #include <xfire/string.h>
+#include <xfire/hashmap.h>
 
 #define CONTAINER_STRING_MAGIC 0xFFAABBCC
 #define CONTAINER_LIST_MAGIC   0xEEAABBCC
@@ -41,6 +42,7 @@ struct container {
 	union {
 		struct list_head list;
 		struct string string;
+		struct hashmap map;
 	} data;
 };
 

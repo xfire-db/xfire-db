@@ -55,12 +55,17 @@ extern void disk_destroy(struct disk *disk);
 
 extern int disk_store_list(struct disk *d, char *key, struct list_head *lh);
 extern int disk_store_list_entry(struct disk *d, char *key, struct list *c);
+extern int disk_delete_list(struct disk *d, char *key, char *data);
+extern int disk_update_list(struct disk *d, char *key, char *data, char *newdata);
 
 extern int disk_store_string(struct disk *d, char *key, struct string *s);
 extern int disk_update_string(struct disk *d, char *key, void *data);
+extern int disk_delete_string(struct disk *d, char *key, char *data);
 
 extern int disk_store_hm(struct disk *d, char *key, struct hashmap *map);
 extern int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data);
+extern int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey);
+extern int disk_store_hm_node(struct disk *d, char *key, struct hashmap_node *node);
 
 extern void *disk_lookup(struct disk *disk, char *key);
 extern void disk_result_free(void *x);

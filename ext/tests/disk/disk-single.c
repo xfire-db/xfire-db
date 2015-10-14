@@ -52,6 +52,7 @@ static void dbg_hm_store(struct disk *d)
 	test_hm_insert(&map);
 	disk_store_hm(d, "hm-key", &map);
 	disk_update_hm(d, "hm-key", "key3", "hm-update-ok");
+	disk_delete_hashmapnode(d, "hm-key", "key2");
 	hashmap_destroy(&map);
 
 	disk_lookup(d, "hm-key");
@@ -59,32 +60,39 @@ static void dbg_hm_store(struct disk *d)
 
 static void dbg_list_store(struct disk *d)
 {
-	struct string *s1, *s2, *s3;
+	struct string *s1, *s2, *s3, *s4;
 	struct list_head lh;
 
 	list_head_init(&lh);
 	s1 = dbg_get_string("entry-1");
 	s2 = dbg_get_string("entry-2");
 	s3 = dbg_get_string("entry-3");
+	s4 = dbg_get_string("entry-3");
 
 	list_rpush(&lh, &s1->entry);
 	list_rpush(&lh, &s2->entry);
 	list_rpush(&lh, &s3->entry);
+	list_rpush(&lh, &s4->entry);
 
 	disk_store_list(d, "list-key", &lh);
+	disk_delete_list(d, "list-key", "entry-3");
+	disk_update_list(d, "list-key", "entry-3", "entry-4");
 	disk_lookup(d, "list-key");
 
 	list_del(&lh, &s1->entry);
 	list_del(&lh, &s2->entry);
 	list_del(&lh, &s3->entry);
+	list_del(&lh, &s4->entry);
 
 	string_destroy(s1);
 	string_destroy(s2);
 	string_destroy(s3);
+	string_destroy(s4);
 
 	xfire_free(s1);
 	xfire_free(s2);
 	xfire_free(s3);
+	xfire_free(s4);
 }
 
 int main(int argc, char **argv)
