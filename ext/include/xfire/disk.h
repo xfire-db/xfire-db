@@ -54,9 +54,14 @@ extern struct disk *disk_create(const char *path);
 extern void disk_destroy(struct disk *disk);
 
 extern int disk_store_list(struct disk *d, char *key, struct list_head *lh);
+extern int disk_store_list_entry(struct disk *d, char *key, struct list *c);
+
 extern int disk_store_string(struct disk *d, char *key, struct string *s);
+extern int disk_update_string(struct disk *d, char *key, void *data);
+
 extern int disk_store_hm(struct disk *d, char *key, struct hashmap *map);
-extern int disk_update(struct disk *d, char *key, void *data, container_type_t type);
+extern int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data);
+
 extern void *disk_lookup(struct disk *disk, char *key);
 extern void disk_result_free(void *x);
 

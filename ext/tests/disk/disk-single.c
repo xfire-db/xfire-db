@@ -51,6 +51,7 @@ static void dbg_hm_store(struct disk *d)
 	hashmap_init(&map);
 	test_hm_insert(&map);
 	disk_store_hm(d, "hm-key", &map);
+	disk_update_hm(d, "hm-key", "key3", "hm-update-ok");
 	hashmap_destroy(&map);
 
 	disk_lookup(d, "hm-key");
@@ -97,9 +98,7 @@ int main(int argc, char **argv)
 	if(!disk_store_string(d, "test-key", s))
 		fprintf(stdout, "Key store succesfull!\n");
 
-	/*if(!disk_update(d, "test-key", "test-data-update", sizeof("test-data-update")))
-		fprintf(stdout, "Key update succesfull!\n");*/
-
+	disk_update_string(d, "test-key", "String update success!");
 	lookup = disk_lookup(d, "test-key");
 	if(lookup)
 		printf("%s = %s\n", "test-key", lookup);

@@ -129,8 +129,6 @@ struct disk *disk_create(const char *path)
 #define DISK_STORE_QUERY \
 	"INSERT INTO xfiredb_data (db_key, db_secondary_key, db_type, db_value) " \
 	"VALUES ('%s', '%s', '%s', '%s');"
-#define DISK_UPDATE_QUERY \
-	"UPDATE xfiredb_data SET db_value = '%s' WHERE db_key = '%s';"
 #define DISK_SELECT_QUERY \
 	"SELECT * FROM xfiredb_data WHERE db_key = '%s';"
 
@@ -170,6 +168,28 @@ int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 	return -XFIRE_OK;
 }
 
+int disk_store_list_entry(struct disk *d, char *key, struct list *c)
+{
+	int rc;
+	struct string *s;
+	char *data, *msg, *query;
+
+	s = container_of(c, struct string, entry);
+	string_get(s, &data);
+
+	xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "list", data);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk store failed: %s\n", msg);
+
+	xfire_free(query);
+	xfire_free(data);
+	sqlite3_free(msg);
+
+	return (rc == SQLITE_OK) ? -XFIRE_OK : -XFIRE_ERR;
+}
+
 /**
  * @brief Store a string list.
  * @param d Disk to store to.
@@ -179,29 +199,11 @@ int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
  */
 int disk_store_list(struct disk *d, char *key, struct list_head *lh)
 {
-	int rc;
 	struct list *c;
-	struct string *s;
-	char *data, *msg, *query;
 
 	list_for_each(lh, c) {
-		s = container_of(c, struct string, entry);
-		string_get(s, &data);
-
-		xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "list", data);
-		rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
-
-		if(rc != SQLITE_OK) {
-			fprintf(stderr, "Disk store failed: %s\n", msg);
-			sqlite3_free(msg);
-			xfire_free(query);
-			xfire_free(data);
+		if(disk_store_list_entry(d, key, c))
 			return -XFIRE_ERR;
-		}
-
-		xfire_free(query);
-		xfire_free(data);
-		sqlite3_free(msg);
 	}
 
 	return -XFIRE_OK;
@@ -296,9 +298,36 @@ void *disk_lookup(struct disk *d, char *key)
 		return NULL;
 	}
 
+	sqlite3_free(msg);
 	xfire_free(query);
 	return result;
 }
+
+#define DISK_UPDATE_HM_QUERY \
+	"UPDATE xfiredb_data " \
+	"SET db_value = '%s' " \
+	"WHERE db_key = '%s' AND db_secondary_key = '%s';"
+
+int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_UPDATE_HM_QUERY, data, key, nodekey);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk update failed: %s\n", msg); 
+
+	xfire_free(query);
+	sqlite3_free(msg);
+
+	return (rc == SQLITE_OK) ? -XFIRE_OK : -XFIRE_ERR;
+}
+
+#define DISK_UPDATE_QUERY \
+	"UPDATE xfiredb_data SET db_value = '%s' " \
+	"WHERE db_key = '%s' AND db_type = 'string';"
 
 /**
  * @brief Update a key-value pair.
@@ -308,7 +337,7 @@ void *disk_lookup(struct disk *d, char *key)
  * @param length Length of \p data.
  * @return Error code.
  */
-int disk_update(struct disk *d, char *key, void *data, container_type_t type)
+int disk_update_string(struct disk *d, char *key, void *data)
 {
 	int rc;
 	char *msg, *query;
@@ -316,23 +345,12 @@ int disk_update(struct disk *d, char *key, void *data, container_type_t type)
 	xfire_sprintf(&query, DISK_UPDATE_QUERY, data, key);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
-	switch(rc) {
-	case SQLITE_OK:
-		rc = -XFIRE_OK;
-		break;
-/*	case SQLITE_CONSTRAINT:
-		rc = disk_update(d, key, data, length);
-		break;
-*/
-	default:
+	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk update failed: %s\n", msg);
-		sqlite3_free(msg);
-		xfire_free(query);
-		return -XFIRE_ERR;
-	}
 
+	sqlite3_free(msg);
 	xfire_free(query);
-	return rc;
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
 }
 
 /**
