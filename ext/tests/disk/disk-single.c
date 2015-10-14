@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
 	d = disk_create(SQLITE_DB);
 	s = dbg_get_string("test-data");
-	if(!disk_store_string(d, "test-key", s))
+	if(!disk_store_string(d, "test-key", s->str))
 		fprintf(stdout, "Key store succesfull!\n");
 
 	disk_update_string(d, "test-key", "String update success!");

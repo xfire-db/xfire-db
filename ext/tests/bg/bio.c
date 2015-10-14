@@ -30,7 +30,7 @@
 int main(int argc, char **argv)
 {
 	bg_processes_init();
-	bio_init(NULL);
+	bio_init();
 	dbg_bio_queue();
 	bio_exit();
 	bg_processes_exit();

@@ -155,13 +155,12 @@ static void disk_hm_iterate(struct hashmap *map, struct hashmap_node *node)
 	xfire_free(data);
 }
 
-int disk_store_hm_node(struct disk *d, char *key, struct hashmap_node *node)
+int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data)
 {
 	int rc;
-	char *data, *msg, *query;
+	char *msg, *query;
 
-	string_get(&node->s, &data);
-	xfire_sprintf(&query, DISK_STORE_QUERY, key, node->key, "hashmap", data);
+	xfire_sprintf(&query, DISK_STORE_QUERY, key, nodekey, "hashmap", data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
 
 	if(rc != SQLITE_OK)
@@ -169,7 +168,6 @@ int disk_store_hm_node(struct disk *d, char *key, struct hashmap_node *node)
 
 	sqlite3_free(msg);
 	xfire_free(query);
-	xfire_free(data);
 	
 	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
 }
@@ -187,14 +185,10 @@ int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 	return -XFIRE_OK;
 }
 
-int disk_store_list_entry(struct disk *d, char *key, struct list *c)
+int disk_store_list_entry(struct disk *d, char *key, char *data)
 {
 	int rc;
-	struct string *s;
-	char *data, *msg, *query;
-
-	s = container_of(c, struct string, entry);
-	string_get(s, &data);
+	char *msg, *query;
 
 	xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "list", data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
@@ -203,7 +197,6 @@ int disk_store_list_entry(struct disk *d, char *key, struct list *c)
 		fprintf(stderr, "Disk store failed: %s\n", msg);
 
 	xfire_free(query);
-	xfire_free(data);
 	sqlite3_free(msg);
 
 	return (rc == SQLITE_OK) ? -XFIRE_OK : -XFIRE_ERR;
@@ -219,10 +212,18 @@ int disk_store_list_entry(struct disk *d, char *key, struct list *c)
 int disk_store_list(struct disk *d, char *key, struct list_head *lh)
 {
 	struct list *c;
+	struct string *s;
+	char *data;
 
 	list_for_each(lh, c) {
-		if(disk_store_list_entry(d, key, c))
+		s = container_of(c, struct string, entry);
+		string_get(s, &data);
+		if(disk_store_list_entry(d, key, data)) {
+			xfire_free(data);
 			return -XFIRE_ERR;
+		}
+
+		xfire_free(data);
 	}
 
 	return -XFIRE_OK;
@@ -236,12 +237,11 @@ int disk_store_list(struct disk *d, char *key, struct list_head *lh)
  * @param length Length of data.
  * @return Error code.
  */
-int disk_store_string(struct disk *d, char *key, struct string *s)
+int disk_store_string(struct disk *d, char *key, char *data)
 {
 	int rc;
-	char *msg, *query, *data;
+	char *msg, *query;
 
-	string_get(s, &data);
 	xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "string", data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
@@ -253,7 +253,6 @@ int disk_store_string(struct disk *d, char *key, struct string *s)
 	}
 
 	sqlite3_free(msg);
-	xfire_free(data);
 	xfire_free(query);
 	return rc;
 }
@@ -437,7 +436,7 @@ int disk_delete_list(struct disk *d, char *key, char *data)
 	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
 }
 
-int disk_delete_string(struct disk *d, char *key, char *data)
+int disk_delete_string(struct disk *d, char *key)
 {
 	int rc;
 	char *msg, *query;

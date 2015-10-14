@@ -61,7 +61,7 @@ struct bio_q {
 };
 
 CDECL
-extern void bio_init(struct database *db);
+extern void bio_init(void);
 extern int bio_update(struct dict_entry *e);
 extern void bio_exit(void);
 extern void bio_queue_add(char *key, char *arg,

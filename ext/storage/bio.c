@@ -27,8 +27,10 @@
 #include <xfire/mem.h>
 #include <xfire/os.h>
 #include <xfire/error.h>
+#include <xfire/disk.h>
 
 static struct bio_q_head *bio_q;
+static struct disk *disk_db;
 
 static inline struct bio_q *bio_queue_pop(void)
 {
@@ -55,13 +57,57 @@ static inline struct bio_q *bio_queue_pop(void)
 
 static void bio_worker(void *arg)
 {
+	struct disk *d = arg;
+	struct bio_q *q;
+
+	q = bio_queue_pop();
+	if(!q)
+		return;
+
+	switch(q->operation) {
+	case STRING_ADD:
+		disk_store_string(d, q->key, q->newdata);
+		break;
+	case STRING_UPDATE:
+		disk_update_string(d, q->key, q->newdata);
+		break;
+	case STRING_DEL:
+		disk_delete_string(d, q->key);
+		break;
+	case LIST_ADD:
+		disk_store_list_entry(d, q->key, q->newdata);
+		break;
+	case LIST_DEL:
+		disk_delete_list(d, q->key, q->arg);
+		break;
+	case LIST_UPDATE:
+		disk_update_list(d, q->key, q->arg, q->newdata);
+		break;
+	case HM_ADD:
+		disk_store_hm_node(d, q->key, q->arg, q->newdata);
+		break;
+	case HM_DEL:
+		disk_delete_hashmapnode(d, q->key, q->arg);
+		break;
+	case HM_UPDATE:
+		disk_update_hm(d, q->key, q->arg, q->newdata);
+		break;
+	default:
+		break;
+	}
+
+	xfire_free(q->key);
+	xfire_free(q->arg);
+	xfire_free(q->newdata);
+	xfire_free(q);
 }
 
-void bio_init(struct database *db)
+void bio_init(void)
 {
 	bio_q = xfire_zalloc(sizeof(*bio_q));
 	xfire_spinlock_init(&bio_q->lock);
-	bio_q->job = bg_process_create("bio-worker", &bio_worker, db);
+	disk_db = disk_create(SQLITE_DB);
+	bio_q->job = bg_process_create("bio-worker", &bio_worker, disk_db);
 }
 
 void bio_exit(void)
@@ -69,6 +115,8 @@ void bio_exit(void)
 	bg_process_stop("bio-worker");
 	xfire_spinlock_destroy(&bio_q->lock);
 	xfire_free(bio_q);
+
+	disk_destroy(disk_db);
 }
 
 void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
