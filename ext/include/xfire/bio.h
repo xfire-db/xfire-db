@@ -22,6 +22,7 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/dict.h>
+#include <xfire/os.h>
 #include <xfire/database.h>
 
 struct bio_q;
@@ -30,17 +31,42 @@ struct bio_q_head {
 	struct bio_q *next,
 		     *tail;
 	struct job *job;
+
+	xfire_spinlock_t lock;
 };
+
+typedef enum {
+	STRING_ADD,
+	STRING_DEL,
+	STRING_UPDATE,
+
+	LIST_ADD,
+	LIST_DEL,
+	LIST_UPDATE,
+
+	HM_ADD,
+	HM_DEL,
+	HM_UPDATE,
+} bio_operation_t;
 
 struct bio_q {
 	struct bio_q *next,
 		     *prev;
+
+	char *key;
+	char *arg;
+	char *newdata;
+
+	bio_operation_t operation;
 };
 
 CDECL
 extern void bio_init(struct database *db);
 extern int bio_update(struct dict_entry *e);
 extern void bio_exit(void);
+extern void bio_queue_add(char *key, char *arg,
+	       		char *newdata, bio_operation_t op);
+extern void dbg_bio_queue(void);
 CDECL_END
 
 #endif
