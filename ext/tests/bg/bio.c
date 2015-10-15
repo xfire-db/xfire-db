@@ -26,12 +26,21 @@
 #include <xfire/bg.h>
 #include <xfire/mem.h>
 #include <xfire/error.h>
+#include <xfire/disk.h>
+
+extern struct disk *disk_db;
 
 int main(int argc, char **argv)
 {
 	bg_processes_init();
 	bio_init();
 	dbg_bio_queue();
+	sleep(1);
+	bg_process_signal("bio-worker");
+	do {
+		sleep(1);
+		disk_dump(disk_db);
+	} while(0);
 	bio_exit();
 	bg_processes_exit();
 

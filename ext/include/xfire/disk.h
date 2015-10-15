@@ -52,6 +52,7 @@ struct disk {
 CDECL
 extern struct disk *disk_create(const char *path);
 extern void disk_destroy(struct disk *disk);
+extern void *disk_dump(struct disk *d);
 
 extern int disk_store_list(struct disk *d, char *key, struct list_head *lh);
 extern int disk_store_list_entry(struct disk *d, char *key, char *data);

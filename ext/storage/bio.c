@@ -30,7 +30,7 @@
 #include <xfire/disk.h>
 
 static struct bio_q_head *bio_q;
-static struct disk *disk_db;
+struct disk *disk_db;
 
 static inline struct bio_q *bio_queue_pop(void)
 {
@@ -60,46 +60,44 @@ static void bio_worker(void *arg)
 	struct disk *d = arg;
 	struct bio_q *q;
 
-	q = bio_queue_pop();
-	if(!q)
-		return;
+	while((q = bio_queue_pop()) != NULL) {
+		switch(q->operation) {
+		case STRING_ADD:
+			disk_store_string(d, q->key, q->newdata);
+			break;
+		case STRING_UPDATE:
+			disk_update_string(d, q->key, q->newdata);
+			break;
+		case STRING_DEL:
+			disk_delete_string(d, q->key);
+			break;
+		case LIST_ADD:
+			disk_store_list_entry(d, q->key, q->newdata);
+			break;
+		case LIST_DEL:
+			disk_delete_list(d, q->key, q->arg);
+			break;
+		case LIST_UPDATE:
+			disk_update_list(d, q->key, q->arg, q->newdata);
+			break;
+		case HM_ADD:
+			disk_store_hm_node(d, q->key, q->arg, q->newdata);
+			break;
+		case HM_DEL:
+			disk_delete_hashmapnode(d, q->key, q->arg);
+			break;
+		case HM_UPDATE:
+			disk_update_hm(d, q->key, q->arg, q->newdata);
+			break;
+		default:
+			break;
+		}
 
-	switch(q->operation) {
-	case STRING_ADD:
-		disk_store_string(d, q->key, q->newdata);
-		break;
-	case STRING_UPDATE:
-		disk_update_string(d, q->key, q->newdata);
-		break;
-	case STRING_DEL:
-		disk_delete_string(d, q->key);
-		break;
-	case LIST_ADD:
-		disk_store_list_entry(d, q->key, q->newdata);
-		break;
-	case LIST_DEL:
-		disk_delete_list(d, q->key, q->arg);
-		break;
-	case LIST_UPDATE:
-		disk_update_list(d, q->key, q->arg, q->newdata);
-		break;
-	case HM_ADD:
-		disk_store_hm_node(d, q->key, q->arg, q->newdata);
-		break;
-	case HM_DEL:
-		disk_delete_hashmapnode(d, q->key, q->arg);
-		break;
-	case HM_UPDATE:
-		disk_update_hm(d, q->key, q->arg, q->newdata);
-		break;
-	default:
-		break;
+		xfire_free(q->key);
+		xfire_free(q->arg);
+		xfire_free(q->newdata);
+		xfire_free(q);
 	}
-
-	xfire_free(q->key);
-	xfire_free(q->arg);
-	xfire_free(q->newdata);
-	xfire_free(q);
 }
 
 void bio_init(void)
@@ -142,24 +140,174 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 }
 
 #ifdef HAVE_DEBUG
+
+static char *dbg_keys[] = {"fist-test", "second-test", "third-test"};
+static char *dbg_data[] = {"first-data", "second-data", "second-data"};
+
+static void dbg_add_strings(void)
+{
+	char *key, *data;
+	int i, key_len, data_len;
+
+	for(i = 0; i < 3; i++) {
+		key_len = strlen(dbg_keys[i]);
+		data_len = strlen(dbg_data[i]);
+		key = xfire_zalloc(key_len + 1);
+		data = xfire_zalloc(data_len + 1);
+		memcpy(key, dbg_keys[i], key_len);
+		memcpy(data, dbg_data[i], data_len);
+		bio_queue_add(key, NULL, data, STRING_ADD);
+	}
+}
+
+static void dbg_del_strings(void)
+{
+	char *key;
+	int i, key_len;
+
+	for(i = 0; i < 2; i++) {
+		key_len = strlen(dbg_keys[i]);
+		key = xfire_zalloc(key_len + 1);
+		memcpy(key, dbg_keys[i], key_len);
+		bio_queue_add(key, NULL, NULL, STRING_DEL);
+	}
+}
+
+static void dbg_update_string(void)
+{
+	char *key, *data;
+	int key_len, data_len;
+
+
+	key_len = strlen("third-test");
+	data_len = strlen("third-data");
+	data = xfire_zalloc(data_len + 1);
+	key = xfire_zalloc(key_len + 1);
+	memcpy(data, "third-data", data_len);
+	memcpy(key, "third-test", key_len);
+
+	bio_queue_add(key, NULL, data, STRING_UPDATE);
+}
+
+static void dbg_add_list(void)
+{
+	char *key, *data;
+	int i, key_len, data_len;
+
+
+	key_len = strlen("list-key");
+
+	for(i = 0; i < 3; i++) {
+		data_len = strlen(dbg_data[i]);
+
+		data = xfire_zalloc(data_len + 1);
+		key = xfire_zalloc(key_len + 1);
+		memcpy(data, dbg_data[i], data_len);
+		memcpy(key, "list-key", key_len);
+
+		bio_queue_add(key, NULL, data, LIST_ADD);
+	}
+}
+
+static void dbg_update_list(void)
+{
+	char *key, *data, *oldata;
+	int key_len, data_len;
+
+
+	key_len = strlen("list-key");
+	data_len = strlen("second-data");
+	data = xfire_zalloc(data_len + 1);
+	oldata = xfire_zalloc(data_len +1);
+	key = xfire_zalloc(key_len + 1);
+	memcpy(oldata, "second-data", data_len);
+	memcpy(data, "SECOND-DATA", data_len);
+	memcpy(key, "list-key", key_len);
+
+	bio_queue_add(key, oldata, data, LIST_UPDATE);
+}
+
+static void dbg_del_list(void)
+{
+	char *key, *data;
+	int key_len, data_len;
+
+	key_len = strlen("list-key");
+	data_len = strlen(dbg_data[1]);
+	key = xfire_zalloc(key_len + 1);
+	data = xfire_zalloc(data_len + 1);
+	memcpy(data, dbg_data[1], data_len);
+	memcpy(key, "list-key", key_len);
+	bio_queue_add(key, data, NULL, LIST_DEL);
+}
+
+static char *dbg_snd_keys[] = {"key1", "key2", "key3" };
+static void dbg_add_hashmap(void)
+{
+	char *key, *data, *subkey;
+	int i, key_len, data_len, skey_len;
+
+	key_len = strlen("hash-key");
+
+	for(i = 0; i < 3; i++) {
+		key = xfire_zalloc(key_len + 1);
+		memcpy(key, "hash-key", key_len);
+		data_len = strlen(dbg_data[i]);
+		skey_len = strlen(dbg_snd_keys[i]);
+		subkey = xfire_zalloc(skey_len + 1);
+		data = xfire_zalloc(data_len + 1);
+		memcpy(subkey, dbg_snd_keys[i], skey_len);
+		memcpy(data, dbg_data[i], data_len);
+		bio_queue_add(key, subkey, data, HM_ADD);
+	}
+}
+
+static void dbg_update_hashmap(void)
+{
+	char *key, *skey, *ndata;
+	int key_len, skey_len, ndata_len;
+
+	key_len = strlen("hash-key");
+	skey_len = strlen("key2");
+	ndata_len = strlen("new-data");
+	ndata = xfire_zalloc(ndata_len + 1);
+	key = xfire_zalloc(key_len + 1);
+	skey = xfire_zalloc(skey_len + 1);
+	memcpy(ndata, "new-data", ndata_len);
+	memcpy(key, "hash-key", key_len);
+	memcpy(skey, "key2", skey_len);
+	bio_queue_add(key, skey, ndata, HM_UPDATE);
+}
+
+static void dbg_del_hashmap(void)
+{
+	char *key, *skey;
+	int key_len, skey_len;
+
+	key_len = strlen("hash-key");
+	skey_len = strlen("key3");
+	key = xfire_zalloc(key_len + 1);
+	skey = xfire_zalloc(skey_len + 1);
+	memcpy(key, "hash-key", key_len);
+	memcpy(skey, "key3", skey_len);
+	bio_queue_add(key, skey, NULL, HM_DEL);
+}
+
 void dbg_bio_queue(void)
 {
-	struct bio_q *c;
-	int i;
-
-	/* allocate a bunch of queue's */
-	bio_queue_add("test-first", NULL, NULL, STRING_DEL);
-	for(i = 0; i < 5; i++)
-		bio_queue_add("test-key", NULL, NULL, STRING_DEL);
-
-	c = bio_queue_pop();
-	printf("Bio queue pop test: %s\n", !strcmp(c->key, "test-first") ? "succeeded" : "failed");
-	xfire_free(c);
-
-	for(i = 0; i < 5; i++) {
-		c = bio_queue_pop();
-		xfire_free(c);
-	}
+	dbg_add_hashmap();
+	dbg_add_strings();
+	dbg_add_list();
+	dbg_del_strings();
+	dbg_del_list();
+	dbg_update_list();
+	dbg_update_string();
+	dbg_del_hashmap();
+	dbg_update_hashmap();
+}
+#else
+void dbg_bio_queue(void)
+{
 }
 #endif
 

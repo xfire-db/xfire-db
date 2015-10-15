@@ -12,7 +12,7 @@ set(DEBUG_FLAGS "")
 if(XFIRE_DEBUG)
 	set(DEBUG_FLAGS "-g2")
 else(XFIRE_DEBUG)
-	set(DEBUG_FLAGS "-O2 -fomit-frame-pointer")
+	set(DEBUG_FLAGS "-march=native -O2 -fomit-frame-pointer")
 endif(XFIRE_DEBUG)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COMPILE_FLAGS} ${DEBUG_FLAGS}")

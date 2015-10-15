@@ -61,7 +61,7 @@ static void *job_processor(void *arg)
 		if(j->done)
 			break;
 		else
-			j->handle(arg);
+			j->handle(j->arg);
 	}
 
 	xfire_thread_exit(NULL);

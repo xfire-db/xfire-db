@@ -321,6 +321,28 @@ void *disk_lookup(struct disk *d, char *key)
 	return result;
 }
 
+void *disk_dump(struct disk *d)
+{
+	int rc;
+	char *msg;
+	void *result = NULL;
+
+	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &lookup_hook, &result, &msg);
+
+	switch(rc) {
+	case SQLITE_OK:
+		break;
+
+	default:
+		fprintf(stderr, "Disk update failed: %s\n", msg);
+		sqlite3_free(msg);
+		return NULL;
+	}
+
+	sqlite3_free(msg);
+	return result;
+}
+
 #define DISK_UPDATE_HM_QUERY \
 	"UPDATE xfiredb_data " \
 	"SET db_value = '%s' " \
