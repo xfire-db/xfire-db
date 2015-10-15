@@ -28,7 +28,7 @@
 #include <xfire/error.h>
 #include <xfire/disk.h>
 
-extern struct disk *disk_db;
+extern struct disk *dbg_disk;
 
 int main(int argc, char **argv)
 {
@@ -37,9 +37,10 @@ int main(int argc, char **argv)
 	dbg_bio_queue();
 	sleep(1);
 	bg_process_signal("bio-worker");
+
 	do {
 		sleep(1);
-		disk_dump(disk_db);
+		disk_dump(dbg_disk);
 	} while(0);
 	bio_exit();
 	bg_processes_exit();

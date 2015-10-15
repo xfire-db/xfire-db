@@ -29,8 +29,11 @@
 #include <xfire/error.h>
 #include <xfire/disk.h>
 
+struct disk *dbg_disk;
+#ifndef HAVE_DEBUG
+static struct disk *xfire_disk;
+#endif
 static struct bio_q_head *bio_q;
-struct disk *disk_db;
 
 static inline struct bio_q *bio_queue_pop(void)
 {
@@ -139,7 +142,7 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 	xfire_spin_unlock(&bio_q->lock);
 }
 
-#ifdef HAVE_DEBUG
+#ifndef HAVE_DEBUG
 
 static char *dbg_keys[] = {"fist-test", "second-test", "third-test"};
 static char *dbg_data[] = {"first-data", "second-data", "second-data"};

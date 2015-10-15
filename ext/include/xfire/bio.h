@@ -60,6 +60,12 @@ struct bio_q {
 	bio_operation_t operation;
 };
 
+#ifdef HAVE_DEBUG
+#define disk_db dbg_disk
+#else
+#define disk_db xfire_disk
+#endif
+
 CDECL
 extern void bio_init(void);
 extern int bio_update(struct dict_entry *e);
