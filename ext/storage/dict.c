@@ -364,7 +364,7 @@ static int dict_rehash(struct dict *d, int num)
 	struct dict_entry *de, *next;
 
 	xfire_mutex_lock(&d->lock);
-	if(!__dict_is_rehashing(d)) {
+	if(unlikely(!__dict_is_rehashing(d))) {
 		xfire_mutex_unlock(&d->lock);
 		return 0;
 	}
@@ -373,7 +373,7 @@ static int dict_rehash(struct dict *d, int num)
 	while(num-- && d->map[PRIMARY_MAP].length > 0L) {
 		assert(d->map[PRIMARY_MAP].size > d->rehashidx);
 
-		while(d->map[PRIMARY_MAP].array[d->rehashidx] == NULL) {
+		while(unlikely(d->map[PRIMARY_MAP].array[d->rehashidx] == NULL)) {
 			d->rehashidx++;
 
 			if(--visits == 0) {
@@ -383,7 +383,7 @@ static int dict_rehash(struct dict *d, int num)
 		}
 
 		de = d->map[PRIMARY_MAP].array[d->rehashidx];
-		while(de) {
+		while(likely(de)) {
 			/* move an entry to the new map */
 			next = de->next;
 			hash = dict_hash_key(de->key, DICT_SEED);
