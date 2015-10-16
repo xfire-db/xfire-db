@@ -54,8 +54,6 @@ static void dbg_hm_store(struct disk *d)
 	disk_update_hm(d, "hm-key", "key3", "hm-update-ok");
 	disk_delete_hashmapnode(d, "hm-key", "key2");
 	hashmap_destroy(&map);
-
-	disk_lookup(d, "hm-key");
 }
 
 static void dbg_list_store(struct disk *d)
@@ -77,7 +75,6 @@ static void dbg_list_store(struct disk *d)
 	disk_store_list(d, "list-key", &lh);
 	disk_delete_list(d, "list-key", "entry-3");
 	disk_update_list(d, "list-key", "entry-3", "entry-4");
-	disk_lookup(d, "list-key");
 
 	list_del(&lh, &s1->entry);
 	list_del(&lh, &s2->entry);
@@ -98,7 +95,6 @@ static void dbg_list_store(struct disk *d)
 int main(int argc, char **argv)
 {
 	struct disk *d;
-	char *lookup;
 	struct string *s;
 
 	d = disk_create(SQLITE_DB);
@@ -107,16 +103,13 @@ int main(int argc, char **argv)
 		fprintf(stdout, "Key store succesfull!\n");
 
 	disk_update_string(d, "test-key", "String update success!");
-	lookup = disk_lookup(d, "test-key");
-	if(lookup)
-		printf("%s = %s\n", "test-key", lookup);
 
-	disk_result_free(lookup);
 	string_destroy(s);
 	xfire_free(s);
 
 	dbg_list_store(d);
 	dbg_hm_store(d);
+	disk_dump(d);
 	disk_destroy(d);
 	return -EXIT_SUCCESS;
 }

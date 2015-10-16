@@ -46,5 +46,11 @@ struct container {
 	} data;
 };
 
+CDECL
+extern void container_init(struct container *c, container_type_t type);
+extern void *container_get_data(struct container *c);
+extern void container_destroy(struct container *c);
+CDECL_END
+
 #endif
 

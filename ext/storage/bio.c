@@ -35,6 +35,8 @@ static struct disk *xfire_disk;
 #endif
 static struct bio_q_head *bio_q;
 
+#define BIO_WORKER_NAME "bio-worker"
+
 static inline struct bio_q *bio_queue_pop(void)
 {
 	struct bio_q *tail;
@@ -56,6 +58,20 @@ static inline struct bio_q *bio_queue_pop(void)
 	xfire_spin_unlock(&bio_q->lock);
 
 	return tail;
+}
+
+static int bio_try_wakeup_worker(void)
+{
+	static int wake_up_counter = 0;
+
+	wake_up_counter += 1;
+	if((wake_up_counter % PERSIST_LEVEL_COUNTER) == 0) {
+		wake_up_counter = 0;
+		bg_process_signal(BIO_WORKER_NAME);
+		return 0;
+	}
+
+	return 1;
 }
 
 static void bio_worker(void *arg)
@@ -108,12 +124,12 @@ void bio_init(void)
 	bio_q = xfire_zalloc(sizeof(*bio_q));
 	xfire_spinlock_init(&bio_q->lock);
 	disk_db = disk_create(SQLITE_DB);
-	bio_q->job = bg_process_create("bio-worker", &bio_worker, disk_db);
+	bio_q->job = bg_process_create(BIO_WORKER_NAME, &bio_worker, disk_db);
 }
 
 void bio_exit(void)
 {
-	bg_process_stop("bio-worker");
+	bg_process_stop(BIO_WORKER_NAME);
 	xfire_spinlock_destroy(&bio_q->lock);
 	xfire_free(bio_q);
 
@@ -140,9 +156,10 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 		bio_q->next = bio_q->tail = q;
 	}
 	xfire_spin_unlock(&bio_q->lock);
+	bio_try_wakeup_worker();
 }
 
-#ifndef HAVE_DEBUG
+#ifdef HAVE_DEBUG
 
 static char *dbg_keys[] = {"fist-test", "second-test", "third-test"};
 static char *dbg_data[] = {"first-data", "second-data", "second-data"};

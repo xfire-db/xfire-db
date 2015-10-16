@@ -52,7 +52,9 @@ struct disk {
 CDECL
 extern struct disk *disk_create(const char *path);
 extern void disk_destroy(struct disk *disk);
-extern void *disk_dump(struct disk *d);
+extern void disk_dump(struct disk *d);
+extern int disk_load(struct disk *disk,
+		void (*hook)(int argc, char **rows, char **colnames));
 
 extern int disk_store_list(struct disk *d, char *key, struct list_head *lh);
 extern int disk_store_list_entry(struct disk *d, char *key, char *data);
@@ -68,7 +70,6 @@ extern int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data);
 extern int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey);
 extern int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data);
 
-extern void *disk_lookup(struct disk *disk, char *key);
 extern void disk_result_free(void *x);
 
 #endif

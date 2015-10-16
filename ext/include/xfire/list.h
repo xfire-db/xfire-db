@@ -74,7 +74,6 @@ typedef struct list_head {
 CDECL
 extern void list_lpush(struct list_head *head, struct list *node);
 extern void list_rpush(struct list_head *head, struct list *node);
-extern void list_pop(struct list_head *head, u32 idx);
 extern void list_del(struct list_head *lh, struct list *entry);
 
 /**

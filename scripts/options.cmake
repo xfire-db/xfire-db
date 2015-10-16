@@ -17,6 +17,9 @@ option (RECURSION
 	"Set to true if search functions should use recursion."
 	[true])
 
+set (PERSIST_LEVEL "0" CACHE STRING
+	"Persistency level. 0 for max. persistance, 2 for minimal.")
+
 set (STACK_SIZE "2097152" CACHE STRING
 	"Default stack size.")	
 set (DATA_PATH "$ENV{HOME}/.xfire" CACHE STRING

@@ -40,20 +40,11 @@
 #define DISK_CHECK_TABLE \
 	"SELECT name FROM sqlite_master WHERE type='table' AND name='xfiredb_data';"
 
-#define DISK_GEN_CHECK_TABLE \
-	"SELECT name FROM sqlite_master WHERE type='table' AND name='%s';"
-
 #define DISK_CREATE_TABLE \
 	"CREATE TABLE xfiredb_data(" \
 	"db_key CHAR(64) NOT NULL, " \
 	"db_secondary_key, " \
 	"db_type CHAR(64), " \
-	"db_value BLOB);"
-
-#define DISK_CREATE_TABLE2 \
-	"CREATE TABLE xfiredb_%s(" \
-	"db_id INT, " \
-	"db_key CHAR(64), " \
 	"db_value BLOB);"
 
 static int dummy_hook(void *arg, int argc, char **argv, char **colname)
@@ -119,9 +110,8 @@ struct disk *disk_create(const char *path)
 	disk->records = 0ULL;
 	xfire_mutex_init(&disk->lock);
 
-	if(disk_create_main_table(disk) != -XFIRE_OK) {
+	if(disk_create_main_table(disk) != -XFIRE_OK)
 		fprintf(stderr, "Could not create tables, exiting.\n");
-	}
 
 	return disk;
 }
@@ -257,16 +247,14 @@ int disk_store_string(struct disk *d, char *key, char *data)
 	return rc;
 }
 
-static int lookup_hook(void *arg, int argc, char **row, char **colname)
+static int dump_hook(void *arg, int argc, char **row, char **colname)
 {
 	int i;
-	void **data = arg;
 
 	for(i = 0; i < argc; i+=4)
 		printf("%s = %s :: %s = %s :: %s = %s :: %s = %s\n", row[i], colname[i],
 				row[i+1], colname[i+1], row[i+2], colname[i+2], row[i+3], colname[i+3]);
 
-	*data = NULL;
 	//len = strlen(row[1]);
 	//*data = xfire_zalloc(len + 1);
 	//memcpy(*data, row[1], len);
@@ -289,58 +277,24 @@ void disk_result_free(void *x)
 	xfire_free(x);
 }
 
-/**
- * @brief Lookup a key-value pair.
- * @param d Disk to look on.
- * @param key Key to search.
- * @return The result, NULL if nothing was found.
- * @see disk_result_free
- */
-void *disk_lookup(struct disk *d, char *key)
-{
-	int rc;
-	char *msg, *query;
-	void *result = NULL;
-
-	xfire_sprintf(&query, DISK_SELECT_QUERY, key);
-	rc = sqlite3_exec(d->handle, query, &lookup_hook, &result, &msg);
-
-	switch(rc) {
-	case SQLITE_OK:
-		break;
-
-	default:
-		fprintf(stderr, "Disk update failed: %s\n", msg);
-		sqlite3_free(msg);
-		xfire_free(query);
-		return NULL;
-	}
-
-	sqlite3_free(msg);
-	xfire_free(query);
-	return result;
-}
-
-void *disk_dump(struct disk *d)
+void disk_dump(struct disk *d)
 {
 	int rc;
 	char *msg;
-	void *result = NULL;
 
-	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &lookup_hook, &result, &msg);
+	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &dump_hook, NULL, &msg);
 
 	switch(rc) {
 	case SQLITE_OK:
 		break;
 
 	default:
-		fprintf(stderr, "Disk update failed: %s\n", msg);
+		fprintf(stderr, "Disk dump failed: %s\n", msg);
 		sqlite3_free(msg);
-		return NULL;
+		return;
 	}
 
 	sqlite3_free(msg);
-	return result;
 }
 
 #define DISK_UPDATE_HM_QUERY \
@@ -386,7 +340,7 @@ int disk_update_list(struct disk *d, char *key, char *data, char *newdata)
 	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
 }
 
-#define DISK_UPDATE_QUERY \
+#define DISK_UPDATE_STRING_QUERY \
 	"UPDATE xfiredb_data SET db_value = '%s' " \
 	"WHERE db_key = '%s' AND db_type = 'string';"
 
@@ -403,7 +357,7 @@ int disk_update_string(struct disk *d, char *key, void *data)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_UPDATE_QUERY, data, key);
+	xfire_sprintf(&query, DISK_UPDATE_STRING_QUERY, data, key);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
@@ -435,7 +389,7 @@ int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey)
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
-		fprintf(stderr, "Disk update failed: %s\n", msg);
+		fprintf(stderr, "Disk delete failed: %s\n", msg);
 
 	sqlite3_free(msg);
 	xfire_free(query);
@@ -451,7 +405,7 @@ int disk_delete_list(struct disk *d, char *key, char *data)
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
-		fprintf(stderr, "Disk update failed: %s\n", msg);
+		fprintf(stderr, "Disk delete failed: %s\n", msg);
 
 	sqlite3_free(msg);
 	xfire_free(query);
@@ -467,11 +421,40 @@ int disk_delete_string(struct disk *d, char *key)
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
-		fprintf(stderr, "Disk update failed: %s\n", msg);
+		fprintf(stderr, "Disk delete failed: %s\n", msg);
 
 	sqlite3_free(msg);
 	xfire_free(query);
 	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
+static int disk_load_hook(void *arg, int argc, char **rows, char **colname)
+{
+	void (*hook)(int argc, char **rows, char **colnames) = arg;
+
+	hook(argc, rows, colname);
+	return 0;
+}
+
+int disk_load(struct disk *d, void (*hook)(int argc, char **rows, char **colnames))
+{
+	int rc;
+	char *msg;
+
+	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &disk_load_hook, &hook, &msg);
+
+	switch(rc) {
+	case SQLITE_OK:
+		break;
+
+	default:
+		fprintf(stderr, "Disk load failed: %s\n", msg);
+		sqlite3_free(msg);
+		return -XFIRE_ERR;
+	}
+
+	sqlite3_free(msg);
+	return -XFIRE_ERR;
 }
 
 /**
