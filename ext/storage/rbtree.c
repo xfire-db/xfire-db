@@ -61,6 +61,7 @@ void rb_node_destroy(struct rb_node *node)
 	xfire_mutex_destroy(&node->lock);
 	xfire_cond_destroy(&node->condi);
 	atomic_flags_destroy(&node->flags);
+	atomic_destroy(&node->ldepth);
 }
 
 /**

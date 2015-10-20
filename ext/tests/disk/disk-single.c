@@ -27,12 +27,24 @@
 #include <xfire/disk.h>
 #include <xfire/string.h>
 
+static struct string s1, s2, s3, s4;
+
 static void test_hm_insert(struct hashmap *map)
 {
-	hashmap_add(map, "key1", "test-val-1");
-	hashmap_add(map, "key2", "test-val-2");
-	hashmap_add(map, "key3", "test-val-3");
-	hashmap_add(map, "key4", "test-val-4");
+	string_init(&s1);
+	string_init(&s2);
+	string_init(&s3);
+	string_init(&s4);
+
+	string_set(&s1, "test-val-1");
+	string_set(&s2, "test-val-2");
+	string_set(&s3, "test-val-3");
+	string_set(&s4, "test-val-4");
+
+	hashmap_add(map, "key1", &s1.node);
+	hashmap_add(map, "key2", &s2.node);
+	hashmap_add(map, "key3", &s3.node);
+	hashmap_add(map, "key4", &s4.node);
 }
 
 static struct string *dbg_get_string(const char *c)
@@ -44,6 +56,14 @@ static struct string *dbg_get_string(const char *c)
 	return s;
 }
 
+static void hm_free_hook(struct hashmap_node *n)
+{
+	struct string *s;
+
+	s = container_of(n, struct string, node);
+	string_destroy(s);
+}
+
 static void dbg_hm_store(struct disk *d)
 {
 	struct hashmap map;
@@ -53,6 +73,7 @@ static void dbg_hm_store(struct disk *d)
 	disk_store_hm(d, "hm-key", &map);
 	disk_update_hm(d, "hm-key", "key3", "hm-update-ok");
 	disk_delete_hashmapnode(d, "hm-key", "key2");
+	hashmap_clear(&map, &hm_free_hook);
 	hashmap_destroy(&map);
 }
 

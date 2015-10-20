@@ -29,9 +29,9 @@
 #include <xfire/error.h>
 #include <xfire/disk.h>
 
-struct disk *dbg_disk;
+extern struct disk *dbg_disk;
 #ifndef HAVE_DEBUG
-static struct disk *xfire_disk;
+extern struct disk *xfire_disk;
 #endif
 static struct bio_q_head *bio_q;
 
@@ -117,6 +117,10 @@ static void bio_worker(void *arg)
 		xfire_free(q->newdata);
 		xfire_free(q);
 	}
+}
+
+void bio_sync(void)
+{
 }
 
 void bio_init(void)

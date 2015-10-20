@@ -73,6 +73,7 @@ extern void bio_exit(void);
 extern void bio_queue_add(char *key, char *arg,
 	       		char *newdata, bio_operation_t op);
 extern void dbg_bio_queue(void);
+extern void bio_sync(void);
 CDECL_END
 
 #endif

@@ -24,28 +24,34 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/string.h>
 #include <xfire/rbtree.h>
 
 struct hashmap {
 	struct rb_root root;
+	atomic_t num;
 	void *privdata;
 };
 
 struct hashmap_node {
 	struct rb_node node;
-	struct string s;
 	char *key;
 };
 
 CDECL
+static inline s64 hashmap_size(struct hashmap *map)
+{
+	return atomic_get(&map->num);
+}
+
 extern void hashmap_iterate(struct hashmap *map,
 			void (*fn)(struct hashmap *hm, struct hashmap_node *n));
-extern int hashmap_remove(struct hashmap *hm, char *key);
-extern int hashmap_add(struct hashmap *hm, char *_key, char *value);
+extern struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key);
+extern int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n);
 extern void hashmap_init(struct hashmap *hm);
-extern int hashmap_find(struct hashmap *hm, char *key, char **buff);
+extern struct hashmap_node *hashmap_find(struct hashmap *hm, char *key);
 extern void hashmap_destroy(struct hashmap *hm);
+extern void hashmap_node_destroy(struct hashmap_node *n);
+extern void hashmap_clear(struct hashmap *hm, void (*hook)(struct hashmap_node*));
 CDECL_END
 
 #endif

@@ -132,8 +132,9 @@ static void disk_hm_iterate(struct hashmap *map, struct hashmap_node *node)
 	int rc;
 	char *data, *msg, *query;
 	struct hm_store_data *priv = map->privdata;
+	struct string *s = container_of(node, struct string, node);
 
-	string_get(&node->s, &data);
+	string_get(s, &data);
 	xfire_sprintf(&query, DISK_STORE_QUERY, priv->key, node->key, "hashmap", data);
 	rc = sqlite3_exec(priv->d->handle, query, &dummy_hook, priv->d, &msg);
 
@@ -441,7 +442,7 @@ int disk_load(struct disk *d, void (*hook)(int argc, char **rows, char **colname
 	int rc;
 	char *msg;
 
-	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &disk_load_hook, &hook, &msg);
+	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &disk_load_hook, hook, &msg);
 
 	switch(rc) {
 	case SQLITE_OK:

@@ -23,6 +23,7 @@
 #include <xfire/string.h>
 #include <xfire/list.h>
 #include <xfire/hashmap.h>
+#include <xfire/mem.h>
 
 void container_init(struct container *c, container_type_t type)
 {
@@ -41,6 +42,16 @@ void container_init(struct container *c, container_type_t type)
 	}
 
 	c->type = type;
+}
+
+struct container *container_alloc(container_type_t type)
+{
+	struct container *c;
+
+	c = xfire_zalloc(sizeof(*c));
+	container_init(c, type);
+
+	return c;
 }
 
 void *container_get_data(struct container *c)

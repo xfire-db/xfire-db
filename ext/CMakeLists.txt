@@ -29,6 +29,7 @@ add_library(xfiredb SHARED
 	# core files
 	container.c
 	bitops.c
+	xfiredb.c
 	log.c
 	sprintf.c)
 
@@ -44,4 +45,5 @@ include (tests/rbtree/rb-test.cmake)
 include (tests/dict/dict-test.cmake)
 include (tests/disk/disk.cmake)
 include (tests/bg/bg.cmake)
+include (tests/core/core.cmake)
 

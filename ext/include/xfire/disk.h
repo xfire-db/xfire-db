@@ -35,6 +35,11 @@
 #include <xfire/hashmap.h>
 #include <xfire/container.h>
 
+#define TABLE_KEY_IDX 0
+#define TABLE_SCND_KEY_IDX 1
+#define TABLE_TYPE_IDX 2
+#define TABLE_DATA_IDX 3
+
 /**
  * @brief Persistent disk structure.
  */

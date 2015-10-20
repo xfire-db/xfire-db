@@ -45,17 +45,19 @@ void string_init(struct string *str)
  * @param len Length of the string.
  * @return The allocated string container.
  */
-struct string *string_alloc(size_t len)
+struct string *string_alloc(const char *data)
 {
 	struct string *string;
+	int len;
 
+	len = strlen(data);
 	string = xfire_zalloc(sizeof(*string));
 	string_init(string);
 
-	if(len)
-		string->str = xfire_zalloc(len);
-
+	/* allocate the length of data + 1 (for the terminator) */
+	string->str = xfire_zalloc(len + 1);
 	string->len = len;
+	memcpy(string->str, data, len);
 
 	return string;
 }

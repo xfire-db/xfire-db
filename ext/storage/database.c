@@ -50,6 +50,18 @@ struct database *db_alloc(const char *name)
 }
 
 /**
+ * @brief Update a database key.
+ * @param db Database to look in for \p key.
+ * @param key Key which has to be updated.
+ * @param c New data to set.
+ * @return An error code.
+ */
+int db_update(struct database *db, const char *key, struct container *c)
+{
+	return dict_update(db->container, key, c, DICT_PTR);
+}
+
+/**
  * @brief Store an entry in a database.
  * @param db Database to store in.
  * @param key Key to store \p data under.

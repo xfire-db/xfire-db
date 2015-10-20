@@ -218,6 +218,22 @@ void dict_free(struct dict *d)
 }
 
 /**
+ * @brief Check whether a key is available or not.
+ * @param d Dict to check.
+ * @param key Key to check.
+ * @return TRUE if the key is available, false otherwise.
+ */
+bool dict_key_available(struct dict *d, char *key)
+{
+	int found;
+	union entry_data data;
+	size_t size;
+
+	found = dict_lookup(d, key, &data, &size);
+	return found == -XFIRE_OK;
+}
+
+/**
  * @brief Compare two keys.
  * @param key1 First key.
  * @param key2 Second key.

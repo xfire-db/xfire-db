@@ -105,6 +105,7 @@ static inline void list_head_init(struct list_head *head)
  */
 static inline void list_head_destroy(struct list_head *head)
 {
+	atomic_destroy(&head->num);
 	xfire_spinlock_destroy(&head->lock);
 }
 

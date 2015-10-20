@@ -21,7 +21,6 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/string.h>
 #include <xfire/rbtree.h>
 #include <xfire/hashmap.h>
 #include <xfire/mem.h>
@@ -109,67 +108,69 @@ static bool hashmap_cmp_node(struct rb_node *node, const void *arg)
 void hashmap_init(struct hashmap *hm)
 {
 	rb_init_root(&hm->root);
+	atomic_init(&hm->num);
 	hm->root.cmp = hashmap_cmp_node;
 }
 
-int hashmap_add(struct hashmap *hm, char *_key, char *value)
+void hashmap_node_destroy(struct hashmap_node *n)
 {
-	u32 key;
-	struct hashmap_node *node;
-
-	key = hashmap_hash(_key, HM_SEED);
-	node = xfire_zalloc(sizeof(*node));
-	rb_init_node(&node->node);	
-	string_init(&node->s);
-	string_set(&node->s, value);
-	xfire_sprintf(&node->key, "%s", _key);
-
-	node->node.key = key;
-	return rb_insert(&hm->root, &node->node, true) ? -XFIRE_OK : -XFIRE_ERR;
+	xfire_free(n->key);
+	rb_node_destroy(&n->node);
 }
 
-int hashmap_remove(struct hashmap *hm, char *key)
+int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n)
+{
+	u32 hash;
+	char *_key;
+
+	hash = hashmap_hash(key, HM_SEED);
+	rb_init_node(&n->node);
+	xfire_sprintf(&_key, "%s", key);
+	n->node.key = hash;
+	n->key = _key;
+	if(rb_insert(&hm->root, &n->node, true)) {
+		atomic_inc(hm->num);
+		return -XFIRE_OK;
+	}
+
+	return -XFIRE_ERR;
+}
+
+struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key)
 {
 	struct rb_node *node;
-	struct hashmap_node *n;
 	u32 hash = hashmap_hash(key, HM_SEED);
 
 	node = rb_remove(&hm->root, hash, key);
 	if(!node)
-		return -XFIRE_ERR;
+		return NULL;
 
-	n = container_of(node, struct hashmap_node, node);
-	string_destroy(&n->s);
-	rb_node_destroy(&n->node);
-	xfire_free(n->key);
-	xfire_free(n);
-
-	return -XFIRE_OK;
+	atomic_dec(hm->num);
+	return container_of(node, struct hashmap_node, node);
 }
 
-int hashmap_find(struct hashmap *hm, char *key, char **buff)
+struct hashmap_node *hashmap_find(struct hashmap *hm, char *key)
 {
 	struct rb_node *node;
-	struct hashmap_node *n;
 	u32 hash = hashmap_hash(key, HM_SEED);
 
 	node = rb_find_duplicate(&hm->root, hash, key);
 	if(!node)
-		return -XFIRE_ERR;
+		return NULL;
 
-	n = container_of(node, struct hashmap_node, node);
-	string_get(&n->s, buff);
-	return -XFIRE_OK;
+	return container_of(node, struct hashmap_node, node);
 }
 
-static void hashmap_destroy_hook(struct rb_root *root, struct rb_node *n, void *arg)
+static void hashmap_clear_hook(struct rb_root *root, struct rb_node *n, void *arg)
 {
 	struct hashmap_node *node;
 	struct hashmap *map;
+	void (*hook)(struct hashmap_node *n) = arg;
 
 	node = container_of(n, struct hashmap_node, node);
 	map = container_of(root, struct hashmap, root);
 	hashmap_remove(map, node->key);
+	hook(node);
 }
 
 static void hashmap_iterate_hook(struct rb_root *root, struct rb_node *node, void *arg)
@@ -188,8 +189,13 @@ void hashmap_iterate(struct hashmap *map, void (*fn)(struct hashmap *hm, struct 
 
 void hashmap_destroy(struct hashmap *hm)
 {
-	while(hm->root.tree)
-		rb_iterate(&hm->root, &hashmap_destroy_hook, NULL);
 	rb_destroy_root(&hm->root);
+	atomic_destroy(&hm->num);
+}
+
+void hashmap_clear(struct hashmap *hm, void (*hook)(struct hashmap_node*))
+{
+	while(hm->root.tree)
+		rb_iterate(&hm->root, &hashmap_clear_hook, hook);
 }
 
