@@ -40,6 +40,8 @@
 #define KEY_5 "test::key::5"
 #define TEST_5 "Test string five"
 
+#define UPDATE_DATA "Test string 3.1"
+
 static void dot()
 {
 	fputs(".\n", stdout);
@@ -47,11 +49,21 @@ static void dot()
 
 static void dbg_setup_dict(struct dict *d)
 {
+	union entry_data val;
+	size_t size;
+
 	dict_add(d, KEY_1, TEST_1, DICT_PTR);
 	dict_add(d, KEY_2, TEST_2, DICT_PTR);
 	dict_add(d, KEY_3, TEST_3, DICT_PTR);
 	dict_add(d, KEY_4, TEST_4, DICT_PTR);
 	dict_add(d, KEY_5, TEST_5, DICT_PTR);
+
+	dict_lookup(d, KEY_3, &val, &size);
+	printf("Current data of %s: %s - Updating\n", KEY_3, (char*)val.ptr);
+	dict_update(d, KEY_3, UPDATE_DATA, DICT_PTR);
+
+	dict_lookup(d, KEY_3, &val, &size);
+	printf("Current data of %s: %s\n", KEY_3, (char*)val.ptr);
 }
 
 static void dbg_empty_dict(struct dict *d)
@@ -63,8 +75,6 @@ static void dbg_empty_dict(struct dict *d)
 	dict_delete(d, KEY_3, &val, false);
 	dict_delete(d, KEY_4, &val, false);
 	dict_delete(d, KEY_5, &val, false);
-
-	printf("Last entry deleted: %s\n", (char*)val.ptr);
 }
 
 int main(int argc, char **argv)

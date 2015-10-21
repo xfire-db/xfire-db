@@ -28,6 +28,7 @@
 #include <xfire/mem.h>
 #include <xfire/dict.h>
 #include <xfire/database.h>
+#include <xfire/container.h>
 
 /**
  * @brief Allocate a new database.
@@ -49,18 +50,30 @@ struct database *db_alloc(const char *name)
 }
 
 /**
+ * @brief Update a database key.
+ * @param db Database to look in for \p key.
+ * @param key Key which has to be updated.
+ * @param c New data to set.
+ * @return An error code.
+ */
+int db_update(struct database *db, const char *key, struct container *c)
+{
+	return dict_update(db->container, key, c, DICT_PTR);
+}
+
+/**
  * @brief Store an entry in a database.
  * @param db Database to store in.
  * @param key Key to store \p data under.
  * @param data Data to store.
  * @return Error code.
  */
-int db_store(struct database *db, const char *key, void *data)
+int db_store(struct database *db, const char *key, struct container *c)
 {
 	/*
 	 * add the entry to the dictionary.
 	 */
-	return dict_add(db->container, key, data, DICT_PTR);
+	return dict_add(db->container, key, c, DICT_PTR);
 }
 
 /**
@@ -96,9 +109,10 @@ int db_delete(struct database *db, const char *key, db_data_t *data)
 int db_lookup(struct database *db, const char *key, db_data_t *data)
 {
 	union entry_data val;
+	size_t tmp;
 	int rv;
 
-	rv = dict_lookup(db->container, key, &val);
+	rv = dict_lookup(db->container, key, &val, &tmp);
 	if(rv != -XFIRE_OK)
 		return rv;
 	else

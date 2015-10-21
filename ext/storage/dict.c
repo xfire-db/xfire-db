@@ -218,6 +218,22 @@ void dict_free(struct dict *d)
 }
 
 /**
+ * @brief Check whether a key is available or not.
+ * @param d Dict to check.
+ * @param key Key to check.
+ * @return TRUE if the key is available, false otherwise.
+ */
+bool dict_key_available(struct dict *d, char *key)
+{
+	int found;
+	union entry_data data;
+	size_t size;
+
+	found = dict_lookup(d, key, &data, &size);
+	return found == -XFIRE_OK;
+}
+
+/**
  * @brief Compare two keys.
  * @param key1 First key.
  * @param key2 Second key.
@@ -364,7 +380,7 @@ static int dict_rehash(struct dict *d, int num)
 	struct dict_entry *de, *next;
 
 	xfire_mutex_lock(&d->lock);
-	if(!__dict_is_rehashing(d)) {
+	if(unlikely(!__dict_is_rehashing(d))) {
 		xfire_mutex_unlock(&d->lock);
 		return 0;
 	}
@@ -373,7 +389,7 @@ static int dict_rehash(struct dict *d, int num)
 	while(num-- && d->map[PRIMARY_MAP].length > 0L) {
 		assert(d->map[PRIMARY_MAP].size > d->rehashidx);
 
-		while(d->map[PRIMARY_MAP].array[d->rehashidx] == NULL) {
+		while(unlikely(d->map[PRIMARY_MAP].array[d->rehashidx] == NULL)) {
 			d->rehashidx++;
 
 			if(--visits == 0) {
@@ -383,7 +399,7 @@ static int dict_rehash(struct dict *d, int num)
 		}
 
 		de = d->map[PRIMARY_MAP].array[d->rehashidx];
-		while(de) {
+		while(likely(de)) {
 			/* move an entry to the new map */
 			next = de->next;
 			hash = dict_hash_key(de->key, DICT_SEED);
@@ -477,7 +493,6 @@ static int dict_expand(struct dict *d, unsigned long size)
 	d->rehashing = true;
 
 	xfire_cond_signal(&d->rehash_condi);
-
 	return -XFIRE_OK;
 }
 
@@ -688,6 +703,38 @@ static struct dict_entry *__dict_add(struct dict *d, const char *key,
 }
 
 /**
+ * @brief Calculate the size of a data blob.
+ * @param t Type of \p data.
+ * @param data Data to calculate the size of.
+ * @return The size of \p data.
+ * @note If \p t is DICT_PTR \p data must point to a c-style string in
+ *       order to calculate the size properly. If \p data points to raw
+ *       data, raw_dict_add or raw_dict_update should be used.
+ */
+static size_t dict_get_entry_length(dict_type_t t, void *data)
+{
+	size_t rc;
+
+	switch(t) {
+	case DICT_PTR:
+		rc = sizeof(void*);
+		break;
+	case DICT_U64:
+	case DICT_S64:
+		rc = sizeof(u64);
+		break;
+	case DICT_FLT:
+		rc = sizeof(double);
+		break;
+	default:
+		rc = 0;
+		break;
+	}
+
+	return rc;
+}
+
+/**
  * @brief Add a new key-value pair to a dictionary.
  * @param d Dictionary to add the pair to.
  * @param key Key to be stored.
@@ -697,6 +744,23 @@ static struct dict_entry *__dict_add(struct dict *d, const char *key,
  */
 int dict_add(struct dict *d, const char *key, void *data, dict_type_t t)
 {
+	size_t l;
+
+	l = dict_get_entry_length(t, data);
+	return raw_dict_add(d, key, data, t, l);
+}
+
+/**
+ * @brief Add a new key-value pair to a dictionary.
+ * @param d Dictionary to add the pair to.
+ * @param key Key to be stored.
+ * @param data Data to be stored.
+ * @param t Type of data.
+ * @param size Length (i.e.) size of the \p data parameter.
+ * @return An error code. If no error occured -XFIRE_OK will be returned.
+ */
+int raw_dict_add(struct dict *d, const char *key, void *data, dict_type_t t, size_t size)
+{
 	struct dict_entry *e;
 
 	e = __dict_add(d, key, data, t);
@@ -704,6 +768,7 @@ int dict_add(struct dict *d, const char *key, void *data, dict_type_t t)
 		return -XFIRE_ERR;
 
 	dict_set_val(e, data, t);
+	e->length = size;
 	return -XFIRE_OK;
 }
 
@@ -841,10 +906,53 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 }
 
 /**
+ * @brief Update a data entry.
+ * @param d Dictionary containing \p key.
+ * @param key Key to update.
+ * @param data Data to set.
+ * @param type Type of \p data.
+ * @return An error code. If the data is updated or set -XFIRE_OK is returned.
+ *
+ * If the given key \p key doesn't exist yet, it will be inserted.
+ */
+int dict_update(struct dict *d, const char *key, void *data, dict_type_t type)
+{
+	size_t s;
+
+	s = dict_get_entry_length(type, data);
+	return raw_dict_update(d, key, data, type, s);
+}
+
+/**
+ * @brief Update a data entry.
+ * @param d Dictionary containing \p key.
+ * @param key Key to update.
+ * @param data Data to set.
+ * @param type Type of \p data.
+ * @param l Length of \p data.
+ * @return An error code. If the data is updated or set -XFIRE_OK is returned.
+ *
+ * If the given key \p key doesn't exist yet, it will be inserted.
+ */
+int raw_dict_update(struct dict *d, const char *key, void *data, dict_type_t type, size_t l)
+{
+	struct dict_entry *e;
+
+	e = __dict_lookup(d, key);
+	if(!e)
+		return dict_add(d, key, data, type);
+
+	dict_set_val(e, data, type);
+	e->length = l;
+	return -XFIRE_OK;
+}
+
+/**
  * @brief Performs a lookup on a dictionary.
  * @param d Dictionary to perform a lookup on.
  * @param key Key to look for.
  * @param data Output parameter to store the found data.
+ * @param size Number of bytes stored in \p data.
  *
  * Once an entry is found, it will be stored in the memeory pointed to
  * by \p data. It is important to make sure that the memory region pointed to
@@ -852,7 +960,7 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
  * DICT_PTR only the pointer will be stored, not the contents of the
  * pointer.
  */
-int dict_lookup(struct dict *d, const char *key, union entry_data *data)
+int dict_lookup(struct dict *d, const char *key, union entry_data *data, size_t *size)
 {
 	struct dict_entry *e;
 
@@ -864,6 +972,7 @@ int dict_lookup(struct dict *d, const char *key, union entry_data *data)
 		return -XFIRE_ERR;
 
 	*data = e->value;
+	*size = e->length;
 	return -XFIRE_OK;
 }
 
@@ -965,8 +1074,8 @@ struct dict_entry *dict_iterator_prev(struct dict_iterator *it)
 
 	xfire_mutex_lock(&d->lock);
 	do {
+		map = &d->map[it->table];
 		if(!it->e) {
-			map = &d->map[it->table];
 			it->idx--;
 
 			if(it->idx == -2L)

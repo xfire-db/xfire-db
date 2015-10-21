@@ -62,6 +62,8 @@ struct dict_entry {
 		double d; //!< Floating point integer.
 	} value;
 
+	size_t length; //!< Length of the data in value.
+	dict_type_t type; //!< Data type indicator.
 	struct dict_entry *next; //!< Next pointer.
 };
 
@@ -111,15 +113,20 @@ struct dict_iterator {
 
 CDECL
 extern void dict_set_can_expand(int x);
+extern bool dict_key_available(struct dict *d, char *key);
 
 extern struct dict *dict_alloc(void);
 extern void dict_free(struct dict *d);
 extern int dict_clear(struct dict *d);
 
 extern int dict_add(struct dict *d, const char *key, void *data, dict_type_t t);
+extern int raw_dict_add(struct dict *d, const char *key,
+			void *data, dict_type_t t, size_t size);
 extern int dict_delete(struct dict *d, const char *key, union entry_data *data, int free);
-extern int dict_lookup(struct dict *d, const char *key,
-			union entry_data *data);
+extern int dict_lookup(struct dict *d, const char *key, union entry_data *data, size_t *size);
+extern int dict_update(struct dict *d, const char *key, void *data, dict_type_t type);
+extern int raw_dict_update(struct dict *d, const char *key,
+				void *data, dict_type_t type, size_t l);
 
 extern struct dict_iterator *dict_get_safe_iterator(struct dict *d);
 extern struct dict_iterator *dict_get_iterator(struct dict *d);

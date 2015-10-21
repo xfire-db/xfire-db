@@ -45,17 +45,19 @@ void string_init(struct string *str)
  * @param len Length of the string.
  * @return The allocated string container.
  */
-struct string *string_alloc(size_t len)
+struct string *string_alloc(const char *data)
 {
 	struct string *string;
+	int len;
 
+	len = strlen(data);
 	string = xfire_zalloc(sizeof(*string));
 	string_init(string);
 
-	if(len)
-		string->str = xfire_zalloc(len);
-
+	/* allocate the length of data + 1 (for the terminator) */
+	string->str = xfire_zalloc(len + 1);
 	string->len = len;
+	memcpy(string->str, data, len);
 
 	return string;
 }
@@ -85,15 +87,10 @@ void string_set(struct string *string, const char *str)
  * @param num Length of buff in bytes.
  * @return Error code. 0 on success, -1 otherwise.
  */
-int string_get(struct string *str, char *buff, size_t num)
+int string_get(struct string *str, char **buff)
 {
 	xfire_spin_lock(&str->lock);
-	if(num < str->len) {
-		xfire_spin_unlock(&str->lock);
-		return -1;
-	}
-
-	memcpy(buff, str->str, num);
+	xfire_sprintf(buff, "%s", str->str);
 	xfire_spin_unlock(&str->lock);
 
 	return 0;

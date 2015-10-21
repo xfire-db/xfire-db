@@ -1,0 +1,8 @@
+/**
+ * @defgroup disk Persistence API
+ * @ingroup storage
+ * @brief Persistent storage API.
+ *
+ * The storage/disk module provides an API to store, update
+ * and retrieve data on disk.
+ */

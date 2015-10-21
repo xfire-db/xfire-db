@@ -1,5 +1,5 @@
 /*
- *  Hashed dictionary unit test
+ *  Database unit test
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -23,8 +23,9 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
-#include <xfire/dict.h>
+#include <xfire/database.h>
 #include <xfire/os.h>
+#include <xfire/container.h>
 
 static const char *dbg_keys[] = {"key1","key2","key3","key4","key5","key6","key7",
 				"key8","key9","key10","key11","key12",
@@ -41,13 +42,11 @@ static const char *dbg_values[] = {"val1","val2","val3","val4","val5","val6","va
 void *test_thread_a(void *arg)
 {
 	int i = 0;
-	int rc;
 
 	printf("Insert thread \"a\" starting!\n");
 	for(; i < 5; i++) {
-		rc = strlen((char*)dbg_values[i]);
-		raw_dict_add(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i], DICT_PTR, rc);
+		db_store(arg, (const char*)dbg_keys[i],
+			(void*)dbg_values[i]);
 	}
 	return NULL;
 }
@@ -58,8 +57,8 @@ void *test_thread_b(void *arg)
 
 	printf("Insert thread \"b\" starting!\n");
 	for(; i < 10; i++) {
-		dict_add(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i], DICT_PTR);
+		db_store(arg, (const char*)dbg_keys[i],
+			(void*)dbg_values[i]);
 	}
 	return NULL;
 }
@@ -70,8 +69,8 @@ void *test_thread_c(void *arg)
 
 	printf("Insert thread \"c\" starting!\n");
 	for(; i < 15; i++) {
-		dict_add(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i], DICT_PTR);
+		db_store(arg, (const char*)dbg_keys[i],
+			(void*)dbg_values[i]);
 	}
 	return NULL;
 }
@@ -79,22 +78,20 @@ void *test_thread_c(void *arg)
 void *test_thread_e(void *arg)
 {
 	int i = 20;
-	union entry_data val;
+	db_data_t data;
 
 	for(; i < 25; i++)
-		dict_delete(arg, (const char*)dbg_keys[i], &val,
-			false);
+		db_delete(arg, (const char*)dbg_keys[i], &data);
 	return NULL;
 }
 
 void *test_thread_d(void *arg)
 {
 	int i = 15;
-	union entry_data val;
+	db_data_t data;
 
 	for(; i < 20; i++)
-		dict_delete(arg, (const char*)dbg_keys[i], &val,
-			false);
+		db_delete(arg, (const char*)dbg_keys[i], &data);
 	return NULL;
 }
 
@@ -105,17 +102,16 @@ static void dot()
 
 int main(int argc, char **argv)
 {
-	struct dict *strings;
+	struct database *strings;
 	struct thread *a, *b, *c, *d, *e;
 	int i = 0;
-	union entry_data val, tmp;
-	size_t size;
+	db_data_t val, tmp;
 
-	strings = dict_alloc();
+	strings = db_alloc("test-db");
 
 	for(i = 15; i < 25; i++)
-		dict_add(strings, (const char*)dbg_keys[i],
-			(void*)dbg_values[i], DICT_PTR);
+		db_store(strings, (const char*)dbg_keys[i],
+			(void*)dbg_values[i]);
 
 	a = xfire_create_thread("thread a", &test_thread_a, strings);
 	b = xfire_create_thread("thread b", &test_thread_b, strings);
@@ -138,18 +134,19 @@ int main(int argc, char **argv)
 	for(i = 0; i < 15; i++) {
 		if(i == 11)
 			continue;
-		dict_delete(strings, dbg_keys[i], &val, false);
+		db_delete(strings, dbg_keys[i], &val);
 	}
 
 	printf("Testing lookup...\n");
 	dot();dot();dot();
-	dict_lookup(strings, dbg_keys[11], &tmp, &size);
+	db_lookup(strings, dbg_keys[11], &tmp);
 	if(tmp.ptr) {
 		printf("Found %s under key %s!\n", (char*)tmp.ptr, dbg_keys[11]);
-		printf("Concurrent dict test successful\n");
+		printf("Concurrent database test successful\n");
 	}
-	dict_delete(strings, dbg_keys[11], &val, false);
+	db_delete(strings, dbg_keys[11], &val);
 
-	dict_free(strings);
+	db_free(strings);
 	return -EXIT_SUCCESS;
 }
+

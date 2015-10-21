@@ -17,9 +17,17 @@ option (RECURSION
 	"Set to true if search functions should use recursion."
 	[true])
 
-set (STDOUT "" CACHE STRING
+set (PERSIST_LEVEL "0" CACHE STRING
+	"Persistency level. 0 for max. persistance, 2 for minimal.")
+
+set (STACK_SIZE "2097152" CACHE STRING
+	"Default stack size.")	
+set (DATA_PATH "$ENV{HOME}/.xfire" CACHE STRING
+	"Directory to store persistent data in.")
+
+set (STDOUT "$ENV{HOME}/.xfire/out.log" CACHE STRING
 	"Set to a file path to log standard messages to")
-set (STDERR "" CACHE STRING
+set (STDERR "$ENV{HOME}/.xfire/err.log" CACHE STRING
 	"Set to file path to log error messages to")
 
 set(HAVE_DBG "")

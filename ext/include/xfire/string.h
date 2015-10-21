@@ -28,12 +28,15 @@
 #include <xfire/types.h>
 #include <xfire/os.h>
 #include <xfire/list.h>
+#include <xfire/rbtree.h>
+#include <xfire/hashmap.h>
 
 /**
  * @brief String container.
  */
 struct string {
 	struct list entry; //!< List entry.
+	struct hashmap_node node; //!< Map node.
 
 	char *str; //!< String pointer.
 	size_t len; //!< Length of \p str in bytes.
@@ -46,12 +49,12 @@ struct string {
 #define S_MAGIC 0x785A06B8
 
 CDECL
-extern struct string *string_alloc(size_t len);
+extern struct string *string_alloc(const char *data);
 extern void string_init(struct string *str);
 extern void string_free(struct string *string);
 extern void string_destroy(struct string *str);
 extern void string_set(struct string *string, const char *str);
-extern int string_get(struct string *str, char *buff, size_t num);
+extern int string_get(struct string *str, char **buf);
 extern size_t string_length(struct string *str);
 
 /**
