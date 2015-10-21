@@ -130,8 +130,10 @@ int xfiredb_string_get(char *key, char **data)
 	struct container *c;
 	db_data_t dbdata;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK)
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK) {
+		*data = NULL;
 		return -XFIRE_ERR;
+	}
 
 	c = dbdata.ptr;
 	s = container_get_data(c);
