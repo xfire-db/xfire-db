@@ -50,19 +50,59 @@ static container_type_t xfiredb_get_row_type(char *cell)
 static void xfiredb_load_hook(int argc, char **rows, char **cols)
 {
 	container_type_t type;
+	char *key, *skey, *data;
 	int i;
+	bool available;
+	db_data_t dbdata;
+	struct container *c;
+	struct string *s;
+	struct list_head *h;
+	struct hashmap *map;
 
 	for(i = 0; i < argc; i += 4) {
 		type = xfiredb_get_row_type(rows[i + TABLE_TYPE_IDX]);
+		key = rows[i + TABLE_KEY_IDX];
+		skey = rows[i + TABLE_SCND_KEY_IDX];
+		data = rows[i + TABLE_DATA_IDX];
+		available = db_lookup(xfiredb, key, &dbdata) == -XFIRE_OK ? true : false;
 
 		switch(type) {
 		case CONTAINER_STRING:
+			if(available)
+				break;
+
+			c = container_alloc(CONTAINER_STRING);
+			s = container_get_data(c);
+			string_set(s, data);
+			db_store(xfiredb, key, c);
 			break;
 
 		case CONTAINER_LIST:
+			if(available)
+				c = dbdata.ptr;
+			else
+				c = container_alloc(CONTAINER_LIST);
+
+			h = container_get_data(c);
+			s = string_alloc(data);
+			list_rpush(h, &s->entry);
+
+			if(!available)
+				db_store(xfiredb, key, c);
 			break;
 
 		case CONTAINER_HASHMAP:
+			if(available)
+				c = dbdata.ptr;
+			else
+				c = container_alloc(CONTAINER_HASHMAP);
+
+			map = container_get_data(c);
+			s = string_alloc(data);
+			hashmap_add(map, skey, &s->node);
+
+			if(!available)
+				db_store(xfiredb, key, c);
 			break;
 		}
 	}
