@@ -121,6 +121,7 @@ static void bio_worker(void *arg)
 
 void bio_sync(void)
 {
+	bg_process_signal(BIO_WORKER_NAME);
 }
 
 void bio_init(void)

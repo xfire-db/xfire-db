@@ -77,7 +77,7 @@ extern void xfiredb_init(void);
 extern void xfiredb_exit(void);
 extern int xfiredb_string_set(char *key, char *str);
 extern int xfiredb_list_push(char *key, char *data, bool left);
-extern int xfiredb_hashmap_add(char *key, char *skey, char *data);
+extern int xfiredb_hashmap_set(char *key, char *skey, char *data);
 extern int xfiredb_key_delete(char *key);
 extern int xfiredb_string_get(char *key, char **data);
 extern int xfiredb_list_get(char *key, char **data, int *idx, int num);
@@ -85,6 +85,7 @@ extern int xfiredb_list_pop(char *key, int *idx, int num);
 extern int xfiredb_list_set(char *key, int idx, char *data);
 extern int xfiredb_hashmap_get(char *key, char **skey, char **data, int num);
 extern int xfiredb_hashmap_remove(char *key, char **skeys, int num);
+extern int xfiredb_list_length(char *key);
 CDECL_END
 
 #endif

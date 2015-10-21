@@ -18,12 +18,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <sys/time.h>
 
 #include <xfire/xfire.h>
-#include <xfire/mem.h>
 #include <xfire/types.h>
+#include <xfire/mem.h>
+#include <xfire/bio.h>
 #include <xfire/error.h>
 
 static void dbg_string_test(void)
@@ -60,7 +62,8 @@ static void dbg_list_test(void)
 	xfiredb_list_push("key4", "list-entry3", true);
 	
 	xfiredb_list_get("key4", data, idx, num);
-	printf("List entry's found:\n* %s\n* %s\n* %s\n* %s\n",
+	printf("List entry's found (%i):\n* %s\n* %s\n* %s\n* %s\n",
+			xfiredb_list_length("key4"),
 			data[0], data[1], data[2], data[3]);
 
 	printf("List entry's deleted: %i\n",
@@ -78,10 +81,10 @@ static void dbg_hm_test(void)
 	int num = 2, i;
 	char **data = xfire_zalloc(sizeof(*data) * 2);
 
-	xfiredb_hashmap_add("key5", "skey1", "hash entry 1");
-	xfiredb_hashmap_add("key5", "skey2", "hash entry 2");
-	xfiredb_hashmap_add("key5", "skey3", "hash entry 3");
-	xfiredb_hashmap_add("key5", "skey2", "hash entry 2, updated");
+	xfiredb_hashmap_set("key5", "skey1", "hash entry 1");
+	xfiredb_hashmap_set("key5", "skey2", "hash entry 2");
+	xfiredb_hashmap_set("key5", "skey3", "hash entry 3");
+	xfiredb_hashmap_set("key5", "skey2", "hash entry 2, updated");
 
 	xfiredb_hashmap_get("key5", keys, data, 2);
 	printf("Hashmap entry's:\n* %s\n* %s\n", data[0], data[1]);
@@ -99,6 +102,8 @@ int main(int argc, char **argv)
 	dbg_string_test();
 	dbg_list_test();
 	dbg_hm_test();
+	bio_sync();
+	sleep(1);
 	xfiredb_exit();
 
 	return -EXIT_SUCCESS;
