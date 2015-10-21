@@ -774,7 +774,6 @@ INPUT                  = . \
                          ./Documentation/mem.txt \
                          ./Documentation/rbtree.txt \
                          ./Documentation/list.txt \
-                         ./Documentation/server.txt \
                          ./Documentation/dict.txt \
                          ./Documentation/storage.txt \
                          ./Documentation/string.txt

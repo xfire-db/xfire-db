@@ -25,14 +25,6 @@
 #endif
 
 #ifdef __cplusplus
-class XFire {
-public:
-	explicit XFire(const char *addr, int port);
-	virtual ~XFire();
-};
-#endif
-
-#ifdef __cplusplus
 #define CDECL extern "C" {
 #define CDECL_END }
 #else

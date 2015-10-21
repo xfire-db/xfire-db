@@ -1,6 +1,5 @@
 /**
- * @defgroup lib Libc extensions
- * @ingroup server
+ * @defgroup lib XFire C library
  * @brief Extended c library.
  *
  * This library forms an extension to the system c library's,
