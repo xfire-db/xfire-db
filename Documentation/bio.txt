@@ -1,0 +1,11 @@
+/**
+ * @defgroup bio Background I/O API
+ * @ingroup storage
+ * @brief Module to manage I/O which can be handled in the background.
+ *
+ * This module is responsible for handling all the back ground I/O that
+ * needs to be done. Most notably, it is reponsible for persistance. When
+ * write operations (may it be an actual write, or a delete) are done on
+ * the in-memory database, the BIO module will transparantly do these
+ * same changes on the on-disk database.
+ */

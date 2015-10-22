@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup bio
+ * @{
+ */
+
 #ifndef __BIO_H__
 #define __BIO_H__
 
@@ -35,29 +40,44 @@ struct bio_q_head {
 	xfire_spinlock_t lock;
 };
 
+/**
+ * @brief BIO operation type.
+ */
 typedef enum {
-	STRING_ADD,
-	STRING_DEL,
-	STRING_UPDATE,
+	STRING_ADD, //!< Add a string.
+	STRING_DEL, //!< Delete a string.
+	STRING_UPDATE, //!< Update a string.
 
-	LIST_ADD,
-	LIST_DEL,
-	LIST_UPDATE,
+	LIST_ADD, //!< Add a list (entry).
+	LIST_DEL, //!< Delete a list (entry).
+	LIST_UPDATE, //!< Update a list (entry).
 
-	HM_ADD,
-	HM_DEL,
-	HM_UPDATE,
+	HM_ADD, //!< Add a hashmap entry.
+	HM_DEL, //!< Delete a hashmap entry.
+	HM_UPDATE, //!< Update a hashmap entry.
 } bio_operation_t;
 
+/**
+ * @brief Back ground I/O queue.
+ */
 struct bio_q {
-	struct bio_q *next,
-		     *prev;
+	struct bio_q *next, //!< Next pointer.
+		     *prev; //!< Previous pointer.
 
-	char *key;
+	char *key; //!< Entry key.
+	/**
+	 * @brief Database argument.
+	 *
+	 * The contents of \p arg vary, depending on which
+	 * kind of entry is being altered or added. In case
+	 * of lists, the \p arg points to the data that is
+	 * currently in the database. In case of hashmaps, it
+	 * contains the key within the hashmap.
+	 */
 	char *arg;
-	char *newdata;
+	char *newdata; //!< New data, in case we are adding or updating.
 
-	bio_operation_t operation;
+	bio_operation_t operation; //!< Type of operation.
 };
 
 #ifdef HAVE_DEBUG
@@ -76,4 +96,6 @@ extern void bio_sync(void);
 CDECL_END
 
 #endif
+
+/** @} */
 
