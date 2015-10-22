@@ -575,7 +575,7 @@ int xfiredb_hashmap_set(char *key, char *skey, char *data)
 	if(new)
 		db_store(xfiredb, key, c);
 
-	return -XFIRE_ERR;
+	return -XFIRE_OK;
 }
 
 /**
@@ -615,8 +615,10 @@ int xfiredb_key_delete(char *key)
 			s = container_of(carriage, struct string, entry);
 			string_get(s, &bio_data);
 			bio_queue_add(bio_key, bio_data, NULL, LIST_DEL);
+			list_del(lh, carriage);
 			string_destroy(s);
 			xfire_free(s);
+			rv++;
 		}
 
 		container_destroy(c);

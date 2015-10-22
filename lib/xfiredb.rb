@@ -18,12 +18,11 @@
 
 require 'storage_engine'
 require 'server'
+require 'memory_profiler'
 
 module XFireDB
   def XFireDB.start
-    engine = XFireDB::StorageEngine.new
-    puts 'Hello, XFireDB'
-    engine.delete
+    puts "[init]: XFireDB starting..."
   end
 end
 

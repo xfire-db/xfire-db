@@ -20,8 +20,11 @@
 #include <stdio.h>
 #include <ruby.h>
 
+#include "se.h"
+
 #include <xfire/xfire.h>
 #include <xfire/error.h>
+#include <xfire/mem.h>
 
 static VALUE c_storage_engine;
 static VALUE c_se_mod;
@@ -38,6 +41,13 @@ static VALUE rb_se_delete(VALUE self)
 	return self;
 }
 
+static VALUE rb_se_key_del(VALUE self, VALUE _key)
+{
+	char *key = StringValueCStr(_key);
+
+	return INT2NUM(xfiredb_key_delete(key));
+}
+
 void Init_storage_engine(void)
 {
 	c_se_mod = rb_define_module("XFireDB");
@@ -45,5 +55,22 @@ void Init_storage_engine(void)
 			"StorageEngine", rb_cObject);
 	rb_define_method(c_storage_engine, "initialize", &rb_se_new, 0);
 	rb_define_method(c_storage_engine, "delete", &rb_se_delete, 0);
+	/* string funcs */
+	rb_define_method(c_storage_engine, "string_set", &rb_se_str_set, 2);
+	rb_define_method(c_storage_engine, "string_get", &rb_se_str_get, 1);
+	/* list funcs */
+	rb_define_method(c_storage_engine, "list_get_seq", &rb_se_list_get, 3);
+	rb_define_method(c_storage_engine, "list_get", &rb_se_list_get2, 2);
+	rb_define_method(c_storage_engine, "list_pop_seq", &rb_se_list_del, 3);
+	rb_define_method(c_storage_engine, "list_pop", &rb_se_list_del2, 2);
+	rb_define_method(c_storage_engine, "list_lpush", &rb_se_list_lpush, 2);
+	rb_define_method(c_storage_engine, "list_rpush", &rb_se_list_rpush, 2);
+	rb_define_method(c_storage_engine, "list_set", &rb_se_list_set, 3);
+	/* hm funcs */
+	rb_define_method(c_storage_engine, "hm_get", &rb_se_hm_get, 2);
+	rb_define_method(c_storage_engine, "hm_set", &rb_se_hm_set, 3);
+	rb_define_method(c_storage_engine, "hm_remove", &rb_se_hm_del, 2);
+	/* generic funcs */
+	rb_define_method(c_storage_engine, "key_delete", &rb_se_key_del, 1);
 }
 
