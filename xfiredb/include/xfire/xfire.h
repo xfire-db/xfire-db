@@ -52,16 +52,20 @@
 
 #define XOR(a,b) ((a) ^ (b))
 
+#ifndef offsetof
 #ifdef __GNUC__
 #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
 #define offsetof(a,b) __compiler_offsetof(a,b)
 #else
 #define offsetof(a,b) ((size_t) &((a *)0)->b)
 #endif
+#endif
 
+#ifndef container_of
 #define container_of(ptr, type, member) ({		\
 		const typeof( ((type *)0)->member) *__mptr = (ptr); \
 		(type *)( ( char *)__mptr - offsetof(type,member) );})
+#endif
 
 CDECL
 extern int xfire_sprintf(char **buf, char *format, ...);

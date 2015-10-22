@@ -1,5 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
-project (XFire)
+project (XFireDB)
+SET(PROJECT_VERSION 1.0)
+SET(API_VERSION 1.0)
+
+cmake_policy(SET CMP0007 NEW)
 
 include(scripts/directories.cmake)
 include(scripts/options.cmake)
@@ -12,9 +16,11 @@ configure_file(
 
 include(scripts/flags.cmake)
 include(scripts/link.cmake)
+include(scripts/ruby.cmake)
 
 include_directories(${XFIRE_INCLUDE_DIR})
 
 if(XFIRE_SERVER)
+	add_subdirectory(${XFIRE_SERVER_PATH})
 	add_subdirectory(${XFIRE_EXTENSION_PATH})
 endif(XFIRE_SERVER)
