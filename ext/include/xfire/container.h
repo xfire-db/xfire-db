@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup container
+ * @{
+ */
+
 #ifndef __CONTAINER_H__
 #define __CONTAINER_H__
 
@@ -30,19 +35,25 @@
 #define CONTAINER_LIST_MAGIC   0xEEAABBCC
 #define CONTAINER_HM_MAGIC     0xDDAABBCC
 
+/**
+ * @brief Container type type definition.
+ */
 typedef enum {
-	CONTAINER_STRING,
-	CONTAINER_LIST,
-	CONTAINER_HASHMAP,
+	CONTAINER_STRING, //!< String container.
+	CONTAINER_LIST, //!< List container.
+	CONTAINER_HASHMAP, //!< Hashmap container.
 } container_type_t;
 
+/**
+ * @brief Container data structure.
+ */
 struct container {
-	container_type_t type;
+	container_type_t type; //!< Container type.
 
 	union {
-		struct list_head list;
-		struct string string;
-		struct hashmap map;
+		struct list_head list; //!< List head.
+		struct string string; //!< String.
+		struct hashmap map; //!< Hashmap.
 	} data;
 };
 

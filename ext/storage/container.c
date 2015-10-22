@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup container
+ * @{
+ */
+
 #include <xfire/xfire.h>
 #include <xfire/error.h>
 #include <xfire/types.h>
@@ -25,6 +30,11 @@
 #include <xfire/hashmap.h>
 #include <xfire/mem.h>
 
+/**
+ * @brief Initialise a new container.
+ * @param c Container to initialise.
+ * @param type Container type.
+ */
 void container_init(struct container *c, container_type_t type)
 {
 	switch(type) {
@@ -44,6 +54,11 @@ void container_init(struct container *c, container_type_t type)
 	c->type = type;
 }
 
+/**
+ * @brief Allocate a new container.
+ * @param type Container type to allocate.
+ * @return The allocated container.
+ */
 struct container *container_alloc(container_type_t type)
 {
 	struct container *c;
@@ -54,6 +69,10 @@ struct container *container_alloc(container_type_t type)
 	return c;
 }
 
+/**
+ * @brief Get the data encapsulated by the container.
+ * @return The encapsulated data.
+ */
 void *container_get_data(struct container *c)
 {
 	void *data;
@@ -76,6 +95,10 @@ void *container_get_data(struct container *c)
 	return data;
 }
 
+/**
+ * @brief Destroy a given container.
+ * @param c Cotainer to destroy.
+ */
 void container_destroy(struct container *c)
 {
 	switch(c->type) {
@@ -92,4 +115,6 @@ void container_destroy(struct container *c)
 		break;
 	}
 }
+
+/** @} */
 

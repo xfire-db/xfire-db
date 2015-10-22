@@ -1,0 +1,7 @@
+/**
+ * @defgroup container Container API
+ * @ingroup storage
+ * @brief Container API
+ *
+ * Containers are used to encapsulate storage entity's.
+ */

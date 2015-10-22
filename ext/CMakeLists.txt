@@ -21,13 +21,13 @@ add_library(xfiredb SHARED
 	storage/rbtree.c
 	storage/list.c
 	storage/string.c
+	storage/container.c
 
 	# os files
 	${XFIRE_OS_FILES}
 
 	# core files
 	bitops-atomic.c
-	container.c
 	bitops.c
 	xfiredb.c
 	log.c
