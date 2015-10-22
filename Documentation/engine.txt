@@ -1,0 +1,6 @@
+/**
+ * @defgroup engine Storage engine API
+ * @brief XFireDB storage engine API
+ *
+ * API to the storage engine, used by the (ruby) front-end.
+ */

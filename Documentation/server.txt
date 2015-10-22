@@ -1,6 +1,0 @@
-/**
- * @defgroup server XFireDB API
- * @brief XFireDB server API
- *
- * API to the server, used by the (ruby) front-end.
- */

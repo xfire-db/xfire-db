@@ -17,7 +17,7 @@
  */
 
 /**
- * @addtogroup server
+ * @addtogroup engine
  * @{
  */
 
@@ -198,7 +198,7 @@ int xfiredb_string_set(char *key, char *str)
 /**
  * @brief Get the length of a list.
  * @param key List key.
- * @param Length of the list under \p key.
+ * @return Length of the list under \p key.
  */
 int xfiredb_list_length(char *key)
 {
@@ -216,7 +216,7 @@ int xfiredb_list_length(char *key)
 
 /**
  * @brief Pop a list entry.
- * @parm key List key.
+ * @param key List key.
  * @param idx Index array.
  * @param num Number of indexes in \p idx.
  * @return An error code.
@@ -448,7 +448,7 @@ int xfiredb_hashmap_get(char *key, char **skey, char **data, int num)
 /**
  * @brief Remove a hashmap node.
  * @param key Hashmap key.
- * @param skey Array of hashmap key's.
+ * @param skeys Array of hashmap key's.
  * @param num Length of the \p skey array.
  * @return An error code.
  */
