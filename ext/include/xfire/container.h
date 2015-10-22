@@ -54,7 +54,7 @@ struct container {
 		struct list_head list; //!< List head.
 		struct string string; //!< String.
 		struct hashmap map; //!< Hashmap.
-	} data;
+	} data; //!< Container data union.
 };
 
 CDECL
@@ -76,4 +76,6 @@ extern struct container *container_alloc(container_type_t type);
 CDECL_END
 
 #endif
+
+/** @} */
 
