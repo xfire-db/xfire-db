@@ -16,12 +16,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#require 'xfiredbinterface'
+require 'storage_engine'
 require 'server'
 
 module XFireDB
   def XFireDB.start
+    engine = XFireDB::StorageEngine.new
     puts 'Hello, XFireDB'
+    engine.delete
   end
 end
 

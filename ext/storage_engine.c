@@ -28,7 +28,14 @@ static VALUE c_se_mod;
 
 static VALUE rb_se_new(VALUE class)
 {
-	fprintf(stdout, "Hello, storage engine\n");
+	xfiredb_init();
+	return class;
+}
+
+static VALUE rb_se_delete(VALUE self)
+{
+	xfiredb_exit();
+	return self;
 }
 
 void Init_storage_engine(void)
@@ -36,6 +43,7 @@ void Init_storage_engine(void)
 	c_se_mod = rb_define_module("XFireDB");
 	c_storage_engine = rb_define_class_under(c_se_mod,
 			"StorageEngine", rb_cObject);
-	rb_define_singleton_method(c_storage_engine, "new", &rb_se_new, 0);
+	rb_define_method(c_storage_engine, "initialize", &rb_se_new, 0);
+	rb_define_method(c_storage_engine, "delete", &rb_se_delete, 0);
 }
 
