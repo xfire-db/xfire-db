@@ -75,8 +75,6 @@ extern int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data);
 extern int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey);
 extern int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data);
 
-extern void disk_result_free(void *x);
-
 #endif
 
 /** @} */

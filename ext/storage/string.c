@@ -42,7 +42,7 @@ void string_init(struct string *str)
 
 /**
  * @brief Allocate a string container.
- * @param len Length of the string.
+ * @param data String data to allocate a string object 'around'.
  * @return The allocated string container.
  */
 struct string *string_alloc(const char *data)
@@ -83,9 +83,10 @@ void string_set(struct string *string, const char *str)
 /**
  * @brief Get the c string contained in \p string.
  * @param str String to copy in.
- * @param buff Buffer to copy into.
- * @param num Length of buff in bytes.
+ * @param buff Pointer pointer to a buffer to store the string in.
  * @return Error code. 0 on success, -1 otherwise.
+ * @note The string is copied into \p buffer. The caller is responsible for
+ * freeing up the memory again using xfire_free.
  */
 int string_get(struct string *str, char **buff)
 {

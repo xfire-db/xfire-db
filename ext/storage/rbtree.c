@@ -776,6 +776,7 @@ static void __rb_iterate(struct rb_root *root, struct rb_node *node,
  * @brief Iterate over a red black tree.
  * @param root Tree to iterate over.
  * @param fn Iteration function.
+ * @param arg Argument to \p fn.
  */
 void rb_iterate(struct rb_root *root, void (*fn)(struct rb_root *,struct rb_node *,void*), void *arg)
 {

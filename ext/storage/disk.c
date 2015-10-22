@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup disk
+ * @{
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -31,11 +36,6 @@
 #include <xfire/string.h>
 #include <xfire/list.h>
 #include <xfire/hashmap.h>
-
-/**
- * @addtogroup disk
- * @{
- */
 
 #define DISK_CHECK_TABLE \
 	"SELECT name FROM sqlite_master WHERE type='table' AND name='xfiredb_data';"
@@ -146,6 +146,14 @@ static void disk_hm_iterate(struct hashmap *map, struct hashmap_node *node)
 	xfire_free(data);
 }
 
+/**
+ * @brief Store a hashmap node.
+ * @param d Disk to store onto.
+ * @param key Key to store the node under.
+ * @param nodekey Key of \p data within the hashmap.
+ * @param data Data to store.
+ * @return An error code.
+ */
 int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data)
 {
 	int rc;
@@ -163,6 +171,13 @@ int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data)
 	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
 }
 
+/**
+ * @brief Store an entire hashmap.
+ * @param d Disk to store \p map on.
+ * @param key Key to store \p map under.
+ * @param map Hashmap to store.
+ * @return An error code.
+ */
 int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 {
 	struct hm_store_data data;
@@ -176,6 +191,13 @@ int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Store a list entry.
+ * @param d Disk to store on.
+ * @param key Key to store \p data under.
+ * @param data Data to store.
+ * @return An error code.
+ */
 int disk_store_list_entry(struct disk *d, char *key, char *data)
 {
 	int rc;
@@ -225,7 +247,6 @@ int disk_store_list(struct disk *d, char *key, struct list_head *lh)
  * @param d Disk to store on.
  * @param key Key to store.
  * @param data Data to store (under \p key).
- * @param length Length of data.
  * @return Error code.
  */
 int disk_store_string(struct disk *d, char *key, char *data)
@@ -264,20 +285,10 @@ static int dump_hook(void *arg, int argc, char **row, char **colname)
 }
 
 /**
- * @brief Free a lookup result.
- * @param x Result to free.
- * @see disk_lookup
- *
- * Used to free a result returned by disk_lookup.
+ * @brief Dump the disk.
+ * @param d Disk to dump.
+ * @note Function for debugging purposes only.
  */
-void disk_result_free(void *x)
-{
-	if(!x)
-		return;
-
-	xfire_free(x);
-}
-
 void disk_dump(struct disk *d)
 {
 	int rc;
@@ -303,6 +314,14 @@ void disk_dump(struct disk *d)
 	"SET db_value = '%s' " \
 	"WHERE db_key = '%s' AND db_secondary_key = '%s';"
 
+/**
+ * @brief Update hashmap entry.
+ * @param d Disk to update.
+ * @param key Key to update.
+ * @param nodekey Node key to update.
+ * @param data Data to set.
+ * @return An error code.
+ */
 int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data)
 {
 	int rc;
@@ -325,6 +344,14 @@ int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data)
 	"WHERE ROWID IN (SELECT ROWID FROM xfiredb_data WHERE " \
 	"db_key = '%s' AND db_value = '%s' AND db_type = 'list' LIMIT 1);"
 
+/**
+ * @brief Update a list entry.
+ * @param d Disk to update.
+ * @param key Key to update.
+ * @param data Data currently stored under \p key.
+ * @param newdata Data to set.
+ * @return An error code.
+ */
 int disk_update_list(struct disk *d, char *key, char *data, char *newdata)
 {
 	int rc;
@@ -350,7 +377,6 @@ int disk_update_list(struct disk *d, char *key, char *data, char *newdata)
  * @param d Disk to search on.
  * @param key Key to update.
  * @param data New data to set under \p key.
- * @param length Length of \p data.
  * @return Error code.
  */
 int disk_update_string(struct disk *d, char *key, void *data)
@@ -381,6 +407,12 @@ int disk_update_string(struct disk *d, char *key, void *data)
 	"DELETE FROM xfiredb_data " \
 	"WHERE db_type = 'hashmap' AND db_key = '%s' AND db_secondary_key = '%s';"
 
+/**
+ * @brief Delete a hashmap node.
+ * @param d Disk to delete from.
+ * @param key Key to delete.
+ * @param nodekey Hashmap key to delete.
+ */
 int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey)
 {
 	int rc;
@@ -397,6 +429,12 @@ int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey)
 	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
 }
 
+/**
+ * @brief Delete a list entry from disk.
+ * @param d Disk to delete from.
+ * @param key Key to delete.
+ * @param data Data currently stored on the disk under this entry.
+ */
 int disk_delete_list(struct disk *d, char *key, char *data)
 {
 	int rc;
@@ -413,6 +451,11 @@ int disk_delete_list(struct disk *d, char *key, char *data)
 	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
 }
 
+/**
+ * @brief Delete a string.
+ * @param d Disk to delete from.
+ * @param key Key to delete.
+ */
 int disk_delete_string(struct disk *d, char *key)
 {
 	int rc;
@@ -437,6 +480,12 @@ static int disk_load_hook(void *arg, int argc, char **rows, char **colname)
 	return 0;
 }
 
+/**
+ * @brief Load the disk into memory.
+ * @param d Disk to load.
+ * @param hook Load hook.
+ * @return Error code.
+ */
 int disk_load(struct disk *d, void (*hook)(int argc, char **rows, char **colnames))
 {
 	int rc;

@@ -65,7 +65,7 @@ int db_update(struct database *db, const char *key, struct container *c)
  * @brief Store an entry in a database.
  * @param db Database to store in.
  * @param key Key to store \p data under.
- * @param data Data to store.
+ * @param c Container to store.
  * @return Error code.
  */
 int db_store(struct database *db, const char *key, struct container *c)
