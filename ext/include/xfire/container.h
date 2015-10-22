@@ -58,6 +58,12 @@ struct container {
 };
 
 CDECL
+/**
+ * @brief Check the type of a container.
+ * @param c Container to check.
+ * @param type Type to check \p c against.
+ * @return TRUE if \p type and the container are equal, FALSE otherwise.
+ */
 static inline bool container_check_type(struct container *c, container_type_t type)
 {
 	return c->type == type ? true : false;
