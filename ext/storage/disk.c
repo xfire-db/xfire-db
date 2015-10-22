@@ -29,6 +29,7 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
+#include <xfire/log.h>
 #include <xfire/disk.h>
 #include <xfire/mem.h>
 #include <xfire/error.h>
@@ -67,13 +68,13 @@ static int disk_create_main_table(struct disk *disk)
 
 	rc = sqlite3_exec(disk->handle, DISK_CHECK_TABLE, &init_hook, disk, &errmsg);
 	if(rc != SQLITE_OK)
-		fprintf(stderr, "Error occured while creating tables: %s\n", errmsg);
+		xfire_log_console(LOG_DISK, "Error occured while creating tables: %s\n", errmsg);
 
 	if(!disk->initialised) {
 		/* table's non existent, creating them */
 		rc = sqlite3_exec(disk->handle, DISK_CREATE_TABLE, &init_hook, disk, &errmsg);
 		if(rc != SQLITE_OK)
-			fprintf(stderr, "Error occured while creating tables: %s\n", errmsg);
+			xfire_log_console(LOG_DISK, "Error occured while creating tables: %s\n", errmsg);
 	}
 
 	return -XFIRE_OK;
@@ -98,7 +99,7 @@ struct disk *disk_create(const char *path)
 				path, sqlite3_errmsg(db));
 		exit(-EXIT_FAILURE);
 	} else {
-		fprintf(stdout, "Database created: %s\n", path);
+		xfire_log_console(LOG_DISK, "Database opened: %s\n", path);
 	}
 
 	disk = xfire_zalloc(sizeof(*disk));

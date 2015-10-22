@@ -25,6 +25,7 @@
 
 #include <xfire/xfire.h>
 #include <xfire/types.h>
+#include <xfire/log.h>
 #include <xfire/bg.h>
 #include <xfire/bio.h>
 #include <xfire/database.h>
@@ -118,9 +119,15 @@ static void xfiredb_load_hook(int argc, char **rows, char **cols)
  */
 void xfiredb_init(void)
 {
+	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
+	xfire_log_console(LOG_INIT, "Creating in memory database\n");
 	xfiredb = db_alloc("xfiredb");
+	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
+	xfire_log_console(LOG_INIT, "Initialising background processes\n");
 	bg_processes_init();
+	xfire_log_console(LOG_INIT, "Initialising background I/O\n");
 	bio_init();
+	xfire_log_console(LOG_INIT, "Loading data from disk\n");
 	disk_load(disk_db, &xfiredb_load_hook);
 }
 
@@ -133,6 +140,7 @@ void xfiredb_exit(void)
 	bio_exit();
 	bg_processes_exit();
 	db_free(xfiredb);
+	xfire_log_exit();
 }
 
 /**

@@ -41,12 +41,12 @@ static FILE *xfire_stderr = NULL;
 void xfire_log_init(const char *out, const char *err)
 {
 #ifdef XFIRE_STDERR
-	xfire_stderr = fopen(out, "r+a");
+	xfire_stderr = fopen(out, "w+");
 #else
 	xfire_stderr = stderr;
 #endif
 #ifdef XFIRE_STDOUT
-	xfire_stdout = fopen(err, "r+a");
+	xfire_stdout = fopen(err, "w+");
 #else
 	xfire_stdout = stdout;
 #endif
@@ -72,6 +72,7 @@ static void vfxfire_log(const char *src, const char *fmt, va_list args)
 {
 	fprintf(xfire_stdout, "[%s]: ", src);
 	vfprintf(xfire_stdout, fmt, args);
+	fflush(xfire_stdout);
 }
 
 /**

@@ -24,6 +24,9 @@
 #define XFIRE_ENGINE_LOG "ENGINE"
 #define XFIRE_STORAGE_LOG "STORAGE"
 
+#define LOG_INIT "log"
+#define LOG_DISK "disk"
+
 CDECL
 extern void xfire_log_init(const char *out, const char *err);
 extern void xfire_log_exit(void);
