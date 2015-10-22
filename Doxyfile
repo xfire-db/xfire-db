@@ -764,6 +764,8 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = . \
+			 ./Documentation/bio.txt \
+			 ./Documentation/bg.txt \
 			 ./Documentation/disk.txt \
 			 ./Documentation/database.txt \
 			 ./Documentation/lib.txt \

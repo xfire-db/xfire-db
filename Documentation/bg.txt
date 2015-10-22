@@ -1,0 +1,5 @@
+/**
+ * @defgroup bg Background process API
+ * @ingroup os
+ * @brief API to manage back ground processes.
+ */

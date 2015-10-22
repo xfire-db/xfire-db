@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup bg
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -30,6 +35,9 @@
 static struct dict *job_db;
 static size_t bg_proc_stack = 0;
 
+/**
+ * @brief Initialise the background processing module.
+ */
 void bg_processes_init(void)
 {
 	size_t stack;
@@ -67,6 +75,13 @@ static void *job_processor(void *arg)
 	xfire_thread_exit(NULL);
 }
 
+/**
+ * @brief Create a new background job.
+ * @param name Name of the job to create.
+ * @param handle Job handler (function pointer).
+ * @param arg Argument to \p handle.
+ * @note The \p name argument has to be unique.
+ */
 struct job *bg_process_create(const char *name,
 				void (*handle)(void*), void *arg)
 {
@@ -94,6 +109,13 @@ struct job *bg_process_create(const char *name,
 	return job;
 }
 
+/**
+ * @brief Signal a sleeping job.
+ * @param name Name of the job to signal.
+ *
+ * When a job with the name \p name has been found, it will
+ * be woken up, if possible at all.
+ */
 int bg_process_signal(const char *name)
 {
 	union entry_data data;
@@ -135,6 +157,10 @@ static int __bg_process_stop(struct job *job)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Stop a running (or sleeping) job.
+ * @param name Name of the job which has to be stopped.
+ */
 int bg_process_stop(const char *name)
 {
 	union entry_data data;
@@ -147,6 +173,9 @@ int bg_process_stop(const char *name)
 	return __bg_process_stop(job);
 }
 
+/**
+ * @brief Stop the background process module.
+ */
 void bg_processes_exit(void)
 {
 	struct job *job;
@@ -174,4 +203,6 @@ void bg_processes_exit(void)
 	dict_free(job_db);
 	return;
 }
+
+/** @} */
 

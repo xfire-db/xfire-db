@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup bg
+ * @{
+ */
+
 #ifndef __BG_H__
 #define __BG_H__
 
@@ -26,16 +31,19 @@
 #include <xfire/types.h>
 #include <xfire/os.h>
 
+/**
+ * @brief Job datastructure.
+ */
 struct job {
-	char *name;
-	time_t stamp;
-	bool done;
+	char *name; //!< Name of the job ('thread').
+	time_t stamp; //!< Creation time stamp.
+	bool done; //!< Indicator if the job is done or not.
 
-	void (*handle)(void *arg);
-	void *arg;
-	xfire_mutex_t lock;
-	xfire_cond_t condi;
-	struct thread *tp;
+	void (*handle)(void *arg); //!< Job handler.
+	void *arg; //!< Argument passed to handle.
+	xfire_mutex_t lock; //!< Job lock.
+	xfire_cond_t condi; //!< Job condition.
+	struct thread *tp; //!< Backend thread structure.
 };
 
 CDECL
@@ -49,4 +57,6 @@ extern int bg_process_stop(const char *name);
 CDECL_END
 
 #endif
+
+/** @} */
 

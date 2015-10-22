@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup bio
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -119,11 +124,17 @@ static void bio_worker(void *arg)
 	}
 }
 
+/**
+ * @brief Immediatly wake up the BIO worker.
+ */
 void bio_sync(void)
 {
 	bg_process_signal(BIO_WORKER_NAME);
 }
 
+/**
+ * @brief Initialise the background I/O module.
+ */
 void bio_init(void)
 {
 	bio_q = xfire_zalloc(sizeof(*bio_q));
@@ -132,6 +143,9 @@ void bio_init(void)
 	bio_q->job = bg_process_create(BIO_WORKER_NAME, &bio_worker, disk_db);
 }
 
+/**
+ * @brief BIO destructor.
+ */
 void bio_exit(void)
 {
 	bg_process_stop(BIO_WORKER_NAME);
@@ -141,6 +155,17 @@ void bio_exit(void)
 	disk_destroy(disk_db);
 }
 
+/**
+ * @brief Add an entry to the BIO queue.
+ * @param key The key of the entry.
+ * @param arg Extra info about the added entry. See below.
+ * @param newdata In case of an add or update, the new data to set.
+ * @param op Type of operation.
+ *
+ * The \p arg argument can either point to the currently stored data, in case
+ * of a list operation, or to the key within the hashmap in case of a
+ * hashmap operation.
+ */
 void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 {
 	struct bio_q *q;
@@ -164,7 +189,7 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 	bio_try_wakeup_worker();
 }
 
-#ifdef HAVE_DEBUG
+#if defined(HAVE_DEBUG) || defined(__DOXYGEN__)
 
 static char *dbg_keys[] = {"fist-test", "second-test", "third-test"};
 static char *dbg_data[] = {"first-data", "second-data", "second-data"};
@@ -318,6 +343,9 @@ static void dbg_del_hashmap(void)
 	bio_queue_add(key, skey, NULL, HM_DEL);
 }
 
+/**
+ * @brief BIO debugging function.
+ */
 void dbg_bio_queue(void)
 {
 	dbg_add_hashmap();
@@ -335,4 +363,6 @@ void dbg_bio_queue(void)
 {
 }
 #endif
+
+/** @} */
 

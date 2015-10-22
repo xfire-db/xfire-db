@@ -7,7 +7,6 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 		os/bg.c
 		os/linux.c
 		os/mem.c
-		os/bitops-atomic.c
 	)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
@@ -27,6 +26,7 @@ add_library(xfiredb SHARED
 	${XFIRE_OS_FILES}
 
 	# core files
+	bitops-atomic.c
 	container.c
 	bitops.c
 	xfiredb.c
