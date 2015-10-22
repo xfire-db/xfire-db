@@ -152,6 +152,9 @@ int xfiredb_string_get(char *key, char **data)
 	}
 
 	c = dbdata.ptr;
+	if(!container_check_type(c, CONTAINER_STRING))
+		return -XFIRE_ERR;
+
 	s = container_get_data(c);
 	string_get(s, data);
 	return -XFIRE_OK;
@@ -176,6 +179,12 @@ int xfiredb_string_set(char *key, char *str)
 	xfire_sprintf(&bio_str, "%s", str);
 	if(!db_lookup(xfiredb, key, &data)) {
 		c = data.ptr;
+		if(!container_check_type(c, CONTAINER_STRING)) {
+			xfire_free(bio_key);
+			xfire_free(bio_str);
+			return -XFIRE_ERR;
+		}
+
 		s = container_get_data(c);
 		string_set(s, str);
 		op = STRING_UPDATE;
@@ -210,6 +219,9 @@ int xfiredb_list_length(char *key)
 		return -XFIRE_ERR;
 
 	c = dbdata.ptr;
+	if(!container_check_type(c, CONTAINER_LIST))
+		return -XFIRE_ERR;
+
 	h = container_get_data(c);
 	return list_length(h);
 }
@@ -235,6 +247,9 @@ int xfiredb_list_pop(char *key, int *idx, int num)
 		return counter;
 
 	container = dbdata.ptr;
+	if(!container_check_type(container, CONTAINER_LIST))
+		return -XFIRE_ERR;
+
 	lh = container_get_data(container);
 	list_for_each_safe(lh, c, tmp) {
 		if(idx[counter] < 0)
@@ -290,6 +305,9 @@ int xfiredb_list_get(char *key, char **data, int *idx, int num)
 		return -XFIRE_ERR;
 
 	container = dbdata.ptr;
+	if(!container_check_type(container, CONTAINER_LIST))
+		return -XFIRE_ERR;
+
 	lh = container_get_data(container);
 	list_for_each(lh, c) {
 		if(idx[counter] < 0)
@@ -329,11 +347,13 @@ int xfiredb_list_set(char *key, int idx, char *data)
 	int i, rv = -XFIRE_ERR;
 
 	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK) {
-		xfiredb_list_push(key, data, true);
-		return -XFIRE_OK;
+		return xfiredb_list_push(key, data, true);
 	}
 
 	container = dbdata.ptr;
+	if(!container_check_type(container, CONTAINER_LIST))
+		return -XFIRE_ERR;
+
 	h = container_get_data(container);
 	i = 0;
 
@@ -390,6 +410,8 @@ int xfiredb_list_push(char *key, char *data, bool left)
 		new = true;
 	} else {
 		c = dbdata.ptr;
+		if(!container_check_type(c, CONTAINER_LIST))
+			return -XFIRE_ERR;
 	}
 
 	h = container_get_data(c);
@@ -430,6 +452,9 @@ int xfiredb_hashmap_get(char *key, char **skey, char **data, int num)
 		return -XFIRE_ERR;
 
 	c = dbdata.ptr;
+	if(!container_check_type(c, CONTAINER_HASHMAP))
+		return -XFIRE_ERR;
+
 	hm = container_get_data(c);
 
 	for(; i < num; i++) {
@@ -466,6 +491,9 @@ int xfiredb_hashmap_remove(char *key, char **skeys, int num)
 		return rmnum;
 
 	c = dbdata.ptr;
+	if(!container_check_type(c, CONTAINER_HASHMAP))
+		return -XFIRE_ERR;
+
 	hm = container_get_data(c);
 
 	for(; i < num; i++) {
@@ -516,6 +544,8 @@ int xfiredb_hashmap_set(char *key, char *skey, char *data)
 		new = true;
 	} else {
 		c = dbdata.ptr;
+		if(!container_check_type(c, CONTAINER_HASHMAP))
+			return -XFIRE_ERR;
 	}
 
 	hm = container_get_data(c);

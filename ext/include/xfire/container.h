@@ -58,6 +58,11 @@ struct container {
 };
 
 CDECL
+static inline bool container_check_type(struct container *c, container_type_t type)
+{
+	return c->type == type ? true : false;
+}
+
 extern void container_init(struct container *c, container_type_t type);
 extern void *container_get_data(struct container *c);
 extern void container_destroy(struct container *c);
