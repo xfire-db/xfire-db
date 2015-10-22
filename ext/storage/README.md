@@ -27,8 +27,9 @@ This is an alternative form of key-value storage. Again, each value is
 identified by a unique key (a string). The value in this case is a list
 (vector) of strings. An example usage of string:list storage:
 
-	> LIST INSERT user:1234 "p455w0rd" "email@email.com"
-	> LIST GET user:1234
+	> LIST RPUSH user:1234 "p455w0rd"
+	> LIST RPUSH user:1234 "email@email.com"
+	> LIST GETALL user:1234
 	(1) (p455w0rd)
 	(2) (email@email.com)
 
@@ -39,10 +40,18 @@ This is the last alternative of key-value storage. As you guessed, each
 value is again identified by a unique string. Value's are then stored
 in a hashmap. An example:
 
-	> HMAP INSERT user:1234 password:"p455w0rd" email:"email@email.com"
-	> HMAP GET user:1234
+	> HMAP INSRT user:1234 password "p455w0rd"
+	> HMAP INSRT user:1234 email "email@email.com"
+	> HMAP GETALL user:1234
 	(1) "password"
 	(2) "p455w0rd"
 	(3) "email"
 	(4) "email@email.com"
+
+	> HMAP GET user:1234 password
+	(1) "p455w0rd"
+	> HMAP GET user:1234 email
+	(1) "email@email.com"
+	> HMAP GET user:1234 blablabla
+	(0) (nil)
 

@@ -72,6 +72,9 @@ struct dict_entry {
  */
 #define ENTRY_SIZE sizeof(struct dict_entry)
 
+/**
+ * @brief Dictionary map.
+ */
 struct dict_map {
 	struct dict_entry **array; //!< Data array.
 	long size; //!< Size of the data array.
