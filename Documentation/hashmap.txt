@@ -1,0 +1,13 @@
+/**
+ * @defgroup hashmap Hashmap API
+ * @ingroup storage
+ * @brief Hashmap user API
+ *
+ * Hashmap's and dictionary's are from a user point of view the
+ * same thing, they are both a key-value store. They do however
+ * differ in implementation. Dictionary's are optimized for speed,
+ * as where hashmap's are optimized for memory usage. The overhead
+ * for hashmaps is much lower. Hashmaps should be used for storing
+ * small amounts of data, as where dictionary's shine in storing
+ * large amounts of entry's.
+ */

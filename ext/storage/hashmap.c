@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup hashmap
+ * @{
+ */
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -105,6 +110,10 @@ static bool hashmap_cmp_node(struct rb_node *node, const void *arg)
 	return false;
 }
 
+/**
+ * @brief Initialise a hashmap.
+ * @param hm Hashmap to initialise.
+ */
 void hashmap_init(struct hashmap *hm)
 {
 	rb_init_root(&hm->root);
@@ -112,12 +121,22 @@ void hashmap_init(struct hashmap *hm)
 	hm->root.cmp = hashmap_cmp_node;
 }
 
+/**
+ * @brief Destroy a hashmap node.
+ * @param n Node to destroy.
+ */
 void hashmap_node_destroy(struct hashmap_node *n)
 {
 	xfire_free(n->key);
 	rb_node_destroy(&n->node);
 }
 
+/**
+ * @brief Add a hashmap node.
+ * @param hm Hashmap to add to.
+ * @param key Key to add \p n under.
+ * @param n Node to add under \p key.
+ */
 int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n)
 {
 	u32 hash;
@@ -136,6 +155,13 @@ int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n)
 	return -XFIRE_ERR;
 }
 
+/**
+ * @brief Remove a hashmap node.
+ * @param hm Hashmap to remove from.
+ * @param key Key to remove.
+ * @return The removed hashmap node, if any. If \p key was not 
+ * found, NULL is returned.
+ */
 struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key)
 {
 	struct rb_node *node;
@@ -149,6 +175,12 @@ struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key)
 	return container_of(node, struct hashmap_node, node);
 }
 
+/**
+ * @brief Search for a key in a given hashmap.
+ * @param hm Hashmap to search.
+ * @param key Key to search for.
+ * @return The hashmap node associated with \p key, or NULL.
+ */
 struct hashmap_node *hashmap_find(struct hashmap *hm, char *key)
 {
 	struct rb_node *node;
@@ -182,20 +214,36 @@ static void hashmap_iterate_hook(struct rb_root *root, struct rb_node *node, voi
 	fn(map, n);
 }
 
+/**
+ * @brief Iterate over a hashmap.
+ * @param map Hashmap to iteratore.
+ * @param fn Calback hook.
+ */
 void hashmap_iterate(struct hashmap *map, void (*fn)(struct hashmap *hm, struct hashmap_node *n))
 {
 	rb_iterate(&map->root, hashmap_iterate_hook, fn);
 }
 
+/**
+ * @brief Destroy a hashmap.
+ * @param hm Hashmap to destroy.
+ */
 void hashmap_destroy(struct hashmap *hm)
 {
 	rb_destroy_root(&hm->root);
 	atomic_destroy(&hm->num);
 }
 
+/**
+ * @brief Clear out an entire hashmap.
+ * @param hm Hashmap to clear.
+ * @param hook Callback hook.
+ */
 void hashmap_clear(struct hashmap *hm, void (*hook)(struct hashmap_node*))
 {
 	while(hm->root.tree)
 		rb_iterate(&hm->root, &hashmap_clear_hook, hook);
 }
+
+/** @} */
 
