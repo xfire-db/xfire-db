@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup server
+ * @{
+ */
+
 #include <stdlib.h>
 
 #include <xfire/xfire.h>
@@ -108,6 +113,9 @@ static void xfiredb_load_hook(int argc, char **rows, char **cols)
 	}
 }
 
+/**
+ * @brief Initialise the XFireDB storage engine.
+ */
 void xfiredb_init(void)
 {
 	xfiredb = db_alloc("xfiredb");
@@ -116,6 +124,9 @@ void xfiredb_init(void)
 	disk_load(disk_db, &xfiredb_load_hook);
 }
 
+/**
+ * @brief Destructor for the XFireDB storage engine.
+ */
 void xfiredb_exit(void)
 {
 	bio_sync();
@@ -124,6 +135,11 @@ void xfiredb_exit(void)
 	db_free(xfiredb);
 }
 
+/**
+ * @brief Get a string.
+ * @param key Key to search.
+ * @param data Data pointer.
+ */
 int xfiredb_string_get(char *key, char **data)
 {
 	struct string *s;
@@ -141,6 +157,12 @@ int xfiredb_string_get(char *key, char **data)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Set the data of a string.
+ * @param key Key to store under.
+ * @param str Data to set.
+ * @return An error code.
+ */
 int xfiredb_string_set(char *key, char *str)
 {
 	struct string *s;
@@ -173,6 +195,11 @@ int xfiredb_string_set(char *key, char *str)
 	return rv;
 }
 
+/**
+ * @brief Get the length of a list.
+ * @param key List key.
+ * @param Length of the list under \p key.
+ */
 int xfiredb_list_length(char *key)
 {
 	struct container *c;
@@ -187,6 +214,13 @@ int xfiredb_list_length(char *key)
 	return list_length(h);
 }
 
+/**
+ * @brief Pop a list entry.
+ * @parm key List key.
+ * @param idx Index array.
+ * @param num Number of indexes in \p idx.
+ * @return An error code.
+ */
 int xfiredb_list_pop(char *key, int *idx, int num)
 {
 	struct string *s;
@@ -233,6 +267,15 @@ int xfiredb_list_pop(char *key, int *idx, int num)
 	return counter;
 }
 
+/**
+ * @brief Get a number of list elements.
+ * @param key List key.
+ * @param data Data storage pointer.
+ * @param idx Indexes to lookup.
+ * @param num Number of indexes to lookup.
+ * @note Both the \p data and \p idx array have to be able to hold
+ * \p num entry's.
+ */
 int xfiredb_list_get(char *key, char **data, int *idx, int num)
 {
 	struct string *s;
@@ -267,6 +310,14 @@ int xfiredb_list_get(char *key, char **data, int *idx, int num)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Set a list entry's data.
+ * @param key List key.
+ * @param idx List index to set.
+ * @param data Data to set.
+ * @note If the index \p idx doesn't exist the data
+ * will be appended to the list as a new entry.
+ */
 int xfiredb_list_set(char *key, int idx, char *data)
 {
 	struct string *s;
@@ -317,6 +368,14 @@ int xfiredb_list_set(char *key, int idx, char *data)
 	return rv;
 }
 
+/**
+ * @brief Push a new list entry.
+ * @param key List key.
+ * @param data Data to push.
+ * @param left Set to true if \p data should be pushed at
+ * the start, false for the end.
+ * @return An error code.
+ */
 int xfiredb_list_push(char *key, char *data, bool left)
 {
 	struct string *s;
@@ -350,6 +409,13 @@ int xfiredb_list_push(char *key, char *data, bool left)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Get a hashmap entry.
+ * @param key Hashmap key
+ * @param skey Array of hashmap keys.
+ * @param data Data storage array.
+ * @param num Number of entry's is \p skey and \p data.
+ */
 int xfiredb_hashmap_get(char *key, char **skey, char **data, int num)
 {
 	struct string *s;
@@ -379,6 +445,13 @@ int xfiredb_hashmap_get(char *key, char **skey, char **data, int num)
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Remove a hashmap node.
+ * @param key Hashmap key.
+ * @param skey Array of hashmap key's.
+ * @param num Length of the \p skey array.
+ * @return An error code.
+ */
 int xfiredb_hashmap_remove(char *key, char **skeys, int num)
 {
 	struct string *s;
@@ -420,6 +493,14 @@ int xfiredb_hashmap_remove(char *key, char **skeys, int num)
 	return rmnum;
 }
 
+/**
+ * @brief Set the value of a hashmap node.
+ * @param key Hashmap key.
+ * @param skey Key within the hashmap (key to set).
+ * @param data Data to set.
+ * @note If the \p skey key doesn't exist, it is created and
+ * added to the hashmap.
+ */
 int xfiredb_hashmap_set(char *key, char *skey, char *data)
 {
 	struct string *s;
@@ -459,6 +540,11 @@ int xfiredb_hashmap_set(char *key, char *skey, char *data)
 	return -XFIRE_ERR;
 }
 
+/**
+ * @brief Delete a key from the database.
+ * @param key Key to delete.
+ * @return An error code.
+ */
 int xfiredb_key_delete(char *key)
 {
 	auto void xfiredb_hashmap_free_hook(struct hashmap_node *node);
@@ -528,4 +614,6 @@ int xfiredb_key_delete(char *key)
 		xfire_free(str);
 	}
 }
+
+/** @} */
 

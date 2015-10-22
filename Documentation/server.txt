@@ -1,10 +1,6 @@
 /**
- * @defgroup server XFireDB server
- * @brief XFireDB server.
+ * @defgroup server XFireDB API
+ * @brief XFireDB server API
  *
- * The XFireDB server consists of serveral modules:
- *
- * * storage subsystem
- * * engine subsysem, the core of XFireDB
- * * XQL, the interfacing language (used to comunicate with clients)
+ * API to the server, used by the (ruby) front-end.
  */
