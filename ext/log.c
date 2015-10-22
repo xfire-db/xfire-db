@@ -68,6 +68,32 @@ void xfire_log_exit(void)
 }
 #endif
 
+static void vfxfire_log(const char *src, const char *fmt, va_list args)
+{
+	fprintf(xfire_stdout, "[%s]: ", src);
+	vfprintf(xfire_stdout, fmt, args);
+}
+
+/**
+ * @brief Log a message during the initialisation.
+ * @param src Logging source.
+ * @param fmt Log format.
+ * @param ... Variable argument list.
+ */
+void xfire_log_console(const char *src, const char *fmt, ...)
+{
+	va_list args, args2;
+
+	va_start(args, fmt);
+	va_copy(args2, args);
+	vfxfire_log(src, fmt, args);
+	va_end(args);
+
+	fprintf(stdout, "[%s]: ", src);
+	vfprintf(stdout, fmt, args2);
+	va_end(args2);
+}
+
 /**
  * @brief Log a message.
  * @param src Source of the log (i.e. the subsystem.
@@ -79,8 +105,7 @@ void xfire_log(const char *src, const char *msg, ...)
 	va_list args;
 
 	va_start(args, msg);
-	fprintf(xfire_stdout, "[%s]: ", src);
-	vfprintf(xfire_stdout, msg, args);
+	vfxfire_log(src, msg, args);
 	va_end(args);
 }
 

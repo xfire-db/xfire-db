@@ -25,8 +25,11 @@
 #define XFIRE_STORAGE_LOG "STORAGE"
 
 CDECL
+extern void xfire_log_init(const char *out, const char *err);
+extern void xfire_log_exit(void);
 extern void xfire_log(const char *src, const char *msg, ...);
 extern void xfire_log_err(const char *src, const char *msg, ...);
+extern void xfire_log_console(const char *src, const char *fmt, ...);
 CDECL_END
 
 #endif
