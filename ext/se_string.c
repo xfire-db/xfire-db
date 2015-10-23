@@ -41,6 +41,7 @@ VALUE rb_se_str_set(VALUE self, VALUE _key, VALUE data)
 
 	key = StringValueCStr(_key);
 	str = StringValueCStr(data);
-	return INT2NUM(xfiredb_string_set(key, str));
+	return xfiredb_string_set(key, str) == -XFIRE_OK ?
+		Qtrue : Qfalse;
 }
 

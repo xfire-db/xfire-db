@@ -48,6 +48,12 @@ static VALUE rb_se_key_del(VALUE self, VALUE _key)
 	return INT2NUM(xfiredb_key_delete(key));
 }
 
+static VALUE rb_se_disk_clear(VALUE self)
+{
+	xfiredb_disk_clear();
+	return self;
+}
+
 void Init_storage_engine(void)
 {
 	c_se_mod = rb_define_module("XFireDB");
@@ -72,5 +78,6 @@ void Init_storage_engine(void)
 	rb_define_method(c_storage_engine, "hm_remove", &rb_se_hm_del, 2);
 	/* generic funcs */
 	rb_define_method(c_storage_engine, "key_delete", &rb_se_key_del, 1);
+	rb_define_method(c_storage_engine, "disk_clear", &rb_se_disk_clear, 0);
 }
 

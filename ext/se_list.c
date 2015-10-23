@@ -81,7 +81,7 @@ VALUE rb_se_list_set(VALUE self, VALUE _key,
 	idx = NUM2INT(index);
 
 	return xfiredb_list_set(key, idx, data) == -XFIRE_OK ?
-		Qtrue : Qnil;
+		Qtrue : Qfalse;
 }
 
 static VALUE rb_se_list_push(VALUE self, VALUE _key,

@@ -53,6 +53,11 @@ static container_type_t xfiredb_get_row_type(char *cell)
 	return 0;
 }
 
+void xfiredb_disk_clear(void)
+{
+	disk_clear(disk_db);
+}
+
 static void xfiredb_load_hook(int argc, char **rows, char **cols)
 {
 	container_type_t type;
@@ -355,7 +360,7 @@ int xfiredb_list_set(char *key, int idx, char *data)
 	int i, rv = -XFIRE_ERR;
 
 	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK) {
-		return xfiredb_list_push(key, data, true);
+		return xfiredb_list_push(key, data, false);
 	}
 
 	container = dbdata.ptr;
@@ -500,7 +505,7 @@ int xfiredb_hashmap_remove(char *key, char **skeys, int num)
 
 	c = dbdata.ptr;
 	if(!container_check_type(c, CONTAINER_HASHMAP))
-		return -XFIRE_ERR;
+		return rmnum;
 
 	hm = container_get_data(c);
 
