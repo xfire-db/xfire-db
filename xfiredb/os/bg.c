@@ -66,10 +66,9 @@ static void *job_processor(void *arg)
 			xfire_cond_wait(&j->condi, &j->lock);
 		xfire_mutex_unlock(&j->lock);
 
+		j->handle(j->arg);
 		if(j->done)
 			break;
-		else
-			j->handle(j->arg);
 	}
 
 	xfire_thread_exit(NULL);
