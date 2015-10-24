@@ -627,7 +627,6 @@ static void __rb_insert(struct rb_root *root, struct rb_node *new)
 	node = rb_find_insert(root, new);
 	rb_attempt_insert(root, node, new);
 
-	raw_rb_balance_rr(root, node);
 	rb_balance(root, node);
 }
 
