@@ -19,9 +19,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
+#include <assert.h>
+#include <unittest.h>
 
 #include <xfire/rbtree.h>
+#include <xfire/mem.h>
 #include <xfire/os.h>
 
 struct data_node {
@@ -50,48 +52,52 @@ static bool compare_node(struct rb_node *node, const void *arg)
 static void test_rb_insert(struct rb_root *root, int key)
 {
 	struct data_node *node;
+	struct rb_node *tmp;
 
-	node = malloc(sizeof(*node));
+	node = xfire_zalloc(sizeof(*node));
 	if(!node)
 		return;
 
 	rb_init_node(&node->node);
 	rb_set_key(&node->node, key);
 	node->data = node_data1;
-	rb_insert(root, &node->node, false);
+	tmp = rb_insert(root, &node->node, false);
+	node = container_of(tmp, struct data_node, node);
+	assert(!strcmp(node->data, node_data1));
 }
 
 static void test_insert_duplicate(struct rb_root *root, int key,
 		const char *data)
 {
 	struct data_node *node;
+	struct rb_node *tmp;
 
-	node = malloc(sizeof(*node));
+	node = xfire_zalloc(sizeof(*node));
 	if(!node)
 		return;
 
 	rb_init_node(&node->node);
 	rb_set_key(&node->node, key);
 	node->data = data;
-	rb_insert(root, &node->node, true);
+	tmp = rb_insert(root, &node->node, true);
+	node = container_of(tmp, struct data_node, node);
+	assert(!strcmp(node->data, data));
 }
 
-void *test_thread_b(void *arg)
+static void *test_thread_b(void *arg)
 {
 	int idx;
 
-	printf("Thread 2 starting\n");
 	for(idx = 31; idx <= 40; idx++)
 		test_rb_insert(&root, idx);
 
 	xfire_thread_exit(NULL);
 }
 
-void *test_thread_a(void *arg)
+static void *test_thread_a(void *arg)
 {
 	int idx;
 
-	printf("Thread 1 starting\n");
 	for(idx = 21; idx <= 30; idx++)
 		test_rb_insert(&root, idx);
 
@@ -99,11 +105,10 @@ void *test_thread_a(void *arg)
 	xfire_thread_exit(NULL);
 }
 
-void *test_thread_c(void *arg)
+static void *test_thread_c(void *arg)
 {
 	int idx;
 
-	printf("Thread 3 starting\n");
 	rb_remove(&root, 18, (char*)node_data1);
 	for(idx = 11; idx <= 20; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
@@ -111,11 +116,10 @@ void *test_thread_c(void *arg)
 	xfire_thread_exit(NULL);
 }
 
-void *test_thread_d(void *arg)
+static void *test_thread_d(void *arg)
 {
 	int idx;
 
-	printf("Thread 4 starting\n");
 	rb_remove(&root, 18, (char*)node_data2);
 	for(idx = 1; idx <= 10; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
@@ -123,7 +127,7 @@ void *test_thread_d(void *arg)
 	xfire_thread_exit(NULL);
 }
 
-void rb_setup_tree(void)
+static void rb_setup_tree(void)
 {
 	int idx;
 
@@ -142,25 +146,23 @@ static void test_find_node(u64 key, const void *data)
 	node1 = rb_find_duplicate(&root, key, data);
 	if(node1) {
 		dnode1 = container_of(node1, struct data_node, node);
-		printf("Found node: <\"%llu\",\"%s\">\n",
-				(unsigned long long)node1->key,
-				dnode1->data);
+		assert(!strcmp(dnode1->data, data));
 	} else {
-		printf("Node not found!\n");
+		exit(-EXIT_FAILURE);
 	}
 }
 
-int main(int argc, char **argv)
+void setup(void)
 {
-	struct thread *a, *b, *c, *d;
-	s64 num;
-	s32 height;
-
 	memset(&root, 0, sizeof(root));
 	rb_init_root(&root);
 	root.cmp = &compare_node;
-
 	rb_setup_tree();
+}
+
+void test_rb_concurrent(void)
+{
+	struct thread *a, *b, *c, *d;
 
 	a = xfire_create_thread("thread a", &test_thread_a, NULL);
 	b = xfire_create_thread("thread b", &test_thread_b, NULL);
@@ -179,12 +181,13 @@ int main(int argc, char **argv)
 
 	test_find_node(24, node_data3);
 	test_find_node(18, node_data3);
-	
-	num = rb_get_size(&root);
-	height = rb_get_height(&root);
-	printf("Number of nodes: %lld - Tree height: %d\n",
-			(long long)num, (int)height);
-	rb_dump(&root,stdout);
-	return -EXIT_SUCCESS;
 }
+
+void teardown(void)
+{
+	rb_destroy_root(&root);
+}
+
+test_func_t test_func_array[] = {test_rb_concurrent, NULL};
+const char *test_name = "Concurrent red-black test";
 

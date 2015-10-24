@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unittest.h>
 
 #include <sys/time.h>
 
@@ -34,61 +35,71 @@ static char *dbg_values[] = {"val1","val2","val3","val4","val5","val6","val7",
 				"val8","val9","val10","val11","val12",
 				};
 
-static void dot()
-{
-	fputs(".\n", stdout);
-}
-
 static void dbg_setup_dict(struct dict *d)
 {
 	int i;
 
-	printf("Setting up dictionary\n");
-	dot();dot();dot();
-
 	for(i = 0; i < 12; i++) {
-		dict_add(d, dbg_keys[i], dbg_values[i],
-				DICT_PTR);
+		assert(dict_add(d, dbg_keys[i], dbg_values[i],
+				DICT_PTR) == -XFIRE_OK);
 	}
 }
 
-int main(int argc, char **argv)
+static struct dict *strings;
+
+void setup(void)
 {
-	struct dict *strings;
+	strings = dict_alloc();
+	dbg_setup_dict(strings);
+}
+
+void teardown(void)
+{
+	dict_clear(strings);
+	dict_free(strings);
+}
+
+void test_iterator_forward(void)
+{
 	struct dict_iterator *it;
 	struct dict_entry *e;
 	int i = 0;
 
-	strings = dict_alloc();
-	dbg_setup_dict(strings);
-
-	printf("Creating iterator\n");
 	it = dict_get_safe_iterator(strings);
+	assert(it != NULL);
 	e = dict_iterator_next(it);
+	assert(e != NULL);
 
 	for(; e; e = dict_iterator_next(it)) {
 		printf("Found key: %s\n", e->key);
 		i++;
 	}
 
-	dict_iterator_free(it);
+	assert(i == 12);
 
-	printf("\nIterating backwards\n");
+	dict_iterator_free(it);
+}
+
+void test_iterator_backward(void)
+{
+	struct dict_iterator *it;
+	struct dict_entry *e;
+	int i = 0;
+
 	it = dict_get_safe_iterator(strings);
+	assert(it != NULL);
 	e = dict_iterator_prev(it);
+	assert(e != NULL);
+
 	for(; e; e = dict_iterator_prev(it)) {
 		printf("Found key: %s\n", e->key);
+		i++;
 	}
 
+	assert(i == 12);
 	dict_iterator_free(it);
-	dict_clear(strings);
-	dict_free(strings);
-
-	if(i == 12)
-		printf("Done iterating, test succesful!\n");
-	else
-		fprintf(stderr, "Iteration test failed. " \
-			"Number of iterations incorrect!\n");
-	return -EXIT_SUCCESS;
 }
+
+test_func_t test_func_array[] = {test_iterator_forward, test_iterator_backward, NULL};
+const char *test_name = "Iterator test";
 

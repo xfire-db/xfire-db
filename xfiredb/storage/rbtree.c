@@ -402,7 +402,7 @@ static struct rb_node *rb_insert_duplicate(struct rb_root *root,
 		rb_lpush(entry, node);
 
 	rb_unlock_root(root);
-	return entry;
+	return node;
 }
 
 

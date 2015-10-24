@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unittest.h>
 
 #include <sys/time.h>
 
@@ -42,64 +43,53 @@
 
 #define UPDATE_DATA "Test string 3.1"
 
-static void dot()
-{
-	fputs(".\n", stdout);
-}
-
 static void dbg_setup_dict(struct dict *d)
 {
 	union entry_data val;
 	size_t size;
 
-	dict_add(d, KEY_1, TEST_1, DICT_PTR);
-	dict_add(d, KEY_2, TEST_2, DICT_PTR);
-	dict_add(d, KEY_3, TEST_3, DICT_PTR);
-	dict_add(d, KEY_4, TEST_4, DICT_PTR);
-	dict_add(d, KEY_5, TEST_5, DICT_PTR);
+	assert(dict_add(d, KEY_1, TEST_1, DICT_PTR) == -XFIRE_OK);
+	assert(dict_add(d, KEY_2, TEST_2, DICT_PTR) == -XFIRE_OK);
+	assert(dict_add(d, KEY_3, TEST_3, DICT_PTR) == -XFIRE_OK);
+	assert(dict_add(d, KEY_4, TEST_4, DICT_PTR) == -XFIRE_OK);
+	assert(dict_add(d, KEY_5, TEST_5, DICT_PTR) == -XFIRE_OK);
 
 	dict_lookup(d, KEY_3, &val, &size);
-	printf("Current data of %s: %s - Updating\n", KEY_3, (char*)val.ptr);
-	dict_update(d, KEY_3, UPDATE_DATA, DICT_PTR);
+	assert(!strcmp(TEST_3, val.ptr));
+	assert(dict_update(d, KEY_3, UPDATE_DATA, DICT_PTR) == -XFIRE_OK);
 
 	dict_lookup(d, KEY_3, &val, &size);
-	printf("Current data of %s: %s\n", KEY_3, (char*)val.ptr);
+	assert(!strcmp(UPDATE_DATA, val.ptr));
 }
 
 static void dbg_empty_dict(struct dict *d)
 {
 	union entry_data val;
 
-	dict_delete(d, KEY_1, &val, false);
-	dict_delete(d, KEY_2, &val, false);
-	dict_delete(d, KEY_3, &val, false);
-	dict_delete(d, KEY_4, &val, false);
-	dict_delete(d, KEY_5, &val, false);
+	assert(dict_delete(d, KEY_1, &val, false) == -XFIRE_OK);
+	assert(dict_delete(d, KEY_2, &val, false) == -XFIRE_OK);
+	assert(dict_delete(d, KEY_3, &val, false) == -XFIRE_OK);
+	assert(dict_delete(d, KEY_4, &val, false) == -XFIRE_OK);
+	assert(dict_delete(d, KEY_5, &val, false) == -XFIRE_OK);
 }
 
-int main(int argc, char **argv)
+static struct dict *strings;
+void setup(void)
 {
-	struct dict *strings;
-
-	printf("Creating dictionary\n");
 	strings = dict_alloc();
+}
 
-	if(!strings) {
-		printf("Creating dictionary failed.\nDictionary test failed\n");
-		return -EXIT_FAILURE;
-	}
-
-	printf("Storing and retrieving data\n");
-	dot();
-	dot();
-	dot();
-
+void test_dict(void)
+{
 	dbg_setup_dict(strings);
 	dbg_empty_dict(strings);
-
-	printf("Destroying dictionary\n");
-	dict_free(strings);
-
-	return -EXIT_SUCCESS;
 }
+
+void teardown(void)
+{
+	dict_free(strings);
+}
+
+test_func_t test_func_array[] = {test_dict, NULL};
+const char *test_name = "Dictionary test";
 

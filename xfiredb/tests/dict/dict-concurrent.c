@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unittest.h>
 
 #include <sys/time.h>
 
@@ -43,7 +44,6 @@ void *test_thread_a(void *arg)
 	int i = 0;
 	int rc;
 
-	printf("Insert thread \"a\" starting!\n");
 	for(; i < 5; i++) {
 		rc = strlen((char*)dbg_values[i]);
 		raw_dict_add(arg, (const char*)dbg_keys[i],
@@ -56,7 +56,6 @@ void *test_thread_b(void *arg)
 {
 	int i = 5;
 
-	printf("Insert thread \"b\" starting!\n");
 	for(; i < 10; i++) {
 		dict_add(arg, (const char*)dbg_keys[i],
 			(void*)dbg_values[i], DICT_PTR);
@@ -68,7 +67,6 @@ void *test_thread_c(void *arg)
 {
 	int i = 10;
 
-	printf("Insert thread \"c\" starting!\n");
 	for(; i < 15; i++) {
 		dict_add(arg, (const char*)dbg_keys[i],
 			(void*)dbg_values[i], DICT_PTR);
@@ -98,18 +96,12 @@ void *test_thread_d(void *arg)
 	return NULL;
 }
 
-static void dot()
-{
-	fputs(".\n", stdout);
-}
+static struct dict *strings;
 
-int main(int argc, char **argv)
+void setup(void)
 {
-	struct dict *strings;
 	struct thread *a, *b, *c, *d, *e;
 	int i = 0;
-	union entry_data val, tmp;
-	size_t size;
 
 	strings = dict_alloc();
 
@@ -134,22 +126,33 @@ int main(int argc, char **argv)
 	xfire_thread_destroy(c);
 	xfire_thread_destroy(d);
 	xfire_thread_destroy(e);
+}
+
+void teardown(void)
+{
+	dict_free(strings);
+}
+
+void test_dict_conncurrent(void)
+{
+	int rv;
+	int i;
+	size_t size;
+	union entry_data tmp, val;
 
 	for(i = 0; i < 15; i++) {
 		if(i == 11)
 			continue;
-		dict_delete(strings, dbg_keys[i], &val, false);
+		rv = dict_delete(strings, dbg_keys[i], &val, false);
+		assert(rv == -XFIRE_OK);
 	}
 
-	printf("Testing lookup...\n");
-	dot();dot();dot();
 	dict_lookup(strings, dbg_keys[11], &tmp, &size);
-	if(tmp.ptr) {
-		printf("Found %s under key %s!\n", (char*)tmp.ptr, dbg_keys[11]);
-		printf("Concurrent dict test successful\n");
-	}
-	dict_delete(strings, dbg_keys[11], &val, false);
-
-	dict_free(strings);
-	return -EXIT_SUCCESS;
+	assert(!strcmp(dbg_values[11], tmp.ptr));
+	assert(dict_delete(strings, dbg_keys[11], &val, false) == -XFIRE_OK);
 }
+
+test_func_t test_func_array[] = {test_dict_conncurrent, NULL};
+const char *test_name = "Concurrent dictionary test";
+
+

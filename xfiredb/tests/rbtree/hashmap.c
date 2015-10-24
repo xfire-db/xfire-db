@@ -19,8 +19,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
+#include <assert.h>
+#include <unittest.h>
 
+#include <xfire/xfire.h>
+#include <xfire/error.h>
 #include <xfire/string.h>
 #include <xfire/hashmap.h>
 #include <xfire/mem.h>
@@ -39,40 +42,57 @@ static void test_hm_insert(struct hashmap *map)
 	string_set(&s3, "test-val-3");
 	string_set(&s4, "test-val-4");
 
-	hashmap_add(map, "key1", &s1.node);
-	hashmap_add(map, "key2", &s2.node);
-	hashmap_add(map, "key3", &s3.node);
-	hashmap_add(map, "key4", &s4.node);
+	assert(hashmap_add(map, "key1", &s1.node) == -XFIRE_OK);
+	assert(hashmap_add(map, "key2", &s2.node) == -XFIRE_OK);
+	assert(hashmap_add(map, "key3", &s3.node) == -XFIRE_OK);
+	assert(hashmap_add(map, "key4", &s4.node) == -XFIRE_OK);
 }
+
+static int iterate_count, free_count;
 
 static void iterate_hook(struct hashmap *map, struct hashmap_node *node)
 {
-	printf("Iterating key: %s\n", node->key);
+	iterate_count++;
 }
 
 static void hm_free_hook(struct hashmap_node *n)
 {
 	struct string *s;
 
+	free_count++;
 	s = container_of(n, struct string, node);
 	string_destroy(s);
 }
 
-int main(int argc, char **argv)
+static struct hashmap map;
+
+void setup(void)
 {
-	struct hashmap map;
+	hashmap_init(&map);
+	test_hm_insert(&map);
+	iterate_count = 0;
+	free_count = 0;
+}
+
+void teardown(void)
+{
+	hashmap_clear(&map, &hm_free_hook);
+	hashmap_destroy(&map);
+	assert(free_count == 4);
+}
+
+void test_hashmap(void)
+{
 	struct hashmap_node *node;
 	struct string *s;
 
-	hashmap_init(&map);
-	test_hm_insert(&map);
 	node = hashmap_find(&map, "key4");
 	s = container_of(node, struct string, node);
-	printf("Found value: %s\n", s->str);
-
+	assert(!strcmp(s->str, "test-val-4"));
 	hashmap_iterate(&map, &iterate_hook);
-	hashmap_clear(&map, &hm_free_hook);
-	hashmap_destroy(&map);
-	return -EXIT_SUCCESS;
+	assert(iterate_count == 4);
 }
+
+test_func_t test_func_array[] = {test_hashmap, NULL};
+const char *test_name = "Hashmap test";
 
