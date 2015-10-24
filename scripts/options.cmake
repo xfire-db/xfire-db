@@ -4,7 +4,7 @@ endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
 option (XFIRE_SERVER
 	"Set to to true if the XFire server should be build"
-	[false])
+	true)
 
 option (XFIRE_DEBUG
 	"Set to true if debugging options should be enabled"
@@ -12,7 +12,7 @@ option (XFIRE_DEBUG
 
 option (RECURSION
 	"Set to true if search functions should use recursion."
-	[true])
+	true)
 
 set (PERSIST_LEVEL "0" CACHE STRING
 	"Persistency level. 0 for max. persistance, 2 for minimal.")
@@ -47,3 +47,4 @@ set(HAVE_RECURSION "")
 if(RECURSION)
 	set(HAVE_RECURSION "#define HAVE_RECURSION")
 endif(RECURSION)
+

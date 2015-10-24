@@ -34,7 +34,7 @@ add_library(xfiredb SHARED
 	sprintf.c)
 
 
-target_link_libraries(xfiredb LINK_PUBLIC ${XFIRE_SQLITE_LIB})
+target_link_libraries(xfiredb LINK_PUBLIC ${SQLITE3_LIB})
 
 install (TARGETS xfiredb
 	LIBRARY DESTINATION lib
