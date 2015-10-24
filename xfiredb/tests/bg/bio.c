@@ -32,16 +32,14 @@ extern struct disk *dbg_disk;
 
 int main(int argc, char **argv)
 {
-	bg_processes_init();
-	bio_init();
+	xfiredb_init();
 	dbg_bio_queue();
 	sleep(1);
 	bg_process_signal("bio-worker");
 	sleep(1);
 	disk_dump(dbg_disk);
-
-	bio_exit();
-	bg_processes_exit();
+	
+	xfiredb_exit();
 
 	return -EXIT_SUCCESS;
 }

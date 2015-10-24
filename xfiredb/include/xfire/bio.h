@@ -80,6 +80,11 @@ struct bio_q {
 	bio_operation_t operation; //!< Type of operation.
 };
 
+extern struct disk *dbg_disk;
+#ifndef HAVE_DEBUG
+extern struct disk *xfire_disk;
+#endif
+
 #ifdef HAVE_DEBUG
 #define disk_db dbg_disk
 #else

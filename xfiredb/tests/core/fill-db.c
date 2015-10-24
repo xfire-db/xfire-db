@@ -57,6 +57,7 @@ int main(int argc, char **argv)
 	dbg_string_test();
 	dbg_list_test();
 	dbg_hm_test();
+	sleep(1);
 	bio_sync();
 	sleep(1);
 	xfiredb_exit();

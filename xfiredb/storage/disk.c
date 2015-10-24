@@ -123,6 +123,24 @@ struct disk *disk_create(const char *path)
 #define DISK_SELECT_QUERY \
 	"SELECT * FROM xfiredb_data WHERE db_key = '%s';"
 
+#define DISK_CLEAR_QUERY \
+	"DELETE * FROM xfiredb_data;"
+
+void disk_clear(struct disk *d)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_CLEAR_QUERY);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
+
+	if(rc != SQLITE_OK)
+		xfire_log_err(LOG_DISK, "Disk clear failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+}
+
 struct hm_store_data {
 	char *key;
 	struct disk *d;

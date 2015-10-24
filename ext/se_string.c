@@ -1,5 +1,5 @@
 /*
- *  Disk dumper
+ *  XFireDB list interface
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -18,20 +18,30 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <sys/time.h>
+#include <ruby.h>
 
 #include <xfire/xfire.h>
-#include <xfire/types.h>
+#include <xfire/error.h>
 #include <xfire/mem.h>
-#include <xfire/disk.h>
-#include <xfire/bio.h>
-#include <xfire/string.h>
 
-int main(int argc, char **argv)
+VALUE rb_se_str_get(VALUE self, VALUE _key)
 {
-	xfiredb_init();
-	disk_dump(disk_db);
-	xfiredb_exit();
-	return -EXIT_SUCCESS;
+	char *key, *data;
+
+	key = StringValueCStr(_key);
+	if(xfiredb_string_get(key, &data) != -XFIRE_OK)
+		return Qnil;
+
+	return rb_str_new2(data);
 }
+
+VALUE rb_se_str_set(VALUE self, VALUE _key, VALUE data)
+{
+	char *key, *str;
+
+	key = StringValueCStr(_key);
+	str = StringValueCStr(data);
+	return xfiredb_string_set(key, str) == -XFIRE_OK ?
+		Qtrue : Qfalse;
+}
+

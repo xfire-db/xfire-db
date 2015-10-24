@@ -22,6 +22,7 @@
 #include <sys/time.h>
 
 #include <xfire/xfire.h>
+#include <xfire/log.h>
 #include <xfire/types.h>
 #include <xfire/mem.h>
 #include <xfire/disk.h>
@@ -118,6 +119,7 @@ int main(int argc, char **argv)
 	struct disk *d;
 	struct string *s;
 
+	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
 	d = disk_create(SQLITE_DB);
 	s = dbg_get_string("test-data");
 	if(!disk_store_string(d, "test-key", s->str))
@@ -132,6 +134,7 @@ int main(int argc, char **argv)
 	dbg_hm_store(d);
 	disk_dump(d);
 	disk_destroy(d);
+	xfire_log_exit();
 	return -EXIT_SUCCESS;
 }
 

@@ -68,6 +68,7 @@
 #endif
 
 CDECL
+extern void xfiredb_disk_clear(void);
 extern int xfire_sprintf(char **buf, char *format, ...);
 extern void xfiredb_init(void);
 extern void xfiredb_exit(void);

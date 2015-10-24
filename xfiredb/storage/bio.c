@@ -34,10 +34,6 @@
 #include <xfire/error.h>
 #include <xfire/disk.h>
 
-extern struct disk *dbg_disk;
-#ifndef HAVE_DEBUG
-extern struct disk *xfire_disk;
-#endif
 static struct bio_q_head *bio_q;
 
 #define BIO_WORKER_NAME "bio-worker"
