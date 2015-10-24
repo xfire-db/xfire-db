@@ -5,6 +5,7 @@ add_executable (rb-concurrent
 		tests/rbtree/rb-concurrent.c)
 
 add_executable (rb-remove
+		tests/unit_test.c
 		tests/rbtree/rb-remove.c)
 
 add_executable (hashmap
