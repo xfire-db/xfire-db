@@ -1,4 +1,5 @@
 add_executable (rb-concurrent
+		tests/unit_test.c
 		tests/rbtree/rb-concurrent.c)
 
 add_executable (rb-single
@@ -6,6 +7,7 @@ add_executable (rb-single
 		tests/rbtree/rb-single.c)
 
 add_executable (rb-hashmap
+		tests/unit_test.c
 		tests/rbtree/hashmap.c)
 
 target_link_libraries (rb-single LINK_PUBLIC xfiredb)
