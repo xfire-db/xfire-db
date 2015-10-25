@@ -47,6 +47,7 @@
 	"db_type CHAR(64), " \
 	"db_value BLOB);"
 
+#ifndef NO_PERSIST
 static int dummy_hook(void *arg, int argc, char **argv, char **colname)
 {
 	return 0;
@@ -525,6 +526,177 @@ void disk_destroy(struct disk *disk)
 	xfire_free(disk->dbpath);
 	xfire_free(disk);
 }
+#else
+/**
+ * @brief Create a new persistent disk.
+ * @param path Path to the disk.
+ * @return Disk data structure.
+ */
+struct disk *disk_create(const char *path)
+{
+	return NULL;
+}
+
+/**
+ * @brief Store a list entry.
+ * @param d Disk to store on.
+ * @param key Key to store \p data under.
+ * @param data Data to store.
+ * @return An error code.
+ */
+int disk_store_list_entry(struct disk *d, char *key, char *data)
+{
+	return -1;
+}
+
+/**
+ * @brief Store a hashmap node.
+ * @param d Disk to store onto.
+ * @param key Key to store the node under.
+ * @param nodekey Key of \p data within the hashmap.
+ * @param data Data to store.
+ * @return An error code.
+ */
+int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data)
+{
+	return -1;
+}
+
+/**
+ * @brief Store an entire hashmap.
+ * @param d Disk to store \p map on.
+ * @param key Key to store \p map under.
+ * @param map Hashmap to store.
+ * @return An error code.
+ */
+int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
+{
+	return -1;
+}
+
+
+/**
+ * @brief Store a string list.
+ * @param d Disk to store to.
+ * @param key Key to store the list under.
+ * @param lh List head to store.
+ * @return An error code.
+ */
+int disk_store_list(struct disk *d, char *key, struct list_head *lh)
+{
+	return -1;
+}
+
+/**
+ * @brief Store a key-value pair on the disk.
+ * @param d Disk to store on.
+ * @param key Key to store.
+ * @param data Data to store (under \p key).
+ * @return Error code.
+ */
+int disk_store_string(struct disk *d, char *key, char *data)
+{
+	return -1;
+}
+
+/**
+ * @brief Dump the disk.
+ * @param d Disk to dump.
+ * @note Function for debugging purposes only.
+ */
+void disk_dump(struct disk *d)
+{
+}
+
+/**
+ * @brief Update hashmap entry.
+ * @param d Disk to update.
+ * @param key Key to update.
+ * @param nodekey Node key to update.
+ * @param data Data to set.
+ * @return An error code.
+ */
+int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data)
+{
+	return -1;
+}
+
+/**
+ * @brief Update a list entry.
+ * @param d Disk to update.
+ * @param key Key to update.
+ * @param data Data currently stored under \p key.
+ * @param newdata Data to set.
+ * @return An error code.
+ */
+int disk_update_list(struct disk *d, char *key, char *data, char *newdata)
+{
+	return -1;
+}
+
+/**
+ * @brief Update a key-value pair.
+ * @param d Disk to search on.
+ * @param key Key to update.
+ * @param data New data to set under \p key.
+ * @return Error code.
+ */
+int disk_update_string(struct disk *d, char *key, void *data)
+{
+	return -1;
+}
+
+/**
+ * @brief Delete a hashmap node.
+ * @param d Disk to delete from.
+ * @param key Key to delete.
+ * @param nodekey Hashmap key to delete.
+ */
+int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey)
+{
+	return -1;
+}
+
+/**
+ * @brief Delete a list entry from disk.
+ * @param d Disk to delete from.
+ * @param key Key to delete.
+ * @param data Data currently stored on the disk under this entry.
+ */
+int disk_delete_list(struct disk *d, char *key, char *data)
+{
+	return -1;
+}
+
+/**
+ * @brief Delete a string.
+ * @param d Disk to delete from.
+ * @param key Key to delete.
+ */
+int disk_delete_string(struct disk *d, char *key)
+{
+	return -1;
+}
+
+/**
+ * @brief Load the disk into memory.
+ * @param d Disk to load.
+ * @param hook Load hook.
+ * @return Error code.
+ */
+int disk_load(struct disk *d, void (*hook)(int argc, char **rows, char **colnames))
+{
+	return -1;
+}
+
+/**
+ * @brief Destroy a disk data structure.
+ * @param disk Disk to destroy.
+ */
+void disk_destroy(struct disk *disk)
+{}
+
+#endif
 
 /** @} */
 
