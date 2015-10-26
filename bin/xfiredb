@@ -3,5 +3,5 @@
 require 'xfiredb'
 require 'memory_profiler'
 
-XFireDB.start(ARGV[0])
+XFireDB.start(ARGV)
 

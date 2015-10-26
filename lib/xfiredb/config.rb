@@ -18,7 +18,7 @@
 
 module XFireDB
   class Config
-    attr_reader :port, :addr, :cluster, :cluster_config,
+    attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
       :debug
     CONFIG_PORT = "port"
     CONFIG_BIND_ADDR = "bind-addr"
@@ -50,8 +50,14 @@ module XFireDB
 
     def parse(opt, arg)
       case opt
+        # Main config options
       when CONFIG_PORT
-        @port = arg
+        if arg.is_i?
+          @port = arg.to_i
+          @config_port = @port + 10000
+        else
+          puts "[config]: #{opt} should be numeric"
+        end
       when CONFIG_BIND_ADDR
         @addr = arg
       when CONFIG_CLUSTER
@@ -61,6 +67,7 @@ module XFireDB
         @cluster_config = arg
       when CONFIG_DEBUG
         @debug = true if arg.eql? "true"
+        # cluster config options
       else
         puts "[config]: unknown option: \'#{opt}\'"
       end
