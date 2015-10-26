@@ -1,4 +1,5 @@
 add_executable (xfiredb-test
+		tests/unit_test.c
 		tests/core/xfiredb.c)
 add_executable (db-fill
 		tests/core/fill-db.c)
