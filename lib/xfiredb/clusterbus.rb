@@ -1,5 +1,5 @@
 #
-#   XFireDB module
+#   XFireDB cluster bus server
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,22 +17,6 @@
 #
 
 module XFireDB
-  class Server
-    attr_reader :config
-
-    def initialize(conf)
-      @config = XFireDB::Config.new(conf)
-      @bus = XFireDB::ClusterBus.new if @config.cluster
-      @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
-    end
-
-    def start
-      log = "[init]: XFireDB started"
-      log = log + " in debugging mode" if @config.debug
-      puts log
-
-      # start the cluster bus
-    end
+  class ClusterBus
   end
 end
-

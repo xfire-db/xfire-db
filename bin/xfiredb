@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'xfiredb'
-require 'memory_profiler'
 
 XFireDB.start(ARGV)
 

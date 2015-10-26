@@ -16,17 +16,63 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+require 'pp'
+require 'ostruct'
+require 'optparse'
+require 'storage_engine'
+require 'thread'
+
 require 'xfiredb/server'
 require 'xfiredb/config'
 require 'xfiredb/string'
-
-require 'storage_engine'
-require 'memory_profiler'
+require 'xfiredb/clusterbus'
+require 'xfiredb/workerpool'
 
 module XFireDB
-  def XFireDB.start(configfile)
-    server = XFireDB::Server.new(configfile)
+  def XFireDB.start(cmdargs)
+    @options = OpenStruct.new
+    @options.config = nil
+    @options.workers = 2
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = "Usage: xfiredb [options] -c FILE"
+      opts.on("-c", "--config FILE",
+              "Path to the XFireDB server configuration file") do |conf|
+        @options.config = conf
+      end
+
+      opts.on("-w", "--workers NUM",
+              "Number of threads used to accept incoming connections") do |num|
+        @options.workers = num || 2
+      end
+
+      opts.on("-h", "--help", "Display this help message") do
+        puts opts
+        exit
+      end
+    end
+
+    begin
+      opt_parser.parse!(cmdargs)
+      mandatory = [:config]
+      missing = mandatory.select{ |param| @options[param].nil? }
+      unless missing.empty?
+        puts "Mandatory arguments: #{missing.join(', ')}"
+        puts opt_parser
+        exit
+      end
+      rescue OptionParser::InvalidOption, OptionParser::MissingArgument
+        puts $!.to_s
+        puts opt_parser
+        exit
+      end
+
+    server = Server.new(@options[:config])
     server.start
+  end
+
+  def XFireDB.worker_num
+    @options[:workers]
   end
 end
 

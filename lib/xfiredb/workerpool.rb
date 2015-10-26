@@ -1,5 +1,5 @@
 #
-#   XFireDB module
+#   Worker pool
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,21 +17,24 @@
 #
 
 module XFireDB
-  class Server
-    attr_reader :config
-
-    def initialize(conf)
-      @config = XFireDB::Config.new(conf)
-      @bus = XFireDB::ClusterBus.new if @config.cluster
-      @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
+  class WorkerPool < Queue
+    def initialize(num)
+      super()
+      wokers = (0...num).map do
+        Thread.new do
+          begin
+            while request = self.pop(false)
+              handle(request)
+            end
+          rescue ThreadError
+            puts "Thread error"
+          end
+        end
+      end
     end
 
-    def start
-      log = "[init]: XFireDB started"
-      log = log + " in debugging mode" if @config.debug
-      puts log
-
-      # start the cluster bus
+    def handle(request)
+      puts request
     end
   end
 end
