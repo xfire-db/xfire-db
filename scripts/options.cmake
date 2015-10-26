@@ -15,7 +15,7 @@ option (RECURSION
 	true)
 
 set (PERSIST_LEVEL "0" CACHE STRING
-	"Persistency level. 0 for max. persistance, 2 for minimal.")
+	"Persistency level. 0 for max. persistance, 3 to disable persistency")
 
 set (STACK_SIZE "2097152" CACHE STRING
 	"Default stack size.")	

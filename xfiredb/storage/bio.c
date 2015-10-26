@@ -34,10 +34,17 @@
 #include <xfire/error.h>
 #include <xfire/disk.h>
 
+#ifndef NO_PERSIST
+extern struct disk *dbg_disk;
+#ifndef HAVE_DEBUG
+extern struct disk *xfire_disk;
+#endif
 static struct bio_q_head *bio_q;
+#endif
 
 #define BIO_WORKER_NAME "bio-worker"
 
+#ifndef NO_PERSIST
 static inline struct bio_q *bio_queue_pop(void)
 {
 	struct bio_q *tail;
@@ -184,6 +191,36 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 	xfire_spin_unlock(&bio_q->lock);
 	bio_try_wakeup_worker();
 }
+#else
+/**
+ * @brief Add an entry to the BIO queue.
+ * @param key The key of the entry.
+ * @param arg Extra info about the added entry. See below.
+ * @param newdata In case of an add or update, the new data to set.
+ * @param op Type of operation.
+ *
+ * The \p arg argument can either point to the currently stored data, in case
+ * of a list operation, or to the key within the hashmap in case of a
+ * hashmap operation.
+ */
+void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
+{}
+/**
+ * @brief BIO destructor.
+ */
+void bio_exit(void)
+{}
+/**
+ * @brief Initialise the background I/O module.
+ */
+void bio_init(void)
+{}
+/**
+ * @brief Immediatly wake up the BIO worker.
+ */
+void bio_sync(void)
+{}
+#endif
 
 #if defined(HAVE_DEBUG) || defined(__DOXYGEN__)
 
