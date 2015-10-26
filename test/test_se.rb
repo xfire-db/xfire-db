@@ -72,7 +72,8 @@ class TestStorageEngine < Test::Unit::TestCase
 
     assert_equal([TEST_HM_DATA1, TEST_HM_DATA2, TEST_HM_DATA3, TEST_HM_DATA4],
                  @engine.hm_get(TEST_HM_KEY, key_arr), "Hashmap get failed")
-    assert_equal(4, @engine.hm_remove(TEST_HM_KEY, key_arr), "Hashmap remove failed")
+    assert_equal(4, @engine.key_delete(TEST_HM_KEY), "Hashmap clear failed")
+    #assert_equal(4, @engine.hm_remove(TEST_HM_KEY, key_arr), "Hashmap remove failed")
   end
 
   def test_string

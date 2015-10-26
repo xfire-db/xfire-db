@@ -50,20 +50,6 @@ static void test_hm_insert(struct hashmap *map)
 
 static int iterate_count, free_count;
 
-static void iterate_hook(struct hashmap *map, struct hashmap_node *node)
-{
-	iterate_count++;
-}
-
-static void hm_free_hook(struct hashmap_node *n)
-{
-	struct string *s;
-
-	free_count++;
-	s = container_of(n, struct string, node);
-	string_destroy(s);
-}
-
 static struct hashmap map;
 
 void setup(void)
@@ -76,7 +62,16 @@ void setup(void)
 
 void teardown(void)
 {
-	hashmap_clear(&map, &hm_free_hook);
+	struct hashmap_node *hnode;
+	struct string *s;
+
+	for(hnode = hashmap_clear_next(&map);
+			hnode; hnode = hashmap_clear_next(&map)) {
+		s = container_of(hnode, struct string, node);
+		hashmap_node_destroy(hnode);
+		string_destroy(s);
+		free_count++;
+	}
 	hashmap_destroy(&map);
 	assert(free_count == 4);
 }
@@ -85,11 +80,17 @@ void test_hashmap(void)
 {
 	struct hashmap_node *node;
 	struct string *s;
+	hashmap_iterator_t it;
 
 	node = hashmap_find(&map, "key4");
 	s = container_of(node, struct string, node);
 	assert(!strcmp(s->str, "test-val-4"));
-	hashmap_iterate(&map, &iterate_hook);
+	it = hashmap_new_iterator(&map);
+	for(node = hashmap_iterator_next(it); node;
+			node = hashmap_iterator_next(it)) {
+		iterate_count++;
+	}
+	hashmap_free_iterator(it);
 	assert(iterate_count == 4);
 }
 

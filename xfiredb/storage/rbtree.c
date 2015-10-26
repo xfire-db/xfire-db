@@ -30,6 +30,7 @@
 #include <xfire/xfire.h>
 #include <xfire/types.h>
 #include <xfire/flags.h>
+#include <xfire/mem.h>
 #include <xfire/bitops.h>
 #include <xfire/rbtree.h>
 #include <xfire/os.h>
@@ -769,6 +770,55 @@ static void __rb_iterate(struct rb_root *root, struct rb_node *node,
 	fn(root, node, arg);
 	__rb_iterate(root, left, fn, arg);
 	__rb_iterate(root, right, fn, arg);
+}
+
+struct rb_iterator *rb_new_iterator(struct rb_root *root)
+{
+	struct rb_iterator *it = xfire_zalloc(sizeof(*it));
+
+	it->next = rb_get_root(root);
+	it->root = root;
+	return it;
+}
+
+void rb_free_iterator(struct rb_iterator *it)
+{
+	xfire_free(it);
+}
+
+struct rb_node *rb_iterator_next(struct rb_iterator *it)
+{
+	struct rb_node *rv = it->next;
+	struct rb_node *tmp, *parent, *child;
+
+	if(!rv)
+		return NULL;
+
+	rb_lock_root(it->root);
+	if(rv->left) {
+		tmp = rv->left;
+	} else if(rv->right){
+		tmp = rv->right;
+	} else {
+		parent = rv->parent;
+		child = rv;
+
+		while(parent && (parent->right == child
+					|| parent->right == NULL)) {
+			child = parent;
+			parent = parent->parent;
+		}
+
+		if(!parent)
+			tmp = NULL;
+		else
+			tmp = parent->right;
+	}
+
+	it->next = tmp;
+	rb_unlock_root(it->root);
+
+	return rv;
 }
 
 /**

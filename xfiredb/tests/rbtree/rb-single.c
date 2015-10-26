@@ -72,6 +72,20 @@ static void dbg_rb_insert(struct rb_root *root, int key)
 	assert(tmp->key == key);
 }
 
+static void dbg_iterate_tree(struct rb_root *root)
+{
+	struct rb_iterator *it = rb_new_iterator(root);
+	struct rb_node *carriage;
+
+	printf("Length = %lli\n", (long long)rb_get_size(root));
+	for(carriage = rb_iterator_next(it);
+			carriage; carriage = rb_iterator_next(it)) {
+		rb_remove(root, carriage->key, (void*)node_data);
+	}
+	rb_free_iterator(it);
+	printf("Length = %lli\n", (long long)rb_get_size(root));
+}
+
 static void dbg_setup_tree(void)
 {
 	int idx;
@@ -134,11 +148,18 @@ void test_rb_insert(void)
 	dbg_tree_random();
 }
 
+void test_rb_iterate(void)
+{
+	dbg_setup_tree();
+	dbg_iterate_tree(&root);
+}
+
 void teardown(void)
 {
 	rb_destroy_root(&root);
 }
 
-test_func_t test_func_array[] = {test_rb_insert, test_rb_remove, NULL};
+test_func_t test_func_array[] = {test_rb_iterate, 
+	test_rb_insert, test_rb_remove, NULL};
 const char *test_name = "Red-black test";
 

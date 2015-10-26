@@ -31,6 +31,8 @@
 #include <xfire/types.h>
 #include <xfire/rbtree.h>
 
+typedef struct rb_iterator* hashmap_iterator_t;
+
 /**
  * @brief Hashmap definition.
  */
@@ -59,6 +61,7 @@ static inline s64 hashmap_size(struct hashmap *map)
 	return atomic_get(&map->num);
 }
 
+
 extern void hashmap_iterate(struct hashmap *map,
 			void (*fn)(struct hashmap *hm, struct hashmap_node *n));
 extern struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key);
@@ -68,6 +71,40 @@ extern struct hashmap_node *hashmap_find(struct hashmap *hm, char *key);
 extern void hashmap_destroy(struct hashmap *hm);
 extern void hashmap_node_destroy(struct hashmap_node *n);
 extern void hashmap_clear(struct hashmap *hm, void (*hook)(struct hashmap_node*));
+
+static inline hashmap_iterator_t hashmap_new_iterator(struct hashmap *map)
+{
+	return (hashmap_iterator_t)rb_new_iterator(&map->root);
+}
+
+static inline void hashmap_free_iterator(hashmap_iterator_t it)
+{
+	rb_free_iterator((struct rb_iterator*)it);
+}
+
+static inline struct hashmap_node *hashmap_iterator_next(hashmap_iterator_t it)
+{
+	struct rb_node *node = rb_iterator_next((struct rb_iterator*)it);
+
+	if(!node)
+		return NULL;
+
+	return container_of(node, struct hashmap_node, node);
+}
+
+static inline struct hashmap_node *hashmap_clear_next(struct hashmap *map)
+{
+	struct rb_node *node = rb_get_root(&map->root);
+	struct hashmap_node *hnode;
+
+	if(!node)
+		return NULL;
+
+	hnode = container_of(node, struct hashmap_node, node);
+	hashmap_remove(map, hnode->key);
+
+	return hnode;
+}
 CDECL_END
 
 #endif

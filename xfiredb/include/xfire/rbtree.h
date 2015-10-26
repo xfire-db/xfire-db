@@ -67,6 +67,11 @@ typedef struct rb_root {
 
 } RB_ROOT;
 
+struct rb_iterator {
+	struct rb_root *root;
+	struct rb_node *next;
+};
+
 #define RB_NODE_ACQUIRED_FLAG		0
 #define RB_NODE_UNLINKED_FLAG		1
 #define RB_NODE_DBLK_FLAG		2
@@ -78,6 +83,9 @@ typedef struct rb_root {
 #define RB_BLACK 	false
 
 CDECL
+extern struct rb_iterator *rb_new_iterator(struct rb_root *root);
+extern void rb_free_iterator(struct rb_iterator *it);
+extern struct rb_node *rb_iterator_next(struct rb_iterator *it);
 extern void rb_destroy_root(struct rb_root *root);
 extern void rb_node_destroy(struct rb_node *node);
 extern s32 rb_get_height(struct rb_root *root);
