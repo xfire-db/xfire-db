@@ -18,7 +18,18 @@
 
 module XFireDB
   class Server
-    def initialize
+    attr_reader :config
+
+    def initialize(conf)
+      @config = XFireDB::Config.new(conf)
+    end
+
+    def start
+      if @config.debug
+        puts "[init]: XFireDB started in debugging mode"
+      else
+        puts "[init]: XFireDB started"
+      end
     end
   end
 end

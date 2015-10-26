@@ -24,7 +24,7 @@
 #define XFIRE_ENGINE_LOG "ENGINE"
 #define XFIRE_STORAGE_LOG "STORAGE"
 
-#define LOG_INIT "log"
+#define LOG_INIT "init"
 #define LOG_DISK "disk"
 
 CDECL

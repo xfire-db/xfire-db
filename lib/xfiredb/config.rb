@@ -16,3 +16,60 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+module XFireDB
+  class Config
+    attr_reader :port, :addr, :cluster, :cluster_config,
+      :debug
+    CONFIG_PORT = "port"
+    CONFIG_BIND_ADDR = "bind-addr"
+    CONFIG_CLUSTER = "cluster-enabled"
+    CONFIG_CLUSTER_CONF = "cluster-config-file"
+    CONFIG_DEBUG = "debug-mode"
+    CONFIG_TEST_OPT = "test-option"
+
+    @port = nil
+    @addr = nil
+    @cluster = false
+    @cluster_config = nil
+    @debug = false
+
+    def initialize(file)
+      @filename = file
+      fh = File.open(@filename, "r")
+      puts "[config]: config file (#{file}) not found!" unless check_config(fh)
+      fh.each do |line|
+        next if line.length <= 1
+        string = line.split(/(.+?) (.+)/)
+        opt = string[1]
+        arg = string[2]
+
+        parse opt, arg
+      end
+      fh.close
+    end
+
+    def parse(opt, arg)
+      case opt
+      when CONFIG_PORT
+        @port = arg
+      when CONFIG_BIND_ADDR
+        @addr = arg
+      when CONFIG_CLUSTER
+        @cluster = true if arg.eql? "true"
+      when CONFIG_CLUSTER_CONF
+        puts "[config]: (#{opt}) File \'#{arg}\' not found!" unless check_config(arg)
+        @cluster_config = arg
+      when CONFIG_DEBUG
+        @debug = true if arg.eql? "true"
+      else
+        puts "[config]: unknown option: \'#{opt}\'"
+      end
+    end
+
+    def check_config(file)
+      !File.world_readable?(file).nil? && File.exist?(file)
+    end
+  end
+
+end
+

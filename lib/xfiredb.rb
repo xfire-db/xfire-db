@@ -16,13 +16,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+require 'xfiredb/server'
+require 'xfiredb/config'
 require 'storage_engine'
-require 'server'
 require 'memory_profiler'
 
 module XFireDB
-  def XFireDB.start
-    puts "[init]: XFireDB starting..."
+  def XFireDB.start(configfile)
+    server = XFireDB::Server.new(configfile)
+    server.start
   end
 end
 

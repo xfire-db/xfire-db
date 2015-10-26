@@ -99,7 +99,7 @@ struct disk *disk_create(const char *path)
 				path, sqlite3_errmsg(db));
 		exit(-EXIT_FAILURE);
 	} else {
-		xfire_log_console(LOG_DISK, "Database opened: %s\n", path);
+		xfire_log_console(LOG_INIT, "Database opened: %s\n", path);
 	}
 
 	disk = xfire_zalloc(sizeof(*disk));
