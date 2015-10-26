@@ -23,8 +23,8 @@ module XFireDB
       wokers = (0...num).map do
         Thread.new do
           begin
-            while request = self.pop(false)
-              handle(request)
+            while client = self.pop(false)
+              handle(client)
             end
           rescue ThreadError
             puts "Thread error"
@@ -33,7 +33,7 @@ module XFireDB
       end
     end
 
-    def handle(request)
+    def handle(client)
       puts request
     end
   end
