@@ -17,23 +17,11 @@
 #
 
 module XFireDB
-  class Server
-    attr_reader :config
+  class Engine
+    attr_reader :db
 
-    def initialize(conf)
-      @config = XFireDB::Config.new(conf)
-      @bus = XFireDB::ClusterBus.new if @config.cluster
-      @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
-      @store = XFireDB::Engine.new
-    end
-
-    def start
-      log = "[init]: XFireDB started"
-      log = log + " in debugging mode" if @config.debug
-      puts log
-
-      # start the cluster bus
+    def initialize
+      @db = XFireDB::Database.new
     end
   end
 end
-

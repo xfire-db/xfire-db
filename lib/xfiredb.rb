@@ -22,6 +22,7 @@ require 'optparse'
 require 'thread'
 
 require 'xfiredb/storage_engine'
+require 'xfiredb/engine'
 require 'xfiredb/server'
 require 'xfiredb/config'
 require 'xfiredb/string'
