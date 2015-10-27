@@ -756,22 +756,6 @@ static void rb_replace_node(struct rb_root *root,
 	clear_bit(RB_NODE_UNLINKED_FLAG, &replacement->flags);
 }
 
-static void __rb_iterate(struct rb_root *root, struct rb_node *node,
-			     void (*fn)(struct rb_root *,struct rb_node *,void*), void *arg)
-{
-	struct rb_node *left, *right;
-
-	if(!node)
-		return;
-
-	left = node->left;
-	right = node->right;
-
-	fn(root, node, arg);
-	__rb_iterate(root, left, fn, arg);
-	__rb_iterate(root, right, fn, arg);
-}
-
 struct rb_iterator *rb_new_iterator(struct rb_root *root)
 {
 	struct rb_iterator *it = xfire_zalloc(sizeof(*it));
@@ -819,27 +803,6 @@ struct rb_node *rb_iterator_next(struct rb_iterator *it)
 	rb_unlock_root(it->root);
 
 	return rv;
-}
-
-/**
- * @brief Iterate over a red black tree.
- * @param root Tree to iterate over.
- * @param fn Iteration function.
- * @param arg Argument to \p fn.
- */
-void rb_iterate(struct rb_root *root, void (*fn)(struct rb_root *,struct rb_node *,void*), void *arg)
-{
-	struct rb_node *left, *right;
-
-	if(!root->tree)
-		return;
-	
-	left = root->tree->left;
-	right = root->tree->right;
-
-	__rb_iterate(root, left, fn, arg);
-	__rb_iterate(root, right, fn, arg);
-	fn(root, root->tree, arg);
 }
 
 typedef enum {

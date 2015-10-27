@@ -108,6 +108,27 @@ VALUE rb_se_list_lpush(VALUE self, VALUE _key,
 	return rb_se_list_push(self, _key, _data, true);
 }
 
+VALUE rb_se_list_clear(VALUE self, VALUE _key)
+{
+	auto void clear_hook(char *__key, char *data);
+	VALUE ary = rb_ary_new();
+
+	if(xfiredb_list_clear(StringValueCStr(_key), clear_hook) != -XFIRE_OK) {
+		rb_ary_free(ary);
+		return Qnil;
+	}
+
+	return ary;
+
+	void clear_hook(char *__key, char *data)
+	{
+		VALUE rbdata;
+
+		rbdata = rb_str_new2(data);
+		rb_ary_push(ary, rbdata);
+	}
+}
+
 VALUE rb_se_list_get2(VALUE self, VALUE _key,
 			      VALUE indexes)
 {

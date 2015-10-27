@@ -57,12 +57,17 @@ static struct string *dbg_get_string(const char *c)
 	return s;
 }
 
-static void hm_free_hook(struct hashmap_node *n)
+static void dbg_hm_clear(struct hashmap *map)
 {
+	struct hashmap_node *hnode;
 	struct string *s;
 
-	s = container_of(n, struct string, node);
-	string_destroy(s);
+	for(hnode = hashmap_clear_next(map);
+			hnode; hnode = hashmap_clear_next(map)) {
+		s = container_of(hnode, struct string, node);
+		hashmap_node_destroy(hnode);
+		string_destroy(s);
+	}
 }
 
 static void dbg_hm_store(struct disk *d)
@@ -74,7 +79,7 @@ static void dbg_hm_store(struct disk *d)
 	disk_store_hm(d, "hm-key", &map);
 	disk_update_hm(d, "hm-key", "key3", "hm-update-ok");
 	disk_delete_hashmapnode(d, "hm-key", "key2");
-	hashmap_clear(&map, &hm_free_hook);
+	dbg_hm_clear(&map);
 	hashmap_destroy(&map);
 }
 

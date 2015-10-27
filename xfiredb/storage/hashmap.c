@@ -193,37 +193,6 @@ struct hashmap_node *hashmap_find(struct hashmap *hm, char *key)
 	return container_of(node, struct hashmap_node, node);
 }
 
-static void hashmap_clear_hook(struct rb_root *root, struct rb_node *n, void *arg)
-{
-	struct hashmap_node *node;
-	struct hashmap *map;
-	void (*hook)(struct hashmap_node *n) = arg;
-
-	node = container_of(n, struct hashmap_node, node);
-	map = container_of(root, struct hashmap, root);
-	hashmap_remove(map, node->key);
-	hook(node);
-}
-
-static void hashmap_iterate_hook(struct rb_root *root, struct rb_node *node, void *arg)
-{
-	struct hashmap *map = container_of(root, struct hashmap, root);
-	struct hashmap_node *n = container_of(node, struct hashmap_node, node);
-	void (*fn)(struct hashmap *map, struct hashmap_node *n) = arg;
-
-	fn(map, n);
-}
-
-/**
- * @brief Iterate over a hashmap.
- * @param map Hashmap to iteratore.
- * @param fn Calback hook.
- */
-void hashmap_iterate(struct hashmap *map, void (*fn)(struct hashmap *hm, struct hashmap_node *n))
-{
-	rb_iterate(&map->root, hashmap_iterate_hook, fn);
-}
-
 /**
  * @brief Destroy a hashmap.
  * @param hm Hashmap to destroy.
@@ -232,17 +201,6 @@ void hashmap_destroy(struct hashmap *hm)
 {
 	rb_destroy_root(&hm->root);
 	atomic_destroy(&hm->num);
-}
-
-/**
- * @brief Clear out an entire hashmap.
- * @param hm Hashmap to clear.
- * @param hook Callback hook.
- */
-void hashmap_clear(struct hashmap *hm, void (*hook)(struct hashmap_node*))
-{
-	while(hm->root.tree)
-		rb_iterate(&hm->root, &hashmap_clear_hook, hook);
 }
 
 /** @} */

@@ -93,8 +93,6 @@ extern void rb_init_root(struct rb_root *root);
 extern struct rb_node *rb_insert(struct rb_root *, struct rb_node*,bool);
 extern struct rb_node *rb_find(struct rb_root *root, u64 key);
 extern void rb_dump(struct rb_root *root, FILE *stream);
-extern void rb_iterate(struct rb_root *root,
-		void (*fn)(struct rb_root *,struct rb_node *, void*), void *arg);
 extern struct rb_node *rb_find_leftmost(struct rb_node *tree);
 extern struct rb_node *rb_find_rightmost(struct rb_node *tree);
 

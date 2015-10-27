@@ -63,6 +63,21 @@ class TestStorageEngine < Test::Unit::TestCase
     assert_equal(4, @engine.hm_remove(TEST_HM_KEY, key_arr), "Hashmap remove failed")
   end
 
+  def test_hashmap_clear
+    key_arr = [TEST_HM_SUB_KEY1, TEST_HM_SUB_KEY2, TEST_HM_SUB_KEY3, TEST_HM_SUB_KEY4];
+    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY1, TEST_HM_DATA1), "Hashmap set failed")
+    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY2, TEST_HM_DATA2), "Hashmap set failed")
+    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY3, TEST_HM_DATA3), "Hashmap set failed")
+    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY4, TEST_HM_DATA4), "Hashmap set failed")
+
+    hash = @engine.hm_clear(TEST_HM_KEY)
+    hash.each do |key, value|
+      key_arr -= [key]
+    end
+
+    assert_equal(0, key_arr.length, "Hashmap clear failed")
+  end
+
   def test_hashmap
     key_arr = [TEST_HM_SUB_KEY1, TEST_HM_SUB_KEY2, TEST_HM_SUB_KEY3, TEST_HM_SUB_KEY4];
     assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY1, TEST_HM_DATA1), "Hashmap set failed")
@@ -72,14 +87,23 @@ class TestStorageEngine < Test::Unit::TestCase
 
     assert_equal([TEST_HM_DATA1, TEST_HM_DATA2, TEST_HM_DATA3, TEST_HM_DATA4],
                  @engine.hm_get(TEST_HM_KEY, key_arr), "Hashmap get failed")
-    assert_equal(4, @engine.key_delete(TEST_HM_KEY), "Hashmap clear failed")
-    #assert_equal(4, @engine.hm_remove(TEST_HM_KEY, key_arr), "Hashmap remove failed")
+    assert_equal(4, @engine.hm_remove(TEST_HM_KEY, key_arr), "Hashmap remove failed")
   end
 
   def test_string
     assert(@engine.string_set(TEST_STRING_KEY, TEST_STRING_DATA), "String set failed!")
     assert_equal(TEST_STRING_DATA, @engine.string_get(TEST_STRING_KEY), "String get failed!");
     assert_equal(1, @engine.key_delete(TEST_STRING_KEY), "String delete failed");
+  end
+
+  def test_list_clear
+    assert(@engine.list_set(TEST_LIST_KEY, 0, TEST_LIST_DATA1), "List set failed")
+    assert(@engine.list_set(TEST_LIST_KEY, 1, TEST_LIST_DATA2), "List set failed")
+    assert(@engine.list_set(TEST_LIST_KEY, 2, TEST_LIST_DATA3), "List set failed")
+    assert(@engine.list_set(TEST_LIST_KEY, 3, TEST_LIST_DATA4), "List set failed")
+
+    ary = @engine.list_clear(TEST_LIST_KEY)
+    assert_equal(4, ary.length)
   end
 
   def test_list

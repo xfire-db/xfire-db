@@ -68,6 +68,8 @@
 #endif
 
 CDECL
+extern int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data));
+extern int xfiredb_list_clear(char *key, void (*hook)(char *key, char *data));
 extern void xfiredb_disk_clear(void);
 extern int xfire_sprintf(char **buf, char *format, ...);
 extern void xfiredb_init(void);

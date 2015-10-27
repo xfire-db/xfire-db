@@ -33,6 +33,9 @@
 
 typedef struct rb_iterator* hashmap_iterator_t;
 
+#define hashmap_clear_foreach(__hm, __n) for(__n = hashmap_clear_next(__hm); \
+					     __n; __n = hashmap_clear_next(__hm))
+
 /**
  * @brief Hashmap definition.
  */
@@ -62,15 +65,12 @@ static inline s64 hashmap_size(struct hashmap *map)
 }
 
 
-extern void hashmap_iterate(struct hashmap *map,
-			void (*fn)(struct hashmap *hm, struct hashmap_node *n));
 extern struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key);
 extern int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n);
 extern void hashmap_init(struct hashmap *hm);
 extern struct hashmap_node *hashmap_find(struct hashmap *hm, char *key);
 extern void hashmap_destroy(struct hashmap *hm);
 extern void hashmap_node_destroy(struct hashmap_node *n);
-extern void hashmap_clear(struct hashmap *hm, void (*hook)(struct hashmap_node*));
 
 static inline hashmap_iterator_t hashmap_new_iterator(struct hashmap *map)
 {

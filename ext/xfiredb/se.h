@@ -21,7 +21,33 @@
 
 #include <stdlib.h>
 #include <ruby.h>
+
+#include <xfire/xfire.h>
+#include <xfire/container.h>
+
+struct db_entry_container {
+	struct container c;
+	VALUE obj;
+	VALUE type;
+};
+
+extern VALUE c_xfiredb_mod;
+extern VALUE c_hashmap;
+extern VALUE c_list;
+
+/* hashmap funcs */
+extern VALUE rb_hashmap_each(VALUE hash);
+extern VALUE rb_hashmap_store(VALUE self, VALUE key, VALUE data);
+extern VALUE rb_hashmap_ref(VALUE self, VALUE key);
+extern VALUE rb_hashmap_delete(VALUE self, VALUE key);
+extern VALUE rb_hashmap_clear(VALUE self);
+extern VALUE rb_hashmap_size(VALUE self);
+extern void rb_hashmap_free(VALUE hash);
+extern VALUE rb_hashmap_new(void);
+
 /* list funcs */
+extern void rb_list_free(VALUE hash);
+
 extern VALUE rb_se_list_del(VALUE self, VALUE _key, VALUE _start, VALUE _end);
 extern VALUE rb_se_list_del2(VALUE self, VALUE _key, VALUE indexes);
 extern VALUE rb_se_list_set(VALUE self, VALUE _key, VALUE index, VALUE _data);
@@ -29,11 +55,13 @@ extern VALUE rb_se_list_rpush(VALUE self, VALUE _key, VALUE _data);
 extern VALUE rb_se_list_lpush(VALUE self, VALUE _key, VALUE _data);
 extern VALUE rb_se_list_get2(VALUE self, VALUE _key, VALUE indexes);
 extern VALUE rb_se_list_get(VALUE self, VALUE _key, VALUE _start, VALUE _end);
+extern VALUE rb_se_list_clear(VALUE self, VALUE _key);
 /* string funcs */
 extern VALUE rb_se_str_set(VALUE self, VALUE _key, VALUE data);
 extern VALUE rb_se_str_get(VALUE self, VALUE _key);
 /* hm funcs */
 extern VALUE rb_se_hm_get(VALUE self, VALUE _key, VALUE _skeys);
+extern VALUE rb_se_hm_clear(VALUE self, VALUE _key);
 extern VALUE rb_se_hm_set(VALUE self, VALUE _key, VALUE _skey, VALUE _data);
 extern VALUE rb_se_hm_del(VALUE self, VALUE _key, VALUE _skeys);
 #endif

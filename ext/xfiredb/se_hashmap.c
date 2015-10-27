@@ -56,6 +56,27 @@ VALUE rb_se_hm_del(VALUE self, VALUE _key, VALUE _skeys)
 	return rv;
 }
 
+VALUE rb_se_hm_clear(VALUE self, VALUE _key)
+{
+	auto void pop_hook(char *key, char *data);
+	VALUE hash = rb_hash_new();
+	char *key = StringValueCStr(_key);
+
+	if(xfiredb_hashmap_clear(key, pop_hook) != -XFIRE_OK)
+		return Qnil;
+
+	return hash;
+
+	void pop_hook(char *__key, char *data)
+	{
+		VALUE rbkey, rbdata;
+
+		rbkey = rb_str_new2(__key);
+		rbdata = rb_str_new2(data);
+		rb_hash_aset(hash, rbkey, rbdata);
+	}
+}
+
 VALUE rb_se_hm_get(VALUE self, VALUE _key, VALUE _skeys)
 {
 	char *key, **skeys, **data;

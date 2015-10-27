@@ -147,25 +147,6 @@ struct hm_store_data {
 	struct disk *d;
 };
 
-static void disk_hm_iterate(struct hashmap *map, struct hashmap_node *node)
-{
-	int rc;
-	char *data, *msg, *query;
-	struct hm_store_data *priv = map->privdata;
-	struct string *s = container_of(node, struct string, node);
-
-	string_get(s, &data);
-	xfire_sprintf(&query, DISK_STORE_QUERY, priv->key, node->key, "hashmap", data);
-	rc = sqlite3_exec(priv->d->handle, query, &dummy_hook, priv->d, &msg);
-
-	if(rc != SQLITE_OK)
-		fprintf(stderr, "Disk store failed: %s\n", msg);
-
-	sqlite3_free(msg);
-	xfire_free(query);
-	xfire_free(data);
-}
-
 /**
  * @brief Store a hashmap node.
  * @param d Disk to store onto.
@@ -200,13 +181,27 @@ int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data)
  */
 int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 {
-	struct hm_store_data data;
+	struct hashmap_node *node;
+	char *data, *msg, *query;
+	struct string *s;
+	hashmap_iterator_t it;
+	int rc;
 
-	data.key = key;
-	data.d = d;
-	map->privdata = &data;
-	hashmap_iterate(map, &disk_hm_iterate);
-	map->privdata = NULL;
+	it = hashmap_new_iterator(map);
+	for(node = hashmap_iterator_next(it); node;
+			node = hashmap_iterator_next(it)) {
+		s = container_of(node, struct string, node);
+		string_get(s, &data);
+		xfire_sprintf(&query, DISK_STORE_QUERY, key, node->key, "hashmap", data);
+		rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+		if(rc != SQLITE_OK)
+			fprintf(stderr, "Disk store failed: %s\n", msg);
+
+		sqlite3_free(msg);
+		xfire_free(query);
+		xfire_free(data);
+	}
 
 	return -XFIRE_OK;
 }

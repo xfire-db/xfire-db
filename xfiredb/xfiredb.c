@@ -655,5 +655,94 @@ int xfiredb_key_delete(char *key)
 	return rv;
 }
 
+/**
+ * @brief Clear a list.
+ * @param key List to clear.
+ * @param hook Hook to call on each list entry.
+ *
+ * Clear a list (i.e. delete each entry). \p hook is called for each
+ * entry in the list.
+ */
+int xfiredb_list_clear(char *key, void (*hook)(char *key, char *data))
+{
+	struct container *c;
+	struct list_head *lh;
+	struct list *carriage, *tmp;
+	struct string *s;
+	char *data;
+	char *bio_key, *bio_data;
+	db_data_t d;
+
+	if(db_lookup(xfiredb, key, &d) != XFIRE_OK)
+		return -XFIRE_ERR;
+
+	c = d.ptr;
+	if(!container_check_type(c, CONTAINER_LIST))
+		return -XFIRE_ERR;
+
+	lh = container_get_data(c);
+	list_for_each_safe(lh, carriage, tmp) {
+		list_del(lh, carriage);
+		s = container_of(carriage, struct string, entry);
+		xfire_sprintf(&bio_key, "%s", key);
+		string_get(s, &bio_data);
+		bio_queue_add(bio_key, bio_data, NULL, LIST_DEL);
+		string_get(s, &data);
+		hook(key, data);
+		string_destroy(s);
+		xfire_free(s);
+	}
+
+	container_destroy(c);
+	xfire_free(c);
+
+	return -XFIRE_OK;
+}
+
+/**
+ * @brief Clear a hashmap.
+ * @param key Hashmap to clear.
+ * @param hook Hook to call on each node.
+ *
+ * Clear a hashmap (i.e. delete each entry). \p hook is called for each
+ * node in the map.
+ */
+int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
+{
+	struct container *c;
+	struct hashmap_node *n;
+	struct hashmap *hm;
+	struct string *s;
+	char *data, *bio_key, *bio_skey;
+	db_data_t d;
+
+	if(db_lookup(xfiredb, key, &d) != XFIRE_OK)
+		return -XFIRE_ERR;
+
+	c = d.ptr;
+	if(!container_check_type(c, CONTAINER_HASHMAP))
+		return -XFIRE_ERR;
+
+	hm = container_get_data(c);
+	hashmap_clear_foreach(hm, n) {
+		s = container_of(n, struct string, node);
+		string_get(s, &data);
+		hook(n->key, data);
+		xfire_free(data);
+
+		xfire_sprintf(&bio_key, "%s", key);
+		xfire_sprintf(&bio_skey, "%s", n->key);
+		bio_queue_add(bio_key, bio_skey, NULL, HM_DEL);
+
+		hashmap_node_destroy(n);
+		string_destroy(s);
+		xfire_free(s);
+	}
+
+	container_destroy(c);
+	xfire_free(c);
+	return -XFIRE_OK;
+}
+
 /** @} */
 
