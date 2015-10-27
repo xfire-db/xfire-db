@@ -90,6 +90,14 @@ static void raw_rb_db_delete(struct db_entry_container *entry)
 	}
 }
 
+VALUE rb_db_size(VALUE self)
+{
+	struct database *db;
+
+	Data_Get_Struct(self, struct database, db);
+	return LONG2NUM(db_get_size(db));
+}
+
 VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 {
 	struct database *db;
@@ -151,5 +159,6 @@ void init_database(void)
 	rb_define_method(c_database, "[]=", rb_db_store, 2);
 	rb_define_method(c_database, "[]", rb_db_ref, 1);
 	rb_define_method(c_database, "delete", rb_db_delete, 1);
+	rb_define_method(c_database, "size", rb_db_size, 0);
 }
 

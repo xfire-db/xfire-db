@@ -153,6 +153,23 @@ static inline void dict_set_val(struct dict_entry *e, unsigned long *data,
 }
 
 /**
+ * @brief Get the number of elements in a dictionary.
+ * @param d Dictionary to get the size of.
+ * @return The number of elements in \p d.
+ */
+long dict_get_size(struct dict *d)
+{
+	long rv = 0L;
+
+	xfire_mutex_lock(&d->lock);
+	rv += d->map[PRIMARY_MAP].length;
+	rv += d->map[REHASH_MAP].length;
+	xfire_mutex_unlock(&d->lock);
+
+	return rv;
+}
+
+/**
  * @brief Initialise a dictionary.
  * @param d Dictionary to initialise.
  */

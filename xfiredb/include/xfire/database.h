@@ -65,6 +65,16 @@ struct database {
 	dict_iterator_free(__it)
 
 CDECL
+/**
+ * @brief Get the number of elements stored in \p db.
+ * @param db Database to get the size of.
+ * @return The number of elements in \p db.
+ */
+static inline long db_get_size(struct database *db)
+{
+	return dict_get_size(db->container);
+}
+
 extern struct database *db_alloc(const char *name);
 extern void db_free(struct database *db);
 extern int db_update(struct database *db,

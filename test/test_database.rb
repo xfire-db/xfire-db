@@ -47,12 +47,14 @@ class TestStorageEngine < Test::Unit::TestCase
     list.push("List data 1")
     list.push("List data 2")
     list.push("List data 3")
-    @db["key3"] = list
+    @db["key4"] = list
 
-    tmp = @db["key3"]
+    tmp = @db["key4"]
     tmp.each do |value|
       puts value
     end
+
+    assert_equal(4, @db.size, "Database size failed")
   end
 end
 

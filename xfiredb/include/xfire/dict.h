@@ -115,6 +115,7 @@ struct dict_iterator {
 };
 
 CDECL
+extern long dict_get_size(struct dict *d);
 extern void dict_set_can_expand(int x);
 extern bool dict_key_available(struct dict *d, char *key);
 
