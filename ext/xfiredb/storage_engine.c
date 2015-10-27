@@ -26,15 +26,18 @@
 #include <xfire/error.h>
 #include <xfire/mem.h>
 
-
 extern void init_list(void);
 extern void init_database(void);
 extern void init_hashmap(void);
 
 VALUE c_xfiredb_mod;
+VALUE rb_cStorageEngine;
 void Init_storage_engine(void)
 {
 	c_xfiredb_mod = rb_define_module("XFireDB");
+	rb_cStorageEngine = rb_define_class_under(c_xfiredb_mod,
+			"StorageEngine", rb_cObject);
+
 	init_database();
 	init_list();
 	init_hashmap();

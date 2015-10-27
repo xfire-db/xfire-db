@@ -19,9 +19,9 @@
 require 'pp'
 require 'ostruct'
 require 'optparse'
-require 'storage_engine'
 require 'thread'
 
+require 'xfiredb/storage_engine'
 require 'xfiredb/server'
 require 'xfiredb/config'
 require 'xfiredb/string'

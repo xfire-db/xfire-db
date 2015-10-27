@@ -147,7 +147,6 @@ void init_database(void)
 {
 	c_database = rb_define_class_under(c_xfiredb_mod,
 			"Database", rb_cObject);
-	rb_include_module(c_hashmap, rb_mEnumerable);
 	rb_define_singleton_method(c_database, "new", rb_db_new, 0);
 	rb_define_method(c_database, "[]=", rb_db_store, 2);
 	rb_define_method(c_database, "[]", rb_db_ref, 1);
