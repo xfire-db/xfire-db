@@ -149,16 +149,58 @@ VALUE rb_db_delete(VALUE self, VALUE key)
 	return key;
 }
 
+static VALUE db_enum_size(VALUE db, VALUE args, VALUE obj)
+{
+	return rb_db_size(db);
+}
+
+static VALUE rb_db_each_pair(VALUE db)
+{
+	struct db_iterator *it;
+	struct db_entry *e;
+	struct database *dbase;
+	struct container *c;
+	struct db_entry_container *db_c;
+	char *value;
+	VALUE k, v;
+	struct string *s_val;
+
+	Data_Get_Struct(db, struct database, dbase);
+	RETURN_SIZED_ENUMERATOR(db, 0, 0, db_enum_size);
+	it = db_get_iterator(dbase);
+
+	for(e = db_iterator_next(it); e; e = db_iterator_next(it)) {
+		c = e->value.ptr;
+		db_c = container_of(c, struct db_entry_container, c);
+		k = rb_str_new2(e->key);
+
+		if(db_c->type != rb_cString) {
+			v = db_c->obj;
+		} else {
+			s_val = container_get_data(c);
+			string_get(s_val, &value);
+			v = rb_str_new2(value);
+			xfire_free(value);
+		}
+
+		rb_yield(rb_assoc_new(k, v));
+	}
+
+	return db;
+}
+
 VALUE c_database;
 
 void init_database(void)
 {
 	c_database = rb_define_class_under(c_xfiredb_mod,
 			"Database", rb_cObject);
+	rb_include_module(c_database, rb_mEnumerable);
 	rb_define_singleton_method(c_database, "new", rb_db_new, 0);
 	rb_define_method(c_database, "[]=", rb_db_store, 2);
 	rb_define_method(c_database, "[]", rb_db_ref, 1);
 	rb_define_method(c_database, "delete", rb_db_delete, 1);
 	rb_define_method(c_database, "size", rb_db_size, 0);
+	rb_define_method(c_database, "each", rb_db_each_pair, 0);
 }
 

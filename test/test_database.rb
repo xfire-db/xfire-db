@@ -54,7 +54,12 @@ class TestStorageEngine < Test::Unit::TestCase
       puts value
     end
 
-    assert_equal(4, @db.size, "Database size failed")
+    @db.each do |key, value|
+      puts "Data type of #{key} is #{value.class}"
+    end
+
+    @db.delete("key4")
+    assert_equal(3, @db.size, "Database size failed")
   end
 end
 
