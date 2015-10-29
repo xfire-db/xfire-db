@@ -26,10 +26,10 @@
 
 #include <stdio.h>
 
-#include <xfire/xfire.h>
-#include <xfire/os.h>
-#include <xfire/types.h>
-#include <xfire/flags.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/os.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/flags.h>
 
 /**
  * @brief Red black tree node type.

@@ -28,8 +28,8 @@
 #include <string.h>
 #include <pthread.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
 
 /**
  * @brief Pointer size.

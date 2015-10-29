@@ -24,8 +24,8 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
-#include <xfire/xfire.h>
-#include <xfire/os.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/os.h>
 
 /**
  * @brief List data type.

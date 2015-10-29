@@ -24,12 +24,12 @@
  * @{
  */
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/os.h>
-#include <xfire/list.h>
-#include <xfire/rbtree.h>
-#include <xfire/hashmap.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/os.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/rbtree.h>
+#include <xfiredb/engine/hashmap.h>
 
 /**
  * @brief String container.

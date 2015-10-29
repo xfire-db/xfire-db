@@ -41,81 +41,41 @@ class TestStorageEngine < Test::Unit::TestCase
 
   def setup
     puts ""
-    @engine = XFireDB::StorageEngine.new
+    @engine = XFireDB::Engine.new
   end
 
   def teardown
-    @engine.delete
-  end
-
-  def test_disk
-    key_arr = [TEST_HM_SUB_KEY1, TEST_HM_SUB_KEY2, TEST_HM_SUB_KEY3, TEST_HM_SUB_KEY4];
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY1, TEST_HM_DATA1), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY2, TEST_HM_DATA2), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY3, TEST_HM_DATA3), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY4, TEST_HM_DATA4), "Hashmap set failed")
-
-    @engine.delete
-    @engine = XFireDB::StorageEngine.new
-
-    assert_equal([TEST_HM_DATA1, TEST_HM_DATA2, TEST_HM_DATA3, TEST_HM_DATA4],
-                 @engine.hm_get(TEST_HM_KEY, key_arr), "Hashmap get failed")
-    assert_equal(4, @engine.hm_remove(TEST_HM_KEY, key_arr), "Hashmap remove failed")
-  end
-
-  def test_hashmap_clear
-    key_arr = [TEST_HM_SUB_KEY1, TEST_HM_SUB_KEY2, TEST_HM_SUB_KEY3, TEST_HM_SUB_KEY4];
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY1, TEST_HM_DATA1), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY2, TEST_HM_DATA2), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY3, TEST_HM_DATA3), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY4, TEST_HM_DATA4), "Hashmap set failed")
-
-    hash = @engine.hm_clear(TEST_HM_KEY)
-    hash.each do |key, value|
-      key_arr -= [key]
-    end
-
-    assert_equal(0, key_arr.length, "Hashmap clear failed")
+    @engine.stop
   end
 
   def test_hashmap
-    key_arr = [TEST_HM_SUB_KEY1, TEST_HM_SUB_KEY2, TEST_HM_SUB_KEY3, TEST_HM_SUB_KEY4];
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY1, TEST_HM_DATA1), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY2, TEST_HM_DATA2), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY3, TEST_HM_DATA3), "Hashmap set failed")
-    assert(@engine.hm_set(TEST_HM_KEY, TEST_HM_SUB_KEY4, TEST_HM_DATA4), "Hashmap set failed")
+    db = @engine.db
 
-    assert_equal([TEST_HM_DATA1, TEST_HM_DATA2, TEST_HM_DATA3, TEST_HM_DATA4],
-                 @engine.hm_get(TEST_HM_KEY, key_arr), "Hashmap get failed")
-    assert_equal(4, @engine.hm_remove(TEST_HM_KEY, key_arr), "Hashmap remove failed")
-  end
-
-  def test_string
-    assert(@engine.string_set(TEST_STRING_KEY, TEST_STRING_DATA), "String set failed!")
-    assert_equal(TEST_STRING_DATA, @engine.string_get(TEST_STRING_KEY), "String get failed!");
-    assert_equal(1, @engine.key_delete(TEST_STRING_KEY), "String delete failed");
-  end
-
-  def test_list_clear
-    assert(@engine.list_set(TEST_LIST_KEY, 0, TEST_LIST_DATA1), "List set failed")
-    assert(@engine.list_set(TEST_LIST_KEY, 1, TEST_LIST_DATA2), "List set failed")
-    assert(@engine.list_set(TEST_LIST_KEY, 2, TEST_LIST_DATA3), "List set failed")
-    assert(@engine.list_set(TEST_LIST_KEY, 3, TEST_LIST_DATA4), "List set failed")
-
-    ary = @engine.list_clear(TEST_LIST_KEY)
-    assert_equal(4, ary.length)
+    db['key1'] = XFireDB::Hashmap.new unless db['key1'].class == XFireDB::Hashmap
+    hash = db['key1']
+    hash['hkey1'] = "Test data 1"
+    hash['hkey2'] = "Test data 2"
+    hash['hkey3'] = "Test data 3"
+    hash['hkey4'] = "Test data 4"
   end
 
   def test_list
-    assert(@engine.list_set(TEST_LIST_KEY, 0, TEST_LIST_DATA1), "List set failed")
-    assert(@engine.list_set(TEST_LIST_KEY, 1, TEST_LIST_DATA2), "List set failed")
-    assert(@engine.list_set(TEST_LIST_KEY, 2, TEST_LIST_DATA3), "List set failed")
-    assert(@engine.list_set(TEST_LIST_KEY, 3, TEST_LIST_DATA4), "List set failed")
+    db = @engine.db
+    db['key2'] = XFireDB::List.new unless db['key2'].class == XFireDB::List
+    list = db['key2']
 
-    assert_equal([TEST_LIST_DATA1, TEST_LIST_DATA2,
-                  TEST_LIST_DATA3, TEST_LIST_DATA4],
-                  @engine.list_get_seq(TEST_LIST_KEY, 0, -1), "List get failed")
-    assert_equal(4, @engine.list_pop_seq(TEST_LIST_KEY, 0, -1), "List pop failed")
+    list.push("List data 1")
+    list.push("List data 2")
+    list.push("List data 3")
+    list.push("List data 4")
+  end
+
+  def test_string
+    db = @engine.db
+    db['key3'] = "String data 1"
+    db['key4'] = "String data 2"
+    db['key5'] = "String data 3"
+    db['key6'] = "String data 4"
   end
 end
 

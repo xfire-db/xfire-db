@@ -27,13 +27,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/os.h>
-#include <xfire/string.h>
-#include <xfire/list.h>
-#include <xfire/hashmap.h>
-#include <xfire/container.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/os.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/engine/container.h>
 
 #define TABLE_KEY_IDX 0
 #define TABLE_SCND_KEY_IDX 1
@@ -55,6 +55,7 @@ struct disk {
 };
 
 CDECL
+extern long disk_size(struct disk *d);
 extern void disk_clear(struct disk *d);
 extern struct disk *disk_create(const char *path);
 extern void disk_destroy(struct disk *disk);

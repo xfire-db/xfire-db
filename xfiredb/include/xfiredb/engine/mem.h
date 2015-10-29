@@ -1,5 +1,5 @@
 /*
- *  LOG library
+ *  MEM header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,24 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOG__H__
-#define __LOG__H__
+#ifndef __MEM_H__
+#define __MEM_H__
 
-#include <xfire/xfire.h>
-
-#define XFIRE_ENGINE_LOG "ENGINE"
-#define XFIRE_STORAGE_LOG "STORAGE"
-
-#define LOG_INIT "init"
-#define LOG_DISK "disk"
+#include <xfiredb/engine/xfiredb.h>
 
 CDECL
-extern void xfire_log_init(const char *out, const char *err);
-extern void xfire_log_exit(void);
-extern void xfire_log(const char *src, const char *msg, ...);
-extern void xfire_log_err(const char *src, const char *msg, ...);
-extern void xfire_log_console(const char *src, const char *fmt, ...);
+extern void *xfire_alloc(size_t len);
+extern void *xfire_zalloc(size_t len);
+extern void *xfire_calloc(size_t num, size_t size);
+extern void xfire_free(void *region);
+extern void *xfire_realloc(void *region, size_t size);
 CDECL_END
 
 #endif
-

@@ -20,11 +20,11 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/bg.h>
-#include <xfire/mem.h>
-#include <xfire/error.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/bg.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/error.h>
 
 static void job1_handler(void *arg)
 {

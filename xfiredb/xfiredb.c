@@ -23,23 +23,27 @@
 
 #include <stdlib.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/log.h>
-#include <xfire/bg.h>
-#include <xfire/bio.h>
-#include <xfire/database.h>
-#include <xfire/mem.h>
-#include <xfire/os.h>
-#include <xfire/error.h>
-#include <xfire/disk.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/log.h>
+#include <xfiredb/engine/bg.h>
+#include <xfiredb/engine/bio.h>
+#include <xfiredb/engine/database.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/os.h>
+#include <xfiredb/engine/error.h>
+#include <xfiredb/engine/disk.h>
 
+#ifdef HAVE_DEBUG
 static struct database *xfiredb;
+#endif
 
 struct disk *dbg_disk;
 #ifndef HAVE_DEBUG
 struct disk *xfire_disk;
 #endif
+
+static volatile bool se_state = false;
 
 static container_type_t xfiredb_get_row_type(char *cell)
 {
@@ -53,12 +57,18 @@ static container_type_t xfiredb_get_row_type(char *cell)
 	return 0;
 }
 
-void xfiredb_disk_clear(void)
+bool xfiredb_loadstate(void)
 {
-	disk_clear(disk_db);
+	return se_state;
 }
 
-static void xfiredb_load_hook(int argc, char **rows, char **cols)
+void xfiredb_set_loadstate(bool v)
+{
+	se_state = v;
+}
+
+static void xfiredb_load(struct database *db,
+		int argc, char **rows, char **cols)
 {
 	container_type_t type;
 	char *key, *skey, *data;
@@ -75,7 +85,7 @@ static void xfiredb_load_hook(int argc, char **rows, char **cols)
 		key = rows[i + TABLE_KEY_IDX];
 		skey = rows[i + TABLE_SCND_KEY_IDX];
 		data = rows[i + TABLE_DATA_IDX];
-		available = db_lookup(xfiredb, key, &dbdata) == -XFIRE_OK ? true : false;
+		available = db_lookup(db, key, &dbdata) == -XFIRE_OK ? true : false;
 
 		switch(type) {
 		case CONTAINER_STRING:
@@ -85,7 +95,7 @@ static void xfiredb_load_hook(int argc, char **rows, char **cols)
 			c = container_alloc(CONTAINER_STRING);
 			s = container_get_data(c);
 			string_set(s, data);
-			db_store(xfiredb, key, c);
+			db_store(db, key, c);
 			break;
 
 		case CONTAINER_LIST:
@@ -99,7 +109,7 @@ static void xfiredb_load_hook(int argc, char **rows, char **cols)
 			list_rpush(h, &s->entry);
 
 			if(!available)
-				db_store(xfiredb, key, c);
+				db_store(db, key, c);
 			break;
 
 		case CONTAINER_HASHMAP:
@@ -113,10 +123,126 @@ static void xfiredb_load_hook(int argc, char **rows, char **cols)
 			hashmap_add(map, skey, &s->node);
 
 			if(!available)
-				db_store(xfiredb, key, c);
+				db_store(db, key, c);
 			break;
 		}
 	}
+}
+
+void xfiredb_disk_clear(void)
+{
+	disk_clear(disk_db);
+}
+
+
+/**
+ * @brief Initialise the XFireDB storage engine.
+ */
+void xfiredb_se_init(void)
+{
+	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
+	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
+	xfire_log_console(LOG_INIT, "Initialising background processes\n");
+	bg_processes_init();
+	xfire_log_console(LOG_INIT, "Initialising background I/O\n");
+	bio_init();
+}
+
+long xfiredb_disk_size(void)
+{
+	return disk_size(disk_db);
+}
+
+void xfiredb_raw_load(void (*hook)(int argc, char **rows, char **cols))
+{
+	xfire_log_console(LOG_INIT, "Loading data from disk\n");
+	disk_load(disk_db, hook);
+}
+
+/**
+ * @brief Destructor for the XFireDB storage engine.
+ */
+void xfiredb_se_exit(void)
+{
+	bio_sync();
+	bio_exit();
+	bg_processes_exit();
+	xfire_log_exit();
+	xfiredb_set_loadstate(false);
+}
+
+void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int _op)
+{
+	char *key, *arg, *data;
+	bio_operation_t op = _op;
+
+	key = arg = data = NULL;
+
+	if(!se_state)
+		return;
+
+	if(_key)
+		xfire_sprintf(&key, "%s", _key);
+	if(_arg)
+		xfire_sprintf(&arg, "%s", _arg);
+	if(_data)
+		xfire_sprintf(&data, "%s", _data);
+
+	bio_queue_add(key, arg, data, op);
+}
+
+void xfiredb_store_container(char *_key, struct container *c)
+{
+	char *key, *arg, *value;
+	struct string *s;
+	struct list *l;
+	struct list_head *lh;
+	struct hashmap *map;
+	struct hashmap_node *node;
+	hashmap_iterator_t it;
+
+	if(!se_state)
+		return;
+
+	switch(c->type) {
+	case CONTAINER_STRING:
+		xfire_sprintf(&key, "%s", _key);
+		s = container_get_data(c);
+		string_get(s, &value);
+		bio_queue_add(key, NULL, value, STRING_ADD);
+		break;
+
+	case CONTAINER_LIST:
+		lh = container_get_data(c);
+		list_for_each(lh, l) {
+			xfire_sprintf(&key, "%s", _key);
+			s = container_of(l, struct string, entry);
+			string_get(s, &value);
+			bio_queue_add(key, NULL, value, LIST_ADD);
+		}
+		break;
+
+	case CONTAINER_HASHMAP:
+		map = container_get_data(c);
+		it = hashmap_new_iterator(map);
+		for(node = hashmap_iterator_next(it); node;
+				node = hashmap_iterator_next(it)) {
+			xfire_sprintf(&key, "%s", _key);
+			s = container_of(node, struct string, node);
+			string_get(s, &value);
+			xfire_sprintf(&arg, "%s", node->key);
+			bio_queue_add(key, arg, value, HM_ADD);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+#ifdef HAVE_DEBUG
+static void xfiredb_load_hook(int argc, char **rows, char **cols)
+{
+	xfiredb_load(xfiredb, argc, rows, cols);
 }
 
 /**
@@ -126,7 +252,9 @@ void xfiredb_init(void)
 {
 	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
 	xfire_log_console(LOG_INIT, "Creating in memory database\n");
+#ifdef HAVE_DEBUG
 	xfiredb = db_alloc("xfiredb");
+#endif
 	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
 	xfire_log_console(LOG_INIT, "Initialising background processes\n");
 	bg_processes_init();
@@ -743,6 +871,7 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 	xfire_free(c);
 	return -XFIRE_OK;
 }
+#endif
 
 /** @} */
 

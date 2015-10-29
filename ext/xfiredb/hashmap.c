@@ -19,13 +19,14 @@
 #include <stdlib.h>
 #include <ruby.h>
 
-#include <xfire/xfire.h>
-#include <xfire/mem.h>
-#include <xfire/database.h>
-#include <xfire/container.h>
-#include <xfire/list.h>
-#include <xfire/string.h>
-#include <xfire/hashmap.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/database.h>
+#include <xfiredb/engine/container.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/engine/bio.h>
 
 #include "se.h"
 
@@ -37,24 +38,41 @@ static void rb_hashmap_release(void *p)
 {
 	struct db_entry_container *container = p;
 
-	rb_hashmap_clear(container->obj);
-	container_destroy(&container->c);
-	xfire_free(container);
+	container->obj_released = true;
+	if(!container->intree) {
+		printf("heyoola");
+		rb_hashmap_remove(container);
+		container_destroy(&container->c);
+		xfire_free(container->key);
+		xfire_free(container);
+	}
+
 }
 
-void rb_hashmap_free(VALUE obj)
+void rb_hashmap_free(struct db_entry_container *c)
 {
-	rb_gc_mark(obj);
+	rb_hashmap_remove(c);
+
+	if(!c->intree && c->obj_released) {
+		printf("hey\n");
+		container_destroy(&c->c);
+		xfire_free(c->key);
+		xfire_free(c);
+	}
 }
 
 VALUE rb_hashmap_alloc(VALUE klass)
 {
-	struct db_entry_container *rb_container = xfire_zalloc(sizeof(*rb_container));
+	struct db_entry_container *container = xfire_zalloc(sizeof(*container));
+	VALUE obj;
 
-	container_init(&rb_container->c, CONTAINER_HASHMAP);
-	rb_container->obj = Data_Wrap_Struct(klass, NULL, rb_hashmap_release, rb_container);
-	rb_container->type = klass;
-	return rb_container->obj;
+	container_init(&container->c, CONTAINER_HASHMAP);
+	obj = Data_Wrap_Struct(klass, NULL, rb_hashmap_release, container);
+	container->intree = false;
+	container->type = klass;
+	container->obj_released = false;
+	container->release = rb_hashmap_release;
+	return obj;
 }
 
 static struct hashmap *obj_to_map(VALUE obj)
@@ -91,19 +109,32 @@ VALUE rb_hashmap_size(VALUE self)
 
 VALUE rb_hashmap_clear(VALUE self)
 {
-	struct hashmap_node *node;
+	struct db_entry_container *c;
+
+	Data_Get_Struct(self, struct db_entry_container, c);
+	rb_hashmap_remove(c);
+
+	return self;
+}
+
+void rb_hashmap_remove(struct db_entry_container *c)
+{
 	struct hashmap *map;
+	struct hashmap_node *node;
 	struct string *s;
 
-	map = obj_to_map(self);
+	map = container_get_data(&c->c);
+	
 	hashmap_clear_foreach(map, node) {
+		if(c->key)
+			xfiredb_notice_disk(c->key, node->key, NULL, HM_DEL);
+		else
+			printf("hai\n");
 		s = container_of(node, struct string, node);
 		hashmap_node_destroy(node);
 		string_destroy(s);
 		xfire_free(s);
 	}
-
-	return self;
 }
 
 VALUE rb_hashmap_delete(VALUE self, VALUE key)
@@ -113,7 +144,9 @@ VALUE rb_hashmap_delete(VALUE self, VALUE key)
 	char *keyval = StringValueCStr(key);
 	struct hashmap_node *node;
 	VALUE rv = Qnil;
+	struct db_entry_container *c;
 
+	Data_Get_Struct(self, struct db_entry_container, c);
 	node = __rb_hashmap_delete(self, keyval);
 	if(!node && rb_block_given_p())
 		return rb_yield(key);
@@ -122,6 +155,10 @@ VALUE rb_hashmap_delete(VALUE self, VALUE key)
 
 	s = container_of(node, struct string, node);
 	string_get(s, &data);
+
+	if(c->key)
+		xfiredb_notice_disk(c->key, node->key, NULL, HM_DEL);
+
 	rv = rb_str_new2(data);
 	xfire_free(data);
 	hashmap_node_destroy(node);
@@ -158,16 +195,22 @@ VALUE rb_hashmap_store(VALUE self, VALUE key, VALUE data)
 	char *tmp_data = StringValueCStr(data);
 	struct hashmap_node *node;
 	struct hashmap *map;
+	struct db_entry_container *c;
 
 	map = obj_to_map(self);
 	node = hashmap_find(map, tmp_key);
+	Data_Get_Struct(self, struct db_entry_container, c);
 
 	if(!node) {
 		s = string_alloc(tmp_data);
 		hashmap_add(map, tmp_key, &s->node);
+		if(c->key)
+			xfiredb_notice_disk(c->key, tmp_key, tmp_data, HM_ADD);
 	} else {
 		s = container_of(node, struct string, node);
 		string_set(s, tmp_data);
+		if(c->key)
+			xfiredb_notice_disk(c->key, tmp_key, tmp_data, HM_UPDATE);
 	}
 
 	return data;

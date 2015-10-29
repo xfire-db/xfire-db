@@ -70,6 +70,7 @@ module XFireDB
 
     server = Server.new(@options[:config])
     server.start
+    server.stop
   end
 
   def XFireDB.worker_num

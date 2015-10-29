@@ -1,5 +1,5 @@
 /*
- *  Red-black tree header
+ *  Binary operations
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,21 +16,22 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XFIRE_TYPES_H__
-#define __XFIRE_TYPES_H__
+#ifndef __BITOPS_H__
+#define __BITOPS_H__
 
-#include <stdint.h>
+#include <xfiredb/engine/xfiredb.h>
 
-typedef uint64_t u64;
-typedef uint32_t u32;
-typedef uint16_t u16;
-typedef uint8_t  u8;
+#if defined(__x86_64) || defined(__x86_64__)
+#define X86_64
+#endif
 
-typedef int64_t  s64;
-typedef int32_t  s32;
-typedef int16_t  s16;
-typedef int8_t   s8;
-
-typedef u8	 bool;
+CDECL
+int __test_bit(int nr, void *addr);
+void __swap_bit(int nr, void *addr1, void *addr2);
+void __set_bit(int nr, void *addr);
+void __clear_bit(int nr, void *addr);
+int __test_and_clear_bit(int nr, void *addr);
+int __test_and_set_bit(int nr, void *addr);
+CDECL_END
 
 #endif

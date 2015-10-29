@@ -19,55 +19,55 @@
 #include <stdlib.h>
 #include <ruby.h>
 
-#include <xfire/xfire.h>
-#include <xfire/mem.h>
-#include <xfire/database.h>
-#include <xfire/container.h>
-#include <xfire/list.h>
-#include <xfire/string.h>
-#include <xfire/hashmap.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/database.h>
+#include <xfiredb/engine/container.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/engine/bio.h>
 
 #include "se.h"
 
 VALUE c_list;
 
+static void raw_rb_list_clear(struct db_entry_container *c);
+
 static void rb_list_release(void *p)
 {
 	struct db_entry_container *container = p;
-	struct list_head *lh;
-	struct list *carriage, *tmp;
-	struct string *s;
 
-	lh = container_get_data(&container->c);
-
-	list_for_each_safe(lh, carriage, tmp) {
-		list_del(lh, carriage);
-		s = container_of(carriage, struct string, entry);
-		string_destroy(s);
-		xfire_free(s);
+	container->obj_released = true;
+	if(!container->intree) {
+		raw_rb_list_clear(container);
+		container_destroy(&container->c);
+		xfire_free(container->key);
+		xfire_free(container);
 	}
-
-	container_destroy(&container->c);
-	xfire_free(container);
 }
 
-void rb_list_free(VALUE obj)
+void rb_list_free(struct db_entry_container *container)
 {
-/*	struct db_entry_container *c;
+	raw_rb_list_clear(container);
 
-	Data_Get_Struct(obj, struct db_entry_container, c);
-	rb_list_release(c);*/
-	rb_gc_mark(obj);
+	if(container->obj_released && !container->intree) {
+		container_destroy(&container->c);
+		xfire_free(container->key);
+		xfire_free(container);
+	}
 }
 
 VALUE rb_list_alloc(VALUE klass)
 {
-	struct db_entry_container *rb_container = xfire_zalloc(sizeof(*rb_container));
+	struct db_entry_container *container = xfire_zalloc(sizeof(*container));
 
-	container_init(&rb_container->c, CONTAINER_LIST);
-	rb_container->obj = Data_Wrap_Struct(klass, NULL, rb_list_release, rb_container);
-	rb_container->type = klass;
-	return rb_container->obj;
+	container_init(&container->c, CONTAINER_LIST);
+	container->obj = Data_Wrap_Struct(klass, NULL, rb_list_release, container);
+	container->type = klass;
+	container->obj_released = container->intree = false;
+	container->release = rb_list_release;
+	return container->obj;
 }
 
 VALUE rb_list_new(void)
@@ -84,8 +84,37 @@ VALUE rb_list_push(VALUE self, VALUE data)
 
 	s = string_alloc(tmp);
 	Data_Get_Struct(self, struct db_entry_container, c);
+	if(c->key)
+		xfiredb_notice_disk(c->key, NULL, tmp, LIST_ADD);
 	lh = container_get_data(&c->c);
 	list_rpush(lh, &s->entry);
+
+
+	return self;
+}
+
+static void raw_rb_list_clear(struct db_entry_container *container)
+{
+	struct list_head *lh;
+	struct list *carriage, *tmp;
+	struct string *s;
+
+	lh = container_get_data(&container->c);
+
+	list_for_each_safe(lh, carriage, tmp) {
+		list_del(lh, carriage);
+		s = container_of(carriage, struct string, entry);
+		string_destroy(s);
+		xfire_free(s);
+	}
+}
+
+VALUE rb_list_clear(VALUE self)
+{
+	struct db_entry_container *c;
+
+	Data_Get_Struct(self, struct db_entry_container, c);
+	raw_rb_list_clear(c);
 
 	return self;
 }
@@ -127,6 +156,7 @@ VALUE rb_list_set(VALUE self, VALUE i, VALUE data)
 	struct list_head *lh;
 	struct list *carriage;
 	struct string *s;
+	char *tmp;
 
 	Data_Get_Struct(self, struct db_entry_container, c);
 	lh = container_get_data(&c->c);
@@ -136,6 +166,10 @@ VALUE rb_list_set(VALUE self, VALUE i, VALUE data)
 		return Qnil;
 
 	s = container_of(carriage, struct string, entry);
+	string_get(s, &tmp);
+	if(c->key)
+		xfiredb_notice_disk(c->key, tmp, StringValueCStr(data), LIST_UPDATE);
+	xfire_free(tmp);
 	string_set(s, StringValueCStr(data));
 	return data;
 }
@@ -161,6 +195,10 @@ VALUE rb_list_pop(VALUE self, VALUE i)
 	s = container_of(carriage, struct string, entry);
 	string_get(s, &data);
 	rv = rb_str_new2(data);
+
+	if(c->key)
+		xfiredb_notice_disk(c->key, data, NULL, LIST_DEL);
+
 	xfire_free(data);
 	string_destroy(s);
 	xfire_free(s);
@@ -207,7 +245,7 @@ VALUE rb_list_each(VALUE self)
 
 VALUE rb_list_to_s(VALUE self)
 {
-	return rb_str_new2("XFireDB::List#to_s");
+	return rb_str_new2("XFireDB::List");
 }
 
 void init_list(void)
@@ -224,5 +262,6 @@ void init_list(void)
 	rb_define_method(c_list, "length", rb_list_length, 0);
 	rb_define_method(c_list, "to_s", rb_list_to_s, 0);
 	rb_define_method(c_list, "each", rb_list_each, 0);
+	rb_define_method(c_list, "clear", rb_list_clear, 0);
 }
 

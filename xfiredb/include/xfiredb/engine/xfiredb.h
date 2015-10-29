@@ -21,7 +21,7 @@
 
 #include <config.h>
 #ifndef __cplusplus
-#include <xfire/types.h>
+#include <xfiredb/engine/types.h>
 #endif
 
 #ifdef __cplusplus
@@ -67,7 +67,18 @@
 		(type *)( ( char *)__mptr - offsetof(type,member) );})
 #endif
 
+struct database;
+struct container;
 CDECL
+extern void xfiredb_se_init(void);
+extern void xfiredb_set_loadstate(bool v);
+extern bool xfiredb_loadstate(void);
+extern long xfiredb_disk_size(void);
+extern void xfiredb_raw_load(void (*hook)(int argc, char **rows, char **cols));
+extern void xfiredb_se_exit(void);
+extern void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int op);
+extern void xfiredb_store_container(char *_key, struct container *c);
+
 extern int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data));
 extern int xfiredb_list_clear(char *key, void (*hook)(char *key, char *data));
 extern void xfiredb_disk_clear(void);

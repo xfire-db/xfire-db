@@ -24,10 +24,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <xfire/xfire.h>
-#include <xfire/os.h>
-#include <xfire/flags.h>
-#include <xfire/bitops.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/os.h>
+#include <xfiredb/engine/flags.h>
+#include <xfiredb/engine/bitops.h>
 #include <asm/bitsperlong.h>
 
 #define BITS_PER_LONG __BITS_PER_LONG

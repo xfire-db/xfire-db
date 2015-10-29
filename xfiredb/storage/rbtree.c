@@ -27,13 +27,13 @@
 #include <math.h>
 #include <assert.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/flags.h>
-#include <xfire/mem.h>
-#include <xfire/bitops.h>
-#include <xfire/rbtree.h>
-#include <xfire/os.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/flags.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/bitops.h>
+#include <xfiredb/engine/rbtree.h>
+#include <xfiredb/engine/os.h>
 
 static void __rb_insert(struct rb_root *root, struct rb_node *new);
 static inline struct rb_node *rb_grandparent(struct rb_node *node);

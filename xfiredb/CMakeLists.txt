@@ -40,9 +40,11 @@ install (TARGETS xfiredb
 	LIBRARY DESTINATION lib
 	)
 
-include (tests/rbtree/rb-test.cmake)
-include (tests/dict/dict-test.cmake)
-include (tests/disk/disk.cmake)
-include (tests/bg/bg.cmake)
-include (tests/core/core.cmake)
+if(XFIRE_DEBUG)
+	include (tests/rbtree/rb-test.cmake)
+	include (tests/dict/dict-test.cmake)
+	include (tests/disk/disk.cmake)
+	include (tests/bg/bg.cmake)
+	include (tests/core/core.cmake)
+endif(XFIRE_DEBUG)
 

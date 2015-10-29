@@ -1,5 +1,5 @@
 /*
- *  Binary operations
+ *  REQUEST header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,37 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BITOPS_H__
-#define __BITOPS_H__
+#ifndef __REQUEST__H__
+#define __REQUEST__H__
 
-#include <xfire/xfire.h>
+#include <time.h>
 
-#if defined(__x86_64) || defined(__x86_64__)
-#define X86_64
-#endif
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+
+typedef enum {
+	RQ_LIST_RPUSH,
+	RQ_LIST_LPUSH,
+	RQ_LIST_REMOVE,
+	RQ_LIST_LOOKUP,
+	RQ_STRING_INSERT,
+	RQ_STRING_REMOVE,
+	RQ_STRING_LOOKUP,
+} rq_type_t;
+
+struct request {
+	char *key;
+	rq_type_t type;
+	time_t stamp;
+
+	struct rq_range {
+		int start,
+		    end;
+		int *indexes;
+	};
+};
 
 CDECL
-int __test_bit(int nr, void *addr);
-void __swap_bit(int nr, void *addr1, void *addr2);
-void __set_bit(int nr, void *addr);
-void __clear_bit(int nr, void *addr);
-int __test_and_clear_bit(int nr, void *addr);
-int __test_and_set_bit(int nr, void *addr);
 CDECL_END
 
 #endif

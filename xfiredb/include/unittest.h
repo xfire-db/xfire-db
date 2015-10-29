@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
 
 typedef void (*test_func_t)(void);
 

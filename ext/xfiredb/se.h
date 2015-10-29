@@ -22,13 +22,18 @@
 #include <stdlib.h>
 #include <ruby.h>
 
-#include <xfire/xfire.h>
-#include <xfire/container.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/container.h>
 
 struct db_entry_container {
+	char *key;
+
 	struct container c;
+	bool intree;
+	bool obj_released;
 	VALUE obj;
 	VALUE type;
+	void (*release)(void *p);
 };
 
 extern VALUE c_xfiredb_mod;
@@ -42,11 +47,12 @@ extern VALUE rb_hashmap_ref(VALUE self, VALUE key);
 extern VALUE rb_hashmap_delete(VALUE self, VALUE key);
 extern VALUE rb_hashmap_clear(VALUE self);
 extern VALUE rb_hashmap_size(VALUE self);
-extern void rb_hashmap_free(VALUE hash);
+extern void rb_hashmap_free(struct db_entry_container *c);
 extern VALUE rb_hashmap_new(void);
+extern void rb_hashmap_remove(struct db_entry_container *c);
 
 /* list funcs */
-extern void rb_list_free(VALUE hash);
+extern void rb_list_free(struct db_entry_container *container);
 
 extern VALUE rb_se_list_del(VALUE self, VALUE _key, VALUE _start, VALUE _end);
 extern VALUE rb_se_list_del2(VALUE self, VALUE _key, VALUE indexes);

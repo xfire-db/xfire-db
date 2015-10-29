@@ -21,12 +21,12 @@
  * @{
  */
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/os.h>
-#include <xfire/string.h>
-#include <xfire/list.h>
-#include <xfire/mem.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/os.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/mem.h>
 
 /**
  * @brief Initialise a new string container.

@@ -27,12 +27,17 @@ module XFireDB
       @store = XFireDB::Engine.new
     end
 
+    def stop
+      @store.stop
+    end
+
     def start
       log = "[init]: XFireDB started"
       log = log + " in debugging mode" if @config.debug
       puts log
 
       # start the cluster bus
+      gets.chomp
     end
   end
 end

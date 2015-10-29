@@ -21,8 +21,8 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include <xfire/mem.h>
-#include <xfire/error.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/error.h>
 
 static int xfire_vsprintf(char **str, const char *fmt, va_list args)
 {

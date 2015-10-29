@@ -25,9 +25,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/log.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/log.h>
 
 static FILE *xfire_stdout = NULL;
 static FILE *xfire_stderr = NULL;

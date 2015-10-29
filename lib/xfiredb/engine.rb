@@ -22,6 +22,39 @@ module XFireDB
 
     def initialize
       @db = XFireDB::Database.new
+      self.init
+
+      self.load.each.each do |key, hash, type, data|
+        case type
+        when "string"
+          self.load_string(key, data)
+        when "list"
+          self.load_list_entry(key, data)
+        when "hashmap"
+          self.load_map_entry(key, hash, data)
+        end
+      end
+
+      self.set_loadstate(true)
+    end
+
+    def load_string(key, data)
+      @db[key] = data
+    end
+
+    def load_list_entry(key, data)
+      @db[key] ||= XFireDB::List.new
+      list = @db[key]
+      return unless list.class == XFireDB::List
+      list.push(data)
+    end
+
+    def load_map_entry(key, hash, data)
+      @db[key] ||= XFireDB::Hashmap.new
+      map = @db[key]
+      return unless map.class == XFireDB::Hashmap
+      map[hash] = data
     end
   end
 end
+

@@ -1,5 +1,5 @@
 /*
- *  MEM header
+ *  Red-black tree header
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,17 +16,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#ifndef __XFIRE_TYPES_H__
+#define __XFIRE_TYPES_H__
 
-#include <xfire/xfire.h>
+#include <stdint.h>
 
-CDECL
-extern void *xfire_alloc(size_t len);
-extern void *xfire_zalloc(size_t len);
-extern void *xfire_calloc(size_t num, size_t size);
-extern void xfire_free(void *region);
-extern void *xfire_realloc(void *region, size_t size);
-CDECL_END
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t  u8;
+
+typedef int64_t  s64;
+typedef int32_t  s32;
+typedef int16_t  s16;
+typedef int8_t   s8;
+
+#ifndef __cplusplus
+typedef u8	 bool;
+#endif
 
 #endif

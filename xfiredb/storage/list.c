@@ -24,10 +24,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/list.h>
-#include <xfire/os.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/os.h>
 
 static void __list_add(struct list *new, struct list *prev, struct list *next)
 {

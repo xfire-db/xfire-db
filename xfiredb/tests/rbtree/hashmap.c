@@ -22,11 +22,11 @@
 #include <assert.h>
 #include <unittest.h>
 
-#include <xfire/xfire.h>
-#include <xfire/error.h>
-#include <xfire/string.h>
-#include <xfire/hashmap.h>
-#include <xfire/mem.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/error.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/engine/mem.h>
 
 static struct string s1, s2, s3, s4;
 

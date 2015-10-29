@@ -21,14 +21,14 @@
  * @{
  */
 
-#include <xfire/xfire.h>
-#include <xfire/error.h>
-#include <xfire/types.h>
-#include <xfire/container.h>
-#include <xfire/string.h>
-#include <xfire/list.h>
-#include <xfire/hashmap.h>
-#include <xfire/mem.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/error.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/container.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/engine/mem.h>
 
 /**
  * @brief Initialise a new container.

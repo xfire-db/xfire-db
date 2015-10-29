@@ -19,8 +19,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <xfire/types.h>
-#include <xfire/bitops.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/bitops.h>
 #include <asm/bitsperlong.h>
 
 #define RESULT_OK "OK"

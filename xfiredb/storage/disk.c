@@ -27,16 +27,16 @@
 #include <sqlite3.h>
 #include <stdio.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/log.h>
-#include <xfire/disk.h>
-#include <xfire/mem.h>
-#include <xfire/error.h>
-#include <xfire/container.h>
-#include <xfire/string.h>
-#include <xfire/list.h>
-#include <xfire/hashmap.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/log.h>
+#include <xfiredb/engine/disk.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/error.h>
+#include <xfiredb/engine/container.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/hashmap.h>
 
 #define DISK_CHECK_TABLE \
 	"SELECT name FROM sqlite_master WHERE type='table' AND name='xfiredb_data';"
@@ -493,6 +493,36 @@ static int disk_load_hook(void *arg, int argc, char **rows, char **colname)
 
 	hook(argc, rows, colname);
 	return 0;
+}
+
+static int disk_size_hook(void *arg, int argc, char **rows, char **colname)
+{
+	long *size = arg;
+
+	*size = argc;
+	return 0;
+}
+
+long disk_size(struct disk *d)
+{
+	int rc;
+	char *msg;
+	long size;
+
+	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &disk_size_hook, &size, &msg);
+
+	switch(rc) {
+	case SQLITE_OK:
+		break;
+
+	default:
+		fprintf(stderr, "Disk load failed: %s\n", msg);
+		sqlite3_free(msg);
+		return -XFIRE_ERR;
+	}
+
+	sqlite3_free(msg);
+	return size;
 }
 
 /**

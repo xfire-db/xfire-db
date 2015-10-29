@@ -19,13 +19,14 @@
 #include <stdlib.h>
 #include <ruby.h>
 
-#include <xfire/xfire.h>
-#include <xfire/mem.h>
-#include <xfire/database.h>
-#include <xfire/container.h>
-#include <xfire/list.h>
-#include <xfire/string.h>
-#include <xfire/hashmap.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/database.h>
+#include <xfiredb/engine/container.h>
+#include <xfiredb/engine/bio.h>
+#include <xfiredb/engine/list.h>
+#include <xfiredb/engine/string.h>
+#include <xfiredb/engine/hashmap.h>
 
 #include "se.h"
 
@@ -38,12 +39,10 @@ static void rb_db_free(void *p)
 VALUE rb_db_new(VALUE klass)
 {
 	struct database *db = db_alloc("xfire-database");
-	return Data_Wrap_Struct(klass, NULL, rb_db_free, db);
-}
+	VALUE obj = Data_Wrap_Struct(klass, NULL, rb_db_free, db);
 
-VALUE rb_db_set(VALUE self, VALUE key, VALUE val)
-{
-	return self;
+	rb_gc_mark(obj);
+	return obj;
 }
 
 VALUE rb_db_ref(VALUE self, VALUE key)
@@ -64,7 +63,13 @@ VALUE rb_db_ref(VALUE self, VALUE key)
 	entry = container_of(c, struct db_entry_container, c);
 
 	if(entry->type != rb_cString) {
-		return entry->obj;
+		if(entry->obj_released) {
+			rv = Data_Wrap_Struct(entry->type, NULL, entry->release, entry);
+			entry->obj_released = false;
+			return rv;
+		} else {
+			return entry->obj;
+		}
 	} else {
 		s = container_get_data(&entry->c);
 		string_get(s, &tmp);
@@ -79,14 +84,20 @@ static void raw_rb_db_delete(struct db_entry_container *entry)
 {
 	struct container *c = &entry->c;
 
+	entry->intree = false;
 	if(entry->type == rb_cString) {
 		/* string type, free it here */
+		xfiredb_notice_disk(entry->key, NULL, NULL, STRING_DEL);
 		container_destroy(c);
+		xfire_free(entry->key);
 		xfire_free(entry);
+		return;
 	} else if(entry->type == c_list) {
-		rb_list_free(entry->obj);
+		rb_list_free(entry);
+		entry->obj = Qnil;
 	} else if(entry->type == c_hashmap) {
-		rb_hashmap_free(entry->obj);
+		rb_hashmap_free(entry);
+		entry->obj = Qnil;
 	}
 }
 
@@ -116,6 +127,8 @@ VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 
 	if(rb_obj_class(data) != rb_cString) {
 		Data_Get_Struct(data, struct db_entry_container, rb_c);
+		rb_c->obj = data;
+		rb_c->intree = true;
 	} else {
 		rb_c = xfire_zalloc(sizeof(*rb_c));
 		rb_c->obj = Qnil;
@@ -125,9 +138,14 @@ VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 		string_set(s, StringValueCStr(data));
 	}
 
-	if(db_store(db, tmp, &rb_c->c) != -XFIRE_OK)
-		return Qnil;
+	xfire_sprintf(&rb_c->key, "%s", tmp);
 
+	if(db_store(db, tmp, &rb_c->c) != -XFIRE_OK) {
+		rb_c->intree = false;
+		return Qnil;
+	}
+
+	xfiredb_store_container((char*)tmp, &rb_c->c);
 	return data;
 }
 

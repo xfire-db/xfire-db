@@ -24,8 +24,8 @@
 #ifndef __BITOPS_H__
 #define __BITOPS_H__
 
-#include <xfire/xfire.h>
-#include <xfire/os.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/os.h>
 
 /**
  * @brief Atomic flags data structure.

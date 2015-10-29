@@ -20,13 +20,13 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <xfire/xfire.h>
-#include <xfire/types.h>
-#include <xfire/bio.h>
-#include <xfire/bg.h>
-#include <xfire/mem.h>
-#include <xfire/error.h>
-#include <xfire/disk.h>
+#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/engine/types.h>
+#include <xfiredb/engine/bio.h>
+#include <xfiredb/engine/bg.h>
+#include <xfiredb/engine/mem.h>
+#include <xfiredb/engine/error.h>
+#include <xfiredb/engine/disk.h>
 
 extern struct disk *dbg_disk;
 
