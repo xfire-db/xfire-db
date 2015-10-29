@@ -193,7 +193,12 @@ static VALUE rb_db_each_pair(VALUE db)
 		k = rb_str_new2(e->key);
 
 		if(db_c->type != rb_cString) {
-			v = db_c->obj;
+			if(db_c->obj_released) {
+				v = Data_Wrap_Struct(db_c->type, NULL, db_c->release, db_c);
+				db_c->obj_released = false;
+			} else {
+				v = db_c->obj;
+			}
 		} else {
 			s_val = container_get_data(c);
 			string_get(s_val, &value);

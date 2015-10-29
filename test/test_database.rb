@@ -50,9 +50,6 @@ class TestStorageEngine < Test::Unit::TestCase
     @db["key4"] = list
 
     tmp = @db["key4"]
-    tmp.each do |value|
-      puts value
-    end
 
     @db.each do |key, value|
       puts "Data type of #{key} is #{value.class}"
