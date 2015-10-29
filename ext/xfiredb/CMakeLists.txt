@@ -5,6 +5,7 @@ ADD_RUBY_EXTENSION(storage_engine
 	list.c
 	hashmap.c
 	storage_engine.c
+	log.c
 	)
 
 target_link_libraries(storage_engine LINK_PUBLIC xfiredbengine)
