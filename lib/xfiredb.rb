@@ -29,6 +29,7 @@ require 'xfiredb/string'
 require 'xfiredb/clusterbus'
 require 'xfiredb/workerpool'
 require 'xfiredb/client'
+require 'xfiredb/log'
 
 module XFireDB
   def XFireDB.start(cmdargs)

@@ -17,31 +17,10 @@
 #
 
 module XFireDB
-  class Server
-    attr_reader :config
-
-    def initialize(conf)
-      @config = XFireDB::Config.new(conf)
-      @bus = XFireDB::ClusterBus.new if @config.cluster
-      @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
-      @store = XFireDB::Engine.new
-      XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \
-                         "(#{@config.problems} problems)\n", false, true)
-      XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Initialisation complete, " \
-                        "database started!\n", false, true)
-    end
-
-    def stop
-      @store.stop
-    end
-
-    def start
-      log = "[init]: XFireDB started in debugging mode" if @config.debug
-      puts log
-
-      # start the cluster bus
-      gets.chomp
-    end
+  class Log
+    LOG_INIT = "[init]: ".freeze
+    LOG_SERVER = "[server]: ".freeze
+    LOG_CLIENT = "[client]: ".freeze
+    LOG_XQL = "[xql]: ".freeze
   end
 end
-
