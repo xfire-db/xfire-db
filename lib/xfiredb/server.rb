@@ -25,6 +25,8 @@ module XFireDB
       @bus = XFireDB::ClusterBus.new if @config.cluster
       @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
       @store = XFireDB::Engine.new
+      XFireDB::Log.write("[init]: configuration file loaded (#{@config.problems} problems)\n", false, true)
+      XFireDB::Log.write("[init]: Initialisation complete, database started!\n", false, true)
     end
 
     def stop
@@ -32,8 +34,7 @@ module XFireDB
     end
 
     def start
-      log = "[init]: XFireDB started"
-      log = log + " in debugging mode" if @config.debug
+      log = "[init]: XFireDB started in debugging mode" if @config.debug
       puts log
 
       # start the cluster bus

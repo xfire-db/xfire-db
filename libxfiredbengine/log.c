@@ -41,12 +41,12 @@ static FILE *xfire_stderr = NULL;
 void xfire_log_init(const char *out, const char *err)
 {
 #ifdef XFIRE_STDERR
-	xfire_stderr = fopen(out, "w+");
+	xfire_stderr = fopen(err, "w+");
 #else
 	xfire_stderr = stderr;
 #endif
 #ifdef XFIRE_STDOUT
-	xfire_stdout = fopen(err, "w+");
+	xfire_stdout = fopen(out, "w+");
 #else
 	xfire_stdout = stdout;
 #endif
