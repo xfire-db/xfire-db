@@ -19,7 +19,7 @@
 #ifndef __MEM_H__
 #define __MEM_H__
 
-#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/xfiredb.h>
 
 CDECL
 extern void *xfire_alloc(size_t len);

@@ -25,8 +25,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
 
 /**
  * @brief Allocate a memory region.

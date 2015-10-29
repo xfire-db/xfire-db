@@ -24,12 +24,12 @@
 #ifndef __CONTAINER_H__
 #define __CONTAINER_H__
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/error.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/list.h>
-#include <xfiredb/engine/string.h>
-#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/error.h>
+#include <xfiredb/types.h>
+#include <xfiredb/list.h>
+#include <xfiredb/string.h>
+#include <xfiredb/hashmap.h>
 
 #define CONTAINER_STRING_MAGIC 0xFFAABBCC
 #define CONTAINER_LIST_MAGIC   0xEEAABBCC

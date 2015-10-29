@@ -28,12 +28,12 @@
 
 #include <sys/time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/dict.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/os.h>
-#include <xfiredb/engine/error.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/dict.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/os.h>
+#include <xfiredb/error.h>
 
 #define DICT_MINIMAL_SIZE 4
 

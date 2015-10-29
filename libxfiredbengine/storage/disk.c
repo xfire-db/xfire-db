@@ -27,16 +27,16 @@
 #include <sqlite3.h>
 #include <stdio.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/log.h>
-#include <xfiredb/engine/disk.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/error.h>
-#include <xfiredb/engine/container.h>
-#include <xfiredb/engine/string.h>
-#include <xfiredb/engine/list.h>
-#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/log.h>
+#include <xfiredb/disk.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/error.h>
+#include <xfiredb/container.h>
+#include <xfiredb/string.h>
+#include <xfiredb/list.h>
+#include <xfiredb/hashmap.h>
 
 #define DISK_CHECK_TABLE \
 	"SELECT name FROM sqlite_master WHERE type='table' AND name='xfiredb_data';"

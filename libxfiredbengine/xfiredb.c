@@ -23,16 +23,16 @@
 
 #include <stdlib.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/log.h>
-#include <xfiredb/engine/bg.h>
-#include <xfiredb/engine/bio.h>
-#include <xfiredb/engine/database.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/os.h>
-#include <xfiredb/engine/error.h>
-#include <xfiredb/engine/disk.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/log.h>
+#include <xfiredb/bg.h>
+#include <xfiredb/bio.h>
+#include <xfiredb/database.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/os.h>
+#include <xfiredb/error.h>
+#include <xfiredb/disk.h>
 
 #ifdef HAVE_DEBUG
 static struct database *xfiredb;

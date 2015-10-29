@@ -22,8 +22,8 @@
 #include <math.h>
 #include <unittest.h>
 
-#include <xfiredb/engine/rbtree.h>
-#include <xfiredb/engine/os.h>
+#include <xfiredb/rbtree.h>
+#include <xfiredb/os.h>
 
 struct data_node {
 	struct rb_node node;

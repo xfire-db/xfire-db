@@ -21,7 +21,7 @@
 
 #include <config.h>
 #ifndef __cplusplus
-#include <xfiredb/engine/types.h>
+#include <xfiredb/types.h>
 #endif
 
 #ifdef __cplusplus

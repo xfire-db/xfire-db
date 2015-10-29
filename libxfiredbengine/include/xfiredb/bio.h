@@ -24,11 +24,11 @@
 #ifndef __BIO_H__
 #define __BIO_H__
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/dict.h>
-#include <xfiredb/engine/os.h>
-#include <xfiredb/engine/database.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/dict.h>
+#include <xfiredb/os.h>
+#include <xfiredb/database.h>
 
 struct bio_q;
 

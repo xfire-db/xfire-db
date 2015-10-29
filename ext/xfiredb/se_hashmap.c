@@ -20,9 +20,9 @@
 #include <stdio.h>
 #include <ruby.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/error.h>
-#include <xfiredb/engine/mem.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/error.h>
+#include <xfiredb/mem.h>
 
 VALUE rb_se_hm_set(VALUE self, VALUE _key, VALUE _skey, VALUE _data)
 {

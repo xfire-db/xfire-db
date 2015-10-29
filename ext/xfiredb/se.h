@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <ruby.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/container.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/container.h>
 
 struct db_entry_container {
 	char *key;

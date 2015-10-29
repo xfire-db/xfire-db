@@ -22,9 +22,9 @@
 #include <assert.h>
 #include <unittest.h>
 
-#include <xfiredb/engine/rbtree.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/os.h>
+#include <xfiredb/rbtree.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/os.h>
 
 struct data_node {
 	struct rb_node node;

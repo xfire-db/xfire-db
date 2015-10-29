@@ -23,10 +23,10 @@
 #ifndef __DICT_H__
 #define __DICT_H__
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/error.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/os.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/error.h>
+#include <xfiredb/types.h>
+#include <xfiredb/os.h>
 
 /**
  * @brief Dictionary data type.

@@ -24,10 +24,10 @@
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/dict.h>
-#include <xfiredb/engine/container.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/dict.h>
+#include <xfiredb/container.h>
 
 /**
  * @brief Database data type.

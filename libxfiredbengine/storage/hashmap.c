@@ -24,12 +24,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/rbtree.h>
-#include <xfiredb/engine/hashmap.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/error.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/rbtree.h>
+#include <xfiredb/hashmap.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/error.h>
 
 #define HM_SEED 0x8FE3C9A1
 #define MURMUR_C1 0xcc9e2d51

@@ -19,7 +19,7 @@
 #ifndef __BITOPS_H__
 #define __BITOPS_H__
 
-#include <xfiredb/engine/xfiredb.h>
+#include <xfiredb/xfiredb.h>
 
 #if defined(__x86_64) || defined(__x86_64__)
 #define X86_64

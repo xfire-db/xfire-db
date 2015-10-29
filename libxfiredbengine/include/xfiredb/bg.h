@@ -27,9 +27,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/os.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/os.h>
 
 /**
  * @brief Job datastructure.

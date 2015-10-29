@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include <xfiredb/engine/flags.h>
-#include <xfiredb/engine/os.h>
-#include <xfiredb/engine/bitops.h>
+#include <xfiredb/flags.h>
+#include <xfiredb/os.h>
+#include <xfiredb/bitops.h>
 
 #include <asm/bitsperlong.h>
 

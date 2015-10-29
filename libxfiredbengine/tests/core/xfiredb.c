@@ -23,11 +23,11 @@
 
 #include <sys/time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/bio.h>
-#include <xfiredb/engine/error.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/bio.h>
+#include <xfiredb/error.h>
 
 static void dbg_string_test(void)
 {

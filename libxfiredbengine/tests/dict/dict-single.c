@@ -22,9 +22,9 @@
 
 #include <sys/time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/dict.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/dict.h>
 
 #define KEY_1 "test::key::1"
 #define TEST_1 "Test string one"

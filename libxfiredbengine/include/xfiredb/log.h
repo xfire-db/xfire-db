@@ -1,5 +1,5 @@
 /*
- *  REQUEST header
+ *  LOG library
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,37 +16,24 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __REQUEST__H__
-#define __REQUEST__H__
+#ifndef __LOG__H__
+#define __LOG__H__
 
-#include <time.h>
+#include <xfiredb/xfiredb.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
+#define XFIRE_ENGINE_LOG "ENGINE"
+#define XFIRE_STORAGE_LOG "STORAGE"
 
-typedef enum {
-	RQ_LIST_RPUSH,
-	RQ_LIST_LPUSH,
-	RQ_LIST_REMOVE,
-	RQ_LIST_LOOKUP,
-	RQ_STRING_INSERT,
-	RQ_STRING_REMOVE,
-	RQ_STRING_LOOKUP,
-} rq_type_t;
-
-struct request {
-	char *key;
-	rq_type_t type;
-	time_t stamp;
-
-	struct rq_range {
-		int start,
-		    end;
-		int *indexes;
-	};
-};
+#define LOG_INIT "init"
+#define LOG_DISK "disk"
 
 CDECL
+extern void xfire_log_init(const char *out, const char *err);
+extern void xfire_log_exit(void);
+extern void xfire_log(const char *src, const char *msg, ...);
+extern void xfire_log_err(const char *src, const char *msg, ...);
+extern void xfire_log_console(const char *src, const char *fmt, ...);
 CDECL_END
 
 #endif
+

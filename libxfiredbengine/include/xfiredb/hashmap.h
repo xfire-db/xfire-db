@@ -27,9 +27,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/rbtree.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/rbtree.h>
 
 typedef struct rb_iterator* hashmap_iterator_t;
 

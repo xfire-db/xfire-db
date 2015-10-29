@@ -21,12 +21,12 @@
 
 #include <sys/time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/disk.h>
-#include <xfiredb/engine/bio.h>
-#include <xfiredb/engine/string.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/disk.h>
+#include <xfiredb/bio.h>
+#include <xfiredb/string.h>
 
 int main(int argc, char **argv)
 {

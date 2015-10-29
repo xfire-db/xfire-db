@@ -19,14 +19,14 @@
 #include <stdlib.h>
 #include <ruby.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/database.h>
-#include <xfiredb/engine/container.h>
-#include <xfiredb/engine/bio.h>
-#include <xfiredb/engine/list.h>
-#include <xfiredb/engine/string.h>
-#include <xfiredb/engine/hashmap.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/database.h>
+#include <xfiredb/container.h>
+#include <xfiredb/bio.h>
+#include <xfiredb/list.h>
+#include <xfiredb/string.h>
+#include <xfiredb/hashmap.h>
 
 #include "se.h"
 

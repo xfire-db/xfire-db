@@ -24,13 +24,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/bg.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/os.h>
-#include <xfiredb/engine/error.h>
-#include <xfiredb/engine/dict.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/bg.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/os.h>
+#include <xfiredb/error.h>
+#include <xfiredb/dict.h>
 
 static struct dict *job_db;
 static size_t bg_proc_stack = 0;

@@ -27,13 +27,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/os.h>
-#include <xfiredb/engine/string.h>
-#include <xfiredb/engine/list.h>
-#include <xfiredb/engine/hashmap.h>
-#include <xfiredb/engine/container.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/os.h>
+#include <xfiredb/string.h>
+#include <xfiredb/list.h>
+#include <xfiredb/hashmap.h>
+#include <xfiredb/container.h>
 
 #define TABLE_KEY_IDX 0
 #define TABLE_SCND_KEY_IDX 1

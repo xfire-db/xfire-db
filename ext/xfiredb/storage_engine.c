@@ -22,11 +22,11 @@
 
 #include "se.h"
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/error.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/database.h>
-#include <xfiredb/engine/disk.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/error.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/database.h>
+#include <xfiredb/disk.h>
 
 extern void init_list(void);
 extern void init_database(void);

@@ -23,12 +23,12 @@
 
 #include <stdlib.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/mem.h>
-#include <xfiredb/engine/dict.h>
-#include <xfiredb/engine/database.h>
-#include <xfiredb/engine/container.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/mem.h>
+#include <xfiredb/dict.h>
+#include <xfiredb/database.h>
+#include <xfiredb/container.h>
 
 /**
  * @brief Allocate a new database.

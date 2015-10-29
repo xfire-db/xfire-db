@@ -22,10 +22,10 @@
 
 #include <sys/time.h>
 
-#include <xfiredb/engine/xfiredb.h>
-#include <xfiredb/engine/types.h>
-#include <xfiredb/engine/dict.h>
-#include <xfiredb/engine/os.h>
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+#include <xfiredb/dict.h>
+#include <xfiredb/os.h>
 
 static const char *dbg_keys[] = {"key1","key2","key3","key4","key5","key6","key7",
 				"key8","key9","key10","key11","key12",
