@@ -64,7 +64,7 @@ void xfire_log_exit(void)
 	fclose(xfire_stdout);
 #endif
 
-	fputs("XFIRE logger stopped.\n", stdout);
+	fputs("[exit]: XFIRE logger stopped.\n", stdout);
 }
 #endif
 
@@ -93,6 +93,30 @@ void xfire_log_console(const char *src, const char *fmt, ...)
 	fprintf(stdout, "[%s]: ", src);
 	vfprintf(stdout, fmt, args2);
 	va_end(args2);
+}
+
+/**
+ * @brief Raw error logger.
+ * @param msg Message to log.
+ */
+void raw_xfire_log_err(const char *msg)
+{
+	fprintf(xfire_stderr, msg);
+}
+
+/**
+ * @brief Raw logger.
+ * @param msg Message to log.
+ */
+void raw_xfire_log(const char *msg)
+{
+	fprintf(xfire_stdout, msg);
+}
+
+void raw_xfire_log_console(const char *msg)
+{
+	fprintf(stdout, msg);
+	raw_xfire_log(msg);
 }
 
 /**

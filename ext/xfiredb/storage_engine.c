@@ -106,5 +106,6 @@ void Init_storage_engine(void)
 	init_database();
 	init_list();
 	init_hashmap();
+	init_log();
 }
 
