@@ -22,3 +22,4 @@ endif("${isSystemDir}" STREQUAL "-1")
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIRE_SQLITE_LIB sqlite3)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+
