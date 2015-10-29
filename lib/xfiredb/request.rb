@@ -1,5 +1,5 @@
 #
-#   XFireDB client
+#   XFireDB request
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,26 +17,14 @@
 #
 
 module XFireDB
-  class Client
-    attr_accessor :xql
-    attr_reader :request
-
+  class Request
     @xql = nil
-    @request = nil
 
-    def initialize(xql = nil)
+    def initialize(xql)
       @xql = xql
-      @request = XFireDB::Request.new(xql) unless xql.nil?
     end
 
-    def process(xql = nil)
-      if xql.nil? && @xql.nil?
-        raise ArgumentError.new("Cannot handle a process without a query")
-      end
-
-      @xql = xql if @xql.nil?
-      @request = XFireDB::Request.new(xql) unless xql.nil?
-      @request.handle
+    def handle
     end
   end
 end
