@@ -49,33 +49,12 @@ class TestStorageEngine < Test::Unit::TestCase
   end
 
   def test_hashmap
-    db = @engine.db
-
-    db['key1'] = XFireDB::Hashmap.new unless db['key1'].class == XFireDB::Hashmap
-    hash = db['key1']
-    hash['hkey1'] = "Test data 1"
-    hash['hkey2'] = "Test data 2"
-    hash['hkey3'] = "Test data 3"
-    hash['hkey4'] = "Test data 4"
   end
 
   def test_list
-    db = @engine.db
-    db['key2'] = XFireDB::List.new unless db['key2'].class == XFireDB::List
-    list = db['key2']
-
-    list.push("List data 1")
-    list.push("List data 2")
-    list.push("List data 3")
-    list.push("List data 4")
   end
 
   def test_string
-    db = @engine.db
-    db['key3'] = "String data 1"
-    db['key4'] = "String data 2"
-    db['key5'] = "String data 3"
-    db['key6'] = "String data 4"
   end
 end
 

@@ -34,13 +34,8 @@ class TestStorageEngine < Test::Unit::TestCase
   end
 
   def test_list_push
-    puts @list[2]
+    assert_equal("Test data 3", @list[2])
     puts @list
-  end
-
-  def test_list_each
-    puts @list.length
-    @list.each { |x| puts x }
   end
 
   def test_list_pop

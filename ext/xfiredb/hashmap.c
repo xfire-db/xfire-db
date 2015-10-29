@@ -40,7 +40,6 @@ static void rb_hashmap_release(void *p)
 
 	container->obj_released = true;
 	if(!container->intree) {
-		printf("heyoola");
 		rb_hashmap_remove(container);
 		container_destroy(&container->c);
 		xfire_free(container->key);
@@ -54,7 +53,6 @@ void rb_hashmap_free(struct db_entry_container *c)
 	rb_hashmap_remove(c);
 
 	if(!c->intree && c->obj_released) {
-		printf("hey\n");
 		container_destroy(&c->c);
 		xfire_free(c->key);
 		xfire_free(c);
@@ -128,8 +126,6 @@ void rb_hashmap_remove(struct db_entry_container *c)
 	hashmap_clear_foreach(map, node) {
 		if(c->key)
 			xfiredb_notice_disk(c->key, node->key, NULL, HM_DEL);
-		else
-			printf("hai\n");
 		s = container_of(node, struct string, node);
 		hashmap_node_destroy(node);
 		string_destroy(s);
