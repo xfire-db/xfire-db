@@ -34,7 +34,7 @@ module XFireDB
     end
 
     def handle(client)
-      puts request
+      puts client
     end
   end
 end
