@@ -1,5 +1,5 @@
 #
-#   Worker pool
+#   XFireDB Worker pool
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
