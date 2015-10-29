@@ -44,8 +44,16 @@ VALUE rb_log_msg2(int argc, VALUE *args, VALUE self)
 		rb_raise(rb_eArgError, "wrong number of arguments");
 
 	msg = StringValueCStr(args[0]);
-	error = args[1] == Qtrue;
-	console = args[2] == Qtrue;
+
+	if(argc < 2)
+		error = false;
+	else
+		error = args[1] == Qtrue;
+
+	if(argc < 3)
+		console = false;
+	else
+		console = args[2] == Qtrue;
 
 	if(error)
 		raw_xfire_log_err(msg);
