@@ -24,6 +24,11 @@ module XFireDB
       @config = XFireDB::Config.new(conf)
       @bus = XFireDB::ClusterBus.new if @config.cluster
       @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
+      @store = XFireDB::Engine.new
+    end
+
+    def stop
+      @store.stop
     end
 
     def start
@@ -32,6 +37,7 @@ module XFireDB
       puts log
 
       # start the cluster bus
+      gets.chomp
     end
   end
 end

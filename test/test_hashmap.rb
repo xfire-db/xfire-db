@@ -15,46 +15,42 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-require 'xfiredb'
+#
+require 'xfiredb/storage_engine'
 require 'test/unit'
 
 class TestStorageEngine < Test::Unit::TestCase
-  TEST_STRING_DATA = "Test string data"
-  TEST_STRING_KEY  = "key-1"
-
-  TEST_LIST_KEY = "key-2"
-  TEST_LIST_DATA1 = "Test list data 1"
-  TEST_LIST_DATA2 = "Test list data 2"
-  TEST_LIST_DATA3 = "Test list data 3"
-  TEST_LIST_DATA4 = "Test list data 4"
-
-  TEST_HM_KEY = "key-3"
-  TEST_HM_SUB_KEY1 = "sub-key-1"
-  TEST_HM_SUB_KEY2 = "sub-key-2"
-  TEST_HM_SUB_KEY3 = "sub-key-3"
-  TEST_HM_SUB_KEY4 = "sub-key-4"
-  TEST_HM_DATA1 = "Test hashmap data 1"
-  TEST_HM_DATA2 = "Test hashmap data 2"
-  TEST_HM_DATA3 = "Test hashmap data 3"
-  TEST_HM_DATA4 = "Test hashmap data 4" 
-
   def setup
     puts ""
-    @engine = XFireDB::Engine.new
+    @map = XFireDB::Hashmap.new
+
+    @map.store("test-key1", "Test data 1")
+    @map.store("test-key2", "Test data 2")
+    @map.store("test-key3", "Test data 3")
+    @map.store("test-key4", "Test data 4")
   end
 
   def teardown
-    @engine.stop
   end
 
-  def test_hashmap
+  def test_delete
+    assert_equal(4, @map.size)
+    @map.delete("test-key1")
+    @map.delete("test-key2")
+    @map.delete("test-key3")
+    @map.delete("test-key4")
   end
 
-  def test_list
+  def test_lookup
+    assert_equal("Test data 3", @map["test-key3"], "Lookup failed")
   end
 
-  def test_string
+  def test_clear
+    @map.clear
+    assert_equal(0, @map.size)
+  end
+
+  def test_iterate
+    @map.each { |key, value| puts "#{key} = #{value}" }
   end
 end
-

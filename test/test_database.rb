@@ -16,45 +16,50 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-require 'xfiredb'
+require 'xfiredb/storage_engine'
 require 'test/unit'
 
 class TestStorageEngine < Test::Unit::TestCase
-  TEST_STRING_DATA = "Test string data"
-  TEST_STRING_KEY  = "key-1"
-
-  TEST_LIST_KEY = "key-2"
-  TEST_LIST_DATA1 = "Test list data 1"
-  TEST_LIST_DATA2 = "Test list data 2"
-  TEST_LIST_DATA3 = "Test list data 3"
-  TEST_LIST_DATA4 = "Test list data 4"
-
-  TEST_HM_KEY = "key-3"
-  TEST_HM_SUB_KEY1 = "sub-key-1"
-  TEST_HM_SUB_KEY2 = "sub-key-2"
-  TEST_HM_SUB_KEY3 = "sub-key-3"
-  TEST_HM_SUB_KEY4 = "sub-key-4"
-  TEST_HM_DATA1 = "Test hashmap data 1"
-  TEST_HM_DATA2 = "Test hashmap data 2"
-  TEST_HM_DATA3 = "Test hashmap data 3"
-  TEST_HM_DATA4 = "Test hashmap data 4" 
-
   def setup
     puts ""
-    @engine = XFireDB::Engine.new
+    @db = XFireDB::Database.new
+    @db["key1"] = "Test data 1";
+    @db["key2"] = "Test data 2";
+    @db["key3"] = "Test data 3";
   end
 
   def teardown
-    @engine.stop
   end
 
-  def test_hashmap
+  def test_ref
+    assert_equal("Test data 2", @db["key2"], "Db ref failed")
+    @db["key2"] = "Test data 2, updated"
+    assert_equal("Test data 2, updated", @db["key2"], "DB entry update failed")
+  end
+
+  def test_delete
+    @db.delete("key3")
+    assert_equal(nil, @db["key3"], "DB delete failed")
   end
 
   def test_list
-  end
+    list = XFireDB::List.new
+    list.push("List data 1")
+    list.push("List data 2")
+    list.push("List data 3")
+    @db["key4"] = list
 
-  def test_string
+    tmp = @db["key4"]
+    tmp.each do |value|
+      puts value
+    end
+
+    @db.each do |key, value|
+      puts "Data type of #{key} is #{value.class}"
+    end
+
+    @db.delete("key4")
+    assert_equal(3, @db.size, "Database size failed")
   end
 end
 

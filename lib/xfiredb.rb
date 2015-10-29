@@ -19,9 +19,10 @@
 require 'pp'
 require 'ostruct'
 require 'optparse'
-require 'storage_engine'
 require 'thread'
 
+require 'xfiredb/storage_engine'
+require 'xfiredb/engine'
 require 'xfiredb/server'
 require 'xfiredb/config'
 require 'xfiredb/string'
@@ -70,6 +71,7 @@ module XFireDB
 
     server = Server.new(@options[:config])
     server.start
+    server.stop
   end
 
   def XFireDB.worker_num
