@@ -7,7 +7,7 @@ ADD_RUBY_EXTENSION(storage_engine
 	storage_engine.c
 	)
 
-target_link_libraries(storage_engine LINK_PUBLIC xfiredb)
+target_link_libraries(storage_engine LINK_PUBLIC xfiredbengine)
 install(TARGETS storage_engine
 	LIBRARY DESTINATION ${RUBY_EXTENSIONS_INSTALL_DIR})
 

@@ -10,6 +10,6 @@ add_executable (rb-hashmap
 		tests/unit_test.c
 		tests/rbtree/hashmap.c)
 
-target_link_libraries (rb-single LINK_PUBLIC xfiredb)
-target_link_libraries (rb-concurrent LINK_PUBLIC xfiredb)
-target_link_libraries (rb-hashmap LINK_PUBLIC xfiredb)
+target_link_libraries (rb-single LINK_PUBLIC xfiredbengine)
+target_link_libraries (rb-concurrent LINK_PUBLIC xfiredbengine)
+target_link_libraries (rb-hashmap LINK_PUBLIC xfiredbengine)

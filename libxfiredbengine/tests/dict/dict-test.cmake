@@ -14,8 +14,8 @@ add_executable (dict-database
 		tests/unit_test.c
 		tests/dict/dict-database.c)
 
-target_link_libraries (dict-single LINK_PUBLIC xfiredb)
-target_link_libraries (dict-iterator LINK_PUBLIC xfiredb)
-target_link_libraries (dict-concurrent LINK_PUBLIC xfiredb)
-target_link_libraries (dict-database LINK_PUBLIC xfiredb)
+target_link_libraries (dict-single LINK_PUBLIC xfiredbengine)
+target_link_libraries (dict-iterator LINK_PUBLIC xfiredbengine)
+target_link_libraries (dict-concurrent LINK_PUBLIC xfiredbengine)
+target_link_libraries (dict-database LINK_PUBLIC xfiredbengine)
 

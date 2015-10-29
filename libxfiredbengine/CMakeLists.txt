@@ -11,7 +11,7 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
 # libxfiredb
-add_library(xfiredb SHARED
+add_library(xfiredbengine SHARED
 	# storage files	
 	storage/dict.c
 	storage/database.c
@@ -34,9 +34,9 @@ add_library(xfiredb SHARED
 	sprintf.c)
 
 
-target_link_libraries(xfiredb LINK_PUBLIC ${SQLITE3_LIB})
+target_link_libraries(xfiredbengine LINK_PUBLIC ${SQLITE3_LIB})
 
-install (TARGETS xfiredb
+install (TARGETS xfiredbengine
 	LIBRARY DESTINATION lib
 	)
 
