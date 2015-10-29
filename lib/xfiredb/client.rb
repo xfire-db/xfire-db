@@ -18,23 +18,27 @@
 
 module XFireDB
   class Client
-    attr_accessor :xql
+    attr_accessor :xql, :stream
     attr_reader :request
 
-    @xql = nil
     @request = nil
+    @stream = nil
 
     def initialize(xql = nil)
-      @xql = xql
       @request = XFireDB::Request.new(xql) unless xql.nil?
     end
 
+    def Client.from_stream(stream)
+      client = Client.new
+      client.stream = stream
+      return client
+    end
+
     def process(xql = nil)
-      if xql.nil? && @xql.nil?
+      if xql.nil? && @process.nil?
         raise ArgumentError.new("Cannot handle a process without a query")
       end
 
-      @xql = xql if @xql.nil?
       @request = XFireDB::Request.new(xql) unless xql.nil?
       @request.handle
     end

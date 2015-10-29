@@ -20,6 +20,7 @@ require 'pp'
 require 'ostruct'
 require 'optparse'
 require 'thread'
+require 'socket'
 
 require 'xfiredb/storage_engine'
 require 'xfiredb/engine'

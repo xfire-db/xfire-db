@@ -39,8 +39,11 @@ module XFireDB
       log = "[init]: XFireDB started in debugging mode" if @config.debug
       puts log
 
+      serv = TCPServer.new(@config.addr, @config.port)
+      loop do
+        @pool.push(serv.accept)
+      end
       # start the cluster bus
-      gets.chomp
     end
   end
 end
