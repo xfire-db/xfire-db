@@ -18,7 +18,7 @@
 
 module XFireDB
   class Shell
-    def Shell.start
+    def Shell.start(engine)
       $stdout.sync = true
       print "\n"
       loop {
@@ -27,13 +27,14 @@ module XFireDB
         cmd = Shell.parse(rawcmd)
         rv = Shell.exec(cmd)
         puts rv if rv.class == String
+        break if rv == "Daemonizing XFireDB"
       }
     end
 
     def Shell.exec(cmd)
       res = case cmd[0]
             when "daemonize"
-              Daemons.daemonize
+              "Daemonizing XFireDB"
             when "quit"
               exit
             else

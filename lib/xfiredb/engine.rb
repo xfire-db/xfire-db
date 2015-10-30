@@ -47,7 +47,7 @@ module XFireDB
       @db.each do |key, value|
         @db.delete(key)
       end
-      self.stop
+      self.stop(@db)
     end
 
     def load_string(key, data)

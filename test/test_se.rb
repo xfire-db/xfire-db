@@ -45,7 +45,7 @@ class TestStorageEngine < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.stop
+    @engine.exit
   end
 
   def test_hashmap

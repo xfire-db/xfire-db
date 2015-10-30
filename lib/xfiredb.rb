@@ -40,6 +40,7 @@ module XFireDB
     @options.config = nil
     @options.workers = 2
     @options.action = nil
+    @options.shell = false
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = "Usage: xfiredb [options] -c FILE"
@@ -51,6 +52,11 @@ module XFireDB
       opts.on("-w", "--workers NUM",
               "Number of threads used to accept incoming connections") do |num|
         @options.workers = num || 2
+      end
+
+      opts.on("-s", "--shell",
+              "Drop into the XFireDB shell before starting the server") do |shell|
+        @options.shell = true
       end
 
       opts.on("-a", "--action [start|stop|status]",
@@ -85,6 +91,7 @@ module XFireDB
       end
 
     server = Server.new(@options, @options[:config])
+    server.shell if @options[:shell]
     server.start
   end
 

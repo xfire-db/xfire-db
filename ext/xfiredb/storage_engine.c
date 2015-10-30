@@ -82,9 +82,11 @@ VALUE rb_se_load(VALUE self)
 	}
 }
 
-VALUE rb_se_exit(VALUE self)
+extern void rb_db_free(VALUE self);
+VALUE rb_se_exit(VALUE self, VALUE db)
 {
 	xfiredb_se_exit();
+	rb_db_free(db);
 	return self;
 }
 
@@ -98,7 +100,7 @@ void Init_storage_engine(void)
 			"Engine", rb_cObject);
 
 	rb_define_method(rb_cStorageEngine, "init", rb_se_init, 0);
-	rb_define_method(rb_cStorageEngine, "stop", rb_se_exit, 0);
+	rb_define_method(rb_cStorageEngine, "stop", rb_se_exit, 1);
 	rb_define_method(rb_cStorageEngine, "load", rb_se_load, 0);
 	rb_define_method(rb_cStorageEngine, "set_loadstate", rb_se_set_loadstate, 1);
 	rb_define_method(rb_cStorageEngine, "get_loadstate", rb_se_get_loadstate, 0);

@@ -52,5 +52,5 @@ end
 test_string
 test_list
 test_hashmap
-@engine.stop
+@engine.exit
 

@@ -30,10 +30,8 @@
 
 #include "se.h"
 
-static void rb_db_free(void *p)
+static void rb_db_release(void *p)
 {
-	struct database *db = p;
-	db_free(db);
 }
 
 static VALUE rb_container_to_obj(struct db_entry_container *c)
@@ -49,7 +47,7 @@ static VALUE rb_container_to_obj(struct db_entry_container *c)
 VALUE rb_db_new(VALUE klass)
 {
 	struct database *db = db_alloc("xfire-database");
-	VALUE obj = Data_Wrap_Struct(klass, NULL, rb_db_free, db);
+	VALUE obj = Data_Wrap_Struct(klass, NULL, rb_db_release, db);
 
 	rb_gc_mark(obj);
 	return obj;
@@ -170,6 +168,14 @@ VALUE rb_db_delete(VALUE self, VALUE key)
 	raw_rb_db_delete(entry);
 
 	return key;
+}
+
+void rb_db_free(VALUE self)
+{
+	struct database *db;
+
+	Data_Get_Struct(self, struct database, db);
+	db_free(db);
 }
 
 static VALUE db_enum_size(VALUE db, VALUE args, VALUE obj)

@@ -30,7 +30,10 @@ module XFireDB
       @store.exit
     end
 
-    def setup
+    def shell
+      @store = XFireDB::Engine.new
+      XFireDB::Shell.start(@store)
+      @store.exit
     end
 
     def start
@@ -38,7 +41,7 @@ module XFireDB
 
       Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
       begin
-          @store = XFireDB::Engine.new
+        @store = XFireDB::Engine.new
           @bus = XFireDB::ClusterBus.new if @config.cluster
           @pool = XFireDB::WorkerPool.new(XFireDB.worker_num, self)
           XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \
