@@ -38,16 +38,12 @@ static void rb_db_free(void *p)
 
 static VALUE rb_container_to_obj(struct db_entry_container *c)
 {
-	VALUE rv;
-
 	if(c->obj_released) {
-		rv = Data_Wrap_Struct(c->type, NULL, c->release, c);
+		c->obj = Data_Wrap_Struct(c->type, NULL, c->release, c);
 		c->obj_released = false;
-	} else {
-		rv = c->obj;
 	}
 
-	return rv;
+	return c->obj;
 }
 
 VALUE rb_db_new(VALUE klass)
