@@ -44,5 +44,16 @@ class TestStorageEngine < Test::Unit::TestCase
 
     assert_equal("Test data 800", db["key800"]["hkey800"], "First assert failed")
     assert_equal("Test data 800", db["key800"]["hkey800"], "Second assert failed")
+
+    map = db['key4000']
+    map.each do |k, v|
+      assert_equal("hkey4000", k)
+      assert_equal("Test data 4000", v)
+    end
+
+    40000.times do |x|
+      key = "key#{x}"
+      assert_equal(key, db.delete(key))
+    end
   end
 end
