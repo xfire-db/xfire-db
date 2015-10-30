@@ -31,6 +31,7 @@ require 'xfiredb/clusterbus'
 require 'xfiredb/workerpool'
 require 'xfiredb/client'
 require 'xfiredb/log'
+require 'xfiredb/shell'
 
 module XFireDB
   def XFireDB.start(cmdargs)
@@ -74,6 +75,11 @@ module XFireDB
     server = Server.new(@options[:config])
     server.start
     server.stop
+  end
+
+  def XFireDB.print(str)
+    print str
+    $stdout.flush
   end
 
   def XFireDB.worker_num

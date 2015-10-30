@@ -39,9 +39,14 @@ module XFireDB
       log = "[init]: XFireDB started in debugging mode" if @config.debug
       puts log
 
-      serv = TCPServer.new(@config.addr, @config.port)
-      loop do
-        @pool.push(serv.accept)
+      begin
+        XFireDB::Shell.start
+        serv = TCPServer.new(@config.addr, @config.port)
+        loop do
+          @pool.push(serv.accept)
+        end
+      rescue SystemExit => e
+        XFireDB::Log.write("[exit]: SystemExit signal received\n", false, true)
       end
       # start the cluster bus
     end
