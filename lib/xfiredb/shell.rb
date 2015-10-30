@@ -21,19 +21,19 @@ module XFireDB
     def Shell.start
       $stdout.sync = true
       print "\n"
-      shell = Thread.new do
-        loop {
-          print "> "
-          rawcmd = gets.chop
-          cmd = Shell.parse(rawcmd)
-          rv = Shell.exec(cmd)
-          puts rv if rv.class == String
-        }
-      end
+      loop {
+        print "> "
+        rawcmd = gets.chop
+        cmd = Shell.parse(rawcmd)
+        rv = Shell.exec(cmd)
+        puts rv if rv.class == String
+      }
     end
 
     def Shell.exec(cmd)
       res = case cmd[0]
+            when "daemonize"
+              Daemons.daemonize
             when "quit"
               exit
             else

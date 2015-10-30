@@ -21,6 +21,7 @@ require 'ostruct'
 require 'optparse'
 require 'thread'
 require 'socket'
+require 'daemons'
 
 require 'xfiredb/storage_engine'
 require 'xfiredb/engine'
@@ -38,6 +39,7 @@ module XFireDB
     @options = OpenStruct.new
     @options.config = nil
     @options.workers = 2
+    @options.action = nil
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = "Usage: xfiredb [options] -c FILE"
@@ -51,6 +53,11 @@ module XFireDB
         @options.workers = num || 2
       end
 
+      opts.on("-a", "--action [start|stop|status]",
+              "Server action") do |action|
+        @options.action = action
+      end
+
       opts.on("-h", "--help", "Display this help message") do
         puts opts
         exit
@@ -59,9 +66,14 @@ module XFireDB
 
     begin
       opt_parser.parse!(cmdargs)
-      mandatory = [:config]
-      missing = mandatory.select{ |param| @options[param].nil? }
+      mandatory = [:config, :action]
+      missing = mandatory.select { |param|
+        if (param == :config and @options[:action] == "start") or param == :action
+          @options[param].nil?
+        end
+      }
       unless missing.empty?
+
         puts "Mandatory arguments: #{missing.join(', ')}"
         puts opt_parser
         exit
@@ -72,9 +84,8 @@ module XFireDB
         exit
       end
 
-    server = Server.new(@options[:config])
+    server = Server.new(@options, @options[:config])
     server.start
-    server.stop
   end
 
   def XFireDB.print(str)

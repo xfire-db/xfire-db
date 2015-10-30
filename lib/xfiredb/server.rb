@@ -19,36 +19,40 @@
 module XFireDB
   class Server
     attr_reader :config
+    attr_reader :store
 
-    def initialize(conf)
+    def initialize(opts, conf)
       @config = XFireDB::Config.new(conf)
-      @bus = XFireDB::ClusterBus.new if @config.cluster
-      @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
-      @store = XFireDB::Engine.new
-      XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \
-                         "(#{@config.problems} problems)\n", false, true)
-      XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Initialisation complete, " \
-                        "database started!\n", false, true)
+      @options = opts
     end
 
     def stop
-      @store.stop
+      @store.exit
+    end
+
+    def setup
     end
 
     def start
-      log = "[init]: XFireDB started in debugging mode" if @config.debug
-      puts log
+      puts "[init]: XFireDB started in debugging mode" if @config.debug
 
+      Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
       begin
-        XFireDB::Shell.start
-        serv = TCPServer.new(@config.addr, @config.port)
-        loop do
-          @pool.push(serv.accept)
+          @store = XFireDB::Engine.new
+          @bus = XFireDB::ClusterBus.new if @config.cluster
+          @pool = XFireDB::WorkerPool.new(XFireDB.worker_num, self)
+          XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \
+                             "(#{@config.problems} problems)\n", false, false)
+          XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Initialisation complete, " \
+                            "database started!\n", false, false)
+          serv = TCPServer.new(@config.addr, @config.port)
+          loop do
+            @pool.push(serv.accept)
+          end
+        rescue SystemExit => e
+          self.stop
         end
-      rescue SystemExit => e
-        XFireDB::Log.write("[exit]: SystemExit signal received\n", false, true)
       end
-      # start the cluster bus
     end
   end
 end

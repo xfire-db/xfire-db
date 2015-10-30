@@ -18,7 +18,7 @@
 
 module XFireDB
   class WorkerPool < Queue
-    def initialize(num)
+    def initialize(num, server)
       super()
       wokers = (0...num).map do
         Thread.new do
@@ -26,6 +26,7 @@ module XFireDB
             while stream = self.pop(false)
               client = XFireDB::Client.from_stream(stream)
               stream.close
+              server.store.db["test"] = "hey there"
             end
           rescue ThreadError
             puts "Thread error"

@@ -22,6 +22,10 @@ module XFireDB
 
     def initialize
       @db = XFireDB::Database.new
+      self.start
+    end
+
+    def start
       self.init
 
       self.load.each.each do |key, hash, type, data|
@@ -36,6 +40,14 @@ module XFireDB
       end
 
       self.set_loadstate(true)
+    end
+
+    def exit
+      self.set_loadstate(false)
+      @db.each do |key, value|
+        @db.delete(key)
+      end
+      self.stop
     end
 
     def load_string(key, data)

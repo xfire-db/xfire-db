@@ -20,6 +20,8 @@ module XFireDB
   class Config
     attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
       :debug, :problems
+    attr_accessor :daemon
+
     CONFIG_PORT = "port"
     CONFIG_BIND_ADDR = "bind-addr"
     CONFIG_CLUSTER = "cluster-enabled"
@@ -32,8 +34,11 @@ module XFireDB
     @cluster = false
     @cluster_config = nil
     @debug = false
+    @daemon = false
 
-    def initialize(file)
+    def initialize(file = nil)
+      return unless file
+
       @filename = file
       @problems = 0
       fh = File.open(@filename, "r")
