@@ -36,6 +36,16 @@ static void rb_db_free(void *p)
 	db_free(db);
 }
 
+static VALUE rb_container_to_obj(struct db_entry_container *c)
+{
+	if(c->obj_released) {
+		c->obj = Data_Wrap_Struct(c->type, NULL, c->release, c);
+		c->obj_released = false;
+	}
+
+	return c->obj;
+}
+
 VALUE rb_db_new(VALUE klass)
 {
 	struct database *db = db_alloc("xfire-database");
@@ -63,13 +73,7 @@ VALUE rb_db_ref(VALUE self, VALUE key)
 	entry = container_of(c, struct db_entry_container, c);
 
 	if(entry->type != rb_cString) {
-		if(entry->obj_released) {
-			rv = Data_Wrap_Struct(entry->type, NULL, entry->release, entry);
-			entry->obj_released = false;
-			return rv;
-		} else {
-			return entry->obj;
-		}
+		return rb_container_to_obj(entry);
 	} else {
 		s = container_get_data(&entry->c);
 		string_get(s, &tmp);
@@ -194,12 +198,7 @@ static VALUE rb_db_each_pair(VALUE db)
 		k = rb_str_new2(e->key);
 
 		if(db_c->type != rb_cString) {
-			if(db_c->obj_released) {
-				v = Data_Wrap_Struct(db_c->type, NULL, db_c->release, db_c);
-				db_c->obj_released = false;
-			} else {
-				v = db_c->obj;
-			}
+			v = rb_container_to_obj(db_c);
 		} else {
 			s_val = container_get_data(c);
 			string_get(s_val, &value);
