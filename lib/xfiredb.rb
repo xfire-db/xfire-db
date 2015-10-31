@@ -29,6 +29,8 @@ require 'set'
 require 'io/console'
 
 require 'xfiredb/storage_engine'
+require 'xfiredb/clusternode'
+require 'xfiredb/localnode'
 require 'xfiredb/digest'
 require 'xfiredb/engine'
 require 'xfiredb/server'
