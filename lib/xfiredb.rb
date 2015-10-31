@@ -22,8 +22,14 @@ require 'optparse'
 require 'thread'
 require 'socket'
 require 'daemons'
+require 'securerandom'
+require 'bcrypt'
+require 'set'
+
+require 'io/console'
 
 require 'xfiredb/storage_engine'
+require 'xfiredb/digest'
 require 'xfiredb/engine'
 require 'xfiredb/server'
 require 'xfiredb/config'
@@ -33,6 +39,7 @@ require 'xfiredb/workerpool'
 require 'xfiredb/client'
 require 'xfiredb/log'
 require 'xfiredb/shell'
+require 'xfiredb/keyshard'
 
 module XFireDB
   def XFireDB.start(cmdargs)

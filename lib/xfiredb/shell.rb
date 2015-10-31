@@ -18,9 +18,16 @@
 
 module XFireDB
   class Shell
+    @@engine = nil
+
     def Shell.start(engine)
       $stdout.sync = true
+      @@engine = engine
+      map = @@engine.db['xfiredb']
       print "\n"
+      puts "XFireDB is not setup properly, use " \
+        "`setup' to enter the setup" if map.nil? or map['id'].nil?
+
       loop {
         print "> "
         rawcmd = gets.chop
@@ -35,11 +42,33 @@ module XFireDB
       res = case cmd[0]
             when "daemonize"
               "Daemonizing XFireDB"
+            when "setup"
+              Shell.setup
             when "quit"
               exit
+            when "help"
+              "Available commands:\n\n" \
+                "* help\n" \
+                "* quit\n" \
+                "* daemonize\n" \
+                "* setup\n"
             else
               "Invalid command"
             end
+    end
+
+    def Shell.setup
+      db = @@engine.db
+      db['xfiredb'] ||= XFireDB::Hashmap.new
+      map = db['xfiredb']
+      map['id'] ||= SecureRandom.hex(64)
+      print "Sys admin username: "
+      user = gets.chop
+      print "Password: "
+      passw = STDIN.noecho(&:gets).chomp
+      puts "\nSetup complete!"
+      map["user::#{user}"] = BCrypt::Password.create passw
+      return
     end
 
     def Shell.parse(rawcmd)
