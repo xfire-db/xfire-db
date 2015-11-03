@@ -45,6 +45,8 @@ module XFireDB
             when "setup"
               Shell.setup
               Shell.setup_root_node if cmd[1] == "root-node"
+            when "useradd"
+              Shell.useradd
             when "quit"
               exit
             when "help"
@@ -56,6 +58,18 @@ module XFireDB
             else
               "Invalid command"
             end
+    end
+
+    def Shell.useradd
+      print "Username: "
+      user = gets.chop
+      print "Password: "
+      passw = STDIN.noecho(&:gets).chomp
+
+      db = @@engine.db
+      map = db['xfiredb']
+      map["user::#{user}"] = BCrypt::Password.create passw
+      puts "\nUser created!"
     end
 
     def Shell.setup
