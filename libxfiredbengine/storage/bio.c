@@ -204,7 +204,12 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
  * hashmap operation.
  */
 void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
-{}
+{
+	xfire_free(key);
+	xfire_free(arg);
+	xfire_free(newdata);
+}
+
 /**
  * @brief BIO destructor.
  */

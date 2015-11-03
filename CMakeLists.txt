@@ -6,7 +6,6 @@ SET(API_VERSION 1.0)
 cmake_policy(SET CMP0007 NEW)
 INCLUDE (CheckIncludeFiles)
 
-
 include(scripts/find_deps.cmake)
 include(scripts/directories.cmake)
 include(scripts/options.cmake)
@@ -27,3 +26,4 @@ if(XFIRE_SERVER)
 	add_subdirectory(${XFIRE_ENG_PATH})
 	add_subdirectory(${XFIRE_EXTENSION_PATH})
 endif(XFIRE_SERVER)
+

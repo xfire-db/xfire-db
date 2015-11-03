@@ -2,11 +2,13 @@ MESSAGE( STATUS "looking for libsqlite3")
 find_library(SQLITE3_LIB
 	NAMES sqlite3
 )
+MESSAGE( STATUS "Found SQLite3: " ${SQLITE3_LIB})
 
 MESSAGE( STATUS "looking for libc")
 find_library(C_LIB
 	NAMES c
 )
+MESSAGE( STATUS "Found C runtime library: " ${C_LIB})
 
 CHECK_INCLUDE_FILES(sqlite3.h SQLITE3_HEADER)
 CHECK_INCLUDE_FILES(stdlib.h STDLIB_HEADER)
