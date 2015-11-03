@@ -25,8 +25,23 @@ class String
     self.start_with?(sep) ? self[sep.size..-1] : self
   end
 
+  def escape
+    self.inspect[1..-2]
+  end
+
+  def unescape
+    eval %Q{"#{self}"}
+  end
+
   def tokenize
     self.
-      split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).map { |s| s.strip.rchomp('"').chomp('"') }
+      split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).
+      select {|s| not s.empty? }.
+      map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
   end
+
+#def tokenize
+    #self.
+      #split(/\s(?=(?:[^"]|"[^"]*")*$)/).map { |s| s.strip.rchomp('"').chomp('"') }
+  #end
 end

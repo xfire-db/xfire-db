@@ -17,7 +17,23 @@
 #
 
 module XFireDB
-  class CommandGet
+  class CommandSet < XFireDB::Command
+    def initialize(argv)
+      super("SET", argv)
+    end
+
+    def exec
+      key = @argv[0]
+      data = @argv[1]
+      db = XFireDB.db
+
+      return "Syntax `GET <key> \"<data>\"'" unless key and data
+      db[key] = data
+      return "OK"
+    end
+  end
+
+  class CommandGet < XFireDB::Command
     def initialize(argv)
       super("GET", argv)
     end
@@ -29,22 +45,8 @@ module XFireDB
     end
   end
 
-  class CommandSet
-    def initialize(argv)
-      super("SET", argv)
-    end
 
-    def exec
-      key = @argv[0]
-      data = @argv[1]
-      db = XFireDB.db
-
-      return unless key and data
-      db[key] = data
-    end
-  end
-
-  class CommandDelete
+  class CommandDelete < XFireDB::Command
     def initialize(argv)
       super("DELETE", argv)
     end

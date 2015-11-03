@@ -22,7 +22,7 @@ module XFireDB
     @argv = nil
     @raw = nil
 
-    def initialize(cmd, argv, raw)
+    def initialize(cmd, argv, raw = nil)
       @cmd = cmd
       @argv = argv
       @raw = raw

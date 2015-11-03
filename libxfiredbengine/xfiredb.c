@@ -43,30 +43,7 @@ struct disk *dbg_disk;
 struct disk *xfire_disk;
 #endif
 
-static volatile bool se_state = false;
-
-/**
- * @brief Get the load state.
- * @return Current load state.
- */
-bool xfiredb_loadstate(void)
-{
-	return se_state;
-}
-
-/**
- * @brief Set the load state.
- * @param v Load state to set.
- *
- * The load state indicates whether data has been
- * loaded of the disk by the engine yet or not. Prior
- * to that point, transparant storage to the disk
- * should be disabled.
- */
-void xfiredb_set_loadstate(bool v)
-{
-	se_state = v;
-}
+static bool load_state = false;
 
 /**
  * @brief Clear the entire disk.
@@ -76,6 +53,14 @@ void xfiredb_disk_clear(void)
 	disk_clear(disk_db);
 }
 
+/**
+ * @brief Set the load state of the engine.
+ * @param state Load state to set.
+ */
+void xfiredb_set_loadstate(bool state)
+{
+	load_state = state;
+}
 
 /**
  * @brief Initialise the XFireDB storage engine.
@@ -133,10 +118,10 @@ void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int _op)
 	char *key, *arg, *data;
 	bio_operation_t op = _op;
 
-	key = arg = data = NULL;
-
-	if(!se_state)
+	if(!load_state)
 		return;
+
+	key = arg = data = NULL;
 
 	if(_key)
 		xfire_sprintf(&key, "%s", _key);
@@ -163,7 +148,7 @@ void xfiredb_store_container(char *_key, struct container *c)
 	struct hashmap_node *node;
 	hashmap_iterator_t it;
 
-	if(!se_state)
+	if(!load_state)
 		return;
 
 	switch(c->type) {

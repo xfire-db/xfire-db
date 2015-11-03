@@ -44,6 +44,7 @@ module XFireDB
               "Daemonizing XFireDB"
             when "setup"
               Shell.setup
+              Shell.setup_root_node if cmd[1] == "root-node"
             when "quit"
               exit
             when "help"
@@ -68,6 +69,14 @@ module XFireDB
       passw = STDIN.noecho(&:gets).chomp
       puts "\nSetup complete!"
       map["user::#{user}"] = BCrypt::Password.create passw
+      return
+    end
+
+    def Shell.setup_root_node
+      db = @@engine.db
+      rv = (0..16383).to_a
+      rv = rv.join(':')
+      db['xfiredb']['shards'] = rv
       return
     end
 

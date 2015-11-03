@@ -1,5 +1,5 @@
 #
-#   XFireDB client
+#   XFireDB storage commands
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,39 +17,30 @@
 #
 
 module XFireDB
-  class Client
-    attr_accessor :xql, :stream
-    attr_reader :request
+  class ClusterCommand < Command
+    attr_reader :cluster
 
-    @request = nil
-    @stream = nil
+    @subcmd = nil
+    @cluster = nil
 
-    def initialize(client, xql = nil)
-      @request = XFireDB::XQL.parse(xql) unless xql.nil?
-      @stream = client
+    def initialize(cluster, argv)
+      super("CLUSTER", argv)
+      @subcmd = @argv.shift
+      @cluster = cluster
     end
 
-    def Client.from_stream(stream)
-      client = Client.new(stream)
-      client.stream = stream
-      return client
-    end
-
-    def read
-      len = @stream.gets.chop
-      return unless len.is_i?
-      len = len.to_i
-      data = @stream.read(len)
-      return XFireDB::XQL.parse(data)
-    end
-
-    def process(xql = nil)
-      if xql.nil? && @process.nil?
-        raise ArgumentError.new("Cannot handle a process without a query")
-      end
-
-      @request = XFireDB::Request.new(xql) unless xql.nil?
-      @request.handle
+    def exec
+      rv = case @subcmd.upcase
+           when "WHEREIS"
+             "OK"
+           when "YOUHAVE?"
+             key = @argv[0]
+             local = @cluster.local_node
+             local.shard.include?(key)
+           else
+             "Command not known"
+           end
     end
   end
 end
+

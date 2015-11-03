@@ -18,6 +18,8 @@
 
 module XFireDB
   class Cluster
+    attr_reader :nodes, :local
+
     @nodes = nil
     @cluster_config = nil
     @engine = nil
@@ -43,11 +45,15 @@ module XFireDB
         end
       end
 
-      @nodes[local['id']] = LocalNode.new(addr, port)
+      @nodes[local['id']] = LocalNode.new(addr, port, self)
     end
 
     def shell
       exit
+    end
+
+    def local_node
+      @nodes[@local]
     end
 
     def start
@@ -65,12 +71,17 @@ module XFireDB
       return rv
     end
 
-    def cluster_query(cmd, id = nil)
-      return broadcast(cmd) unless id
+    def query(request)
+      cmd = XFireDB.cmds
+      cmd = cmd[request.cmd]
+      return "Command not known" unless cmd
+      instance = cmd.new(request.args)
+      return instance.exec
+    end
 
-      node = @nodes[id]
-      return nil unless node
-      node.cluster_query(cmd)
+    def cluster_query(request)
+      cmd = XFireDB::ClusterCommand.new(self, request.args)
+      return cmd.exec
     end
 
   end

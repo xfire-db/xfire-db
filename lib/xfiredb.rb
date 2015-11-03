@@ -34,6 +34,7 @@ require 'xfiredb/clusternode'
 require 'xfiredb/localnode'
 require 'xfiredb/command'
 require 'xfiredb/storage_commands'
+require 'xfiredb/cluster_commands'
 require 'xfiredb/digest'
 require 'xfiredb/engine'
 require 'xfiredb/config'
@@ -53,7 +54,8 @@ module XFireDB
   @@commands = {
     "GET" => XFireDB::CommandGet,
     "SET" => XFireDB::CommandSet,
-    "DELETE" => XFireDB::CommandDelete
+    "DELETE" => XFireDB::CommandDelete,
+    "CLUSTER" => XFireDB::ClusterCommand
   }
 
   def XFireDB.start(cmdargs)
@@ -127,6 +129,7 @@ module XFireDB
         exit
       end
       server = XFireDB::Cluster.new(@@config.addr, @@config.port)
+      XFireDB.exit
       server.start
     end
   end

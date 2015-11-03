@@ -95,7 +95,6 @@ VALUE rb_cStorageEngine;
 void Init_storage_engine(void)
 {
 	c_xfiredb_mod = rb_define_module("XFireDB");
-	//rb_include_module(rb_cStorageEngine, rb_mEnumerable);
 	rb_cStorageEngine = rb_define_class_under(c_xfiredb_mod,
 			"Engine", rb_cObject);
 

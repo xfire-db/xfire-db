@@ -24,21 +24,63 @@ module XFireDB
     @shard = nil
     @config = nil
     @options = nil
+    @cluster = nil
 
-    def initialize(addr, port)
+    def initialize(addr, port, cluster)
       super(addr, port)
       @engine = XFireDB.engine
       @shard = XFireDB::KeyShard.new
       @config = XFireDB.config
       @options = XFireDB.options
+      @cluster = cluster
+      
+      db = XFireDB.db
+      slots = db['xfiredb']['shards']
+      return unless slots
+
+      slot_ary = slots.split(':')
+      slot_ary.each do |single|
+        @shard.add_slot(single)
+      end
+    end
+
+    def start_clusterbus
+      serv = TCPServer.new(@config.addr, @config.port + 10000)
+      Thread.new do
+        loop do
+          request = serv.accept
+          type = request.gets.chop
+          reply = case type.upcase
+          when "QUERY"
+            query = XFireDB::XQL.parse(request.gets.chop)
+            @cluster.cluster_query(query)
+          when "PING"
+            "PONG"
+          when "GOSSIP"
+            gossip = request.gets.chop
+            gossip = gossip.split(':')
+            # 0 => node the gossip is about
+            # 1 => node IP
+            # 2 => node port
+            # 3 => node status code, or message
+            @cluster.gossip(gossip)
+            "OK"
+          end
+
+          request.puts reply
+          request.close
+        end
+      end
     end
 
     def start
       puts "[init]: XFireDB started in debugging mode" if @config.debug
-      Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
+      Daemons.run_proc('xfiredb', {:ARGV => [@options.action], :ontop => true, :log_output => true}) do
+      self.start_clusterbus
       begin
         XFireDB.create
-        @pool = XFireDB::WorkerPool.new(XFireDB.worker_num, self)
+        @engine = XFireDB.engine
+        @pool = XFireDB::WorkerPool.new(XFireDB.worker_num, @cluster)
         XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \
                            "(#{@config.problems} problems)\n", false, false)
         XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Initialisation complete, " \

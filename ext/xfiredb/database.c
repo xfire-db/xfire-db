@@ -124,8 +124,16 @@ VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 	if(db_delete(db, tmp, &dbdata) == -XFIRE_OK) {
 		c = dbdata.ptr;
 		rb_c = container_of(c, struct db_entry_container, c);
-		if(rb_c->obj != data && rb_c->type != rb_cString)
+		if(rb_c->obj != data) {
+			if(rb_c->type == rb_cString && rb_obj_class(data) == rb_cString) {
+				c = dbdata.ptr;
+				s = container_get_data(c);
+				string_set(s, StringValueCStr(data));
+				return data;
+			}
+
 			raw_rb_db_delete(rb_c);
+		}
 	}
 
 	if(rb_obj_class(data) != rb_cString) {

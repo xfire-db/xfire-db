@@ -31,9 +31,15 @@ module XFireDB
     end
 
     def cluster_query(query)
+      socket = TCPSocket.new(@addr, @cluster_port)
+      socket.print(query)
+      return socket.read
     end
 
     def query(query)
+      socket = TCPSocket.new(@addr, @port)
+      socket.print(query)
+      return socket.read
     end
   end
 end

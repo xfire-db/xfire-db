@@ -42,9 +42,15 @@ module XFireDB
       @slots = @slots + slots
     end
 
+    def add_slot(slot)
+      return nil unless slot.class == String
+      @slots.add? slot
+    end
+
     def include?(key)
       key = key.to_s if key.class == Fixnum
       hash = XFireDB::Digest.crc16(key) % 16384
+      hash = hash.to_s
       @slots.include?(hash)
     end
 
