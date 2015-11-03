@@ -571,6 +571,15 @@ void disk_destroy(struct disk *disk)
 	xfire_free(disk);
 }
 #else
+long disk_size(struct disk *d)
+{
+	return -1L;
+}
+
+void disk_clear(struct disk *d)
+{
+}
+
 /**
  * @brief Create a new persistent disk.
  * @param path Path to the disk.
