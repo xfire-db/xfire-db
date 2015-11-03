@@ -29,11 +29,13 @@ require 'set'
 require 'io/console'
 
 require 'xfiredb/storage_engine'
+require 'xfiredb/cluster'
 require 'xfiredb/clusternode'
 require 'xfiredb/localnode'
+require 'xfiredb/command'
+require 'xfiredb/storage_commands'
 require 'xfiredb/digest'
 require 'xfiredb/engine'
-require 'xfiredb/server'
 require 'xfiredb/config'
 require 'xfiredb/string'
 require 'xfiredb/clusterbus'
@@ -42,8 +44,18 @@ require 'xfiredb/client'
 require 'xfiredb/log'
 require 'xfiredb/shell'
 require 'xfiredb/keyshard'
+require 'xfiredb/xql'
 
 module XFireDB
+  @@config = nil
+  @@options = nil
+  @@engine = nil
+  @@commands = {
+    "GET" => XFireDB::CommandGet,
+    "SET" => XFireDB::CommandSet,
+    "DELETE" => XFireDB::CommandDelete
+  }
+
   def XFireDB.start(cmdargs)
     @options = OpenStruct.new
     @options.config = nil
@@ -87,8 +99,8 @@ module XFireDB
           @options[param].nil?
         end
       }
-      unless missing.empty?
 
+      if not missing.empty? and @options[:shell] == false
         puts "Mandatory arguments: #{missing.join(', ')}"
         puts opt_parser
         exit
@@ -99,9 +111,52 @@ module XFireDB
         exit
       end
 
-    server = Server.new(@options, @options[:config])
-    server.shell if @options[:shell]
-    server.start
+    if @options.action == "stop"
+      Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
+      end
+    end
+
+    unless @options.action == "stop"
+      @@options = @options
+      @@config = XFireDB::Config.new(@options[:config])
+      puts @options.action if @options.action == "stop"
+      XFireDB.create
+      XFireDB::Shell.start(XFireDB.engine) if @options[:shell]
+      unless missing.empty?
+        XFireDB.exit
+        exit
+      end
+      server = XFireDB::Cluster.new(@@config.addr, @@config.port)
+      server.start
+    end
+  end
+
+  def XFireDB.config
+    @@config
+  end
+
+  def XFireDB.options
+    @@options
+  end
+
+  def XFireDB.db
+    @@engine.db
+  end
+
+  def XFireDB.cmds
+    @@commands
+  end
+
+  def XFireDB.engine
+    @@engine
+  end
+
+  def XFireDB.create
+    @@engine = XFireDB::Engine.new
+  end
+
+  def XFireDB.exit
+    @@engine.exit if @@engine
   end
 
   def XFireDB.print(str)

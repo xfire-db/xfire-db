@@ -18,37 +18,42 @@
 
 module XFireDB
   class LocalNode < ClusterNode
-    attr_reader :engine
+    attr_reader :engine, :shard
 
     @engine = nil
+    @shard = nil
+    @config = nil
+    @options = nil
 
-    def initialize(shard)
-      super(shard)
-      @engine = XFireDB::Engine.new
+    def initialize(addr, port)
+      super(addr, port)
+      @engine = XFireDB.engine
+      @shard = XFireDB::KeyShard.new
+      @config = XFireDB.config
+      @options = XFireDB.options
     end
 
-    def lookup(key)
-      @engine.db[key]
+    def start
+      puts "[init]: XFireDB started in debugging mode" if @config.debug
+      Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
+      begin
+        XFireDB.create
+        @pool = XFireDB::WorkerPool.new(XFireDB.worker_num, self)
+        XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \
+                           "(#{@config.problems} problems)\n", false, false)
+        XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Initialisation complete, " \
+                          "database started!\n", false, false)
+        serv = TCPServer.new(@config.addr, @config.port)
+        loop do
+          @pool.push(serv.accept)
+        end
+        rescue SystemExit => e
+          XFireDB.stop if @options.action == "stop"
+        end
+      end
     end
 
-    def store(key, value)
-      @engine.db[key] = value
-    end
-
-    def delete(key)
-      @engine.db.delete(key)
-    end
-
-    def set(key, value)
-      self.store(key, value)
-    end
-
-    def [](key)
-      self.lookup(key)
-    end
-
-    def []=(key, value)
-      self.store(key, value)
+    def cluster_query(query)
     end
 
     def query(query)

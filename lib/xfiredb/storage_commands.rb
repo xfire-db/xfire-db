@@ -1,5 +1,5 @@
 #
-#   XFireDB string extensions
+#   XFireDB storage commands
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,17 +16,46 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class String
-  def is_i?
-    /\A[-+]?\d+\z/ === self
+module XFireDB
+  class CommandGet
+    def initialize(argv)
+      super("GET", argv)
+    end
+
+    def exec
+      db = XFireDB.db
+      return unless @argv[0]
+      return db[@argv[0]]
+    end
   end
 
-  def rchomp(sep = $/)
-    self.start_with?(sep) ? self[sep.size..-1] : self
+  class CommandSet
+    def initialize(argv)
+      super("SET", argv)
+    end
+
+    def exec
+      key = @argv[0]
+      data = @argv[1]
+      db = XFireDB.db
+
+      return unless key and data
+      db[key] = data
+    end
   end
 
-  def tokenize
-    self.
-      split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).map { |s| s.strip.rchomp('"').chomp('"') }
+  class CommandDelete
+    def initialize(argv)
+      super("DELETE", argv)
+    end
+
+    def exec
+      key = @argv[0]
+      db = XFireDB.db
+
+      return unless key
+      db.delete(key)
+    end
   end
 end
+

@@ -1,5 +1,5 @@
 #
-#   XFireDB string extensions
+#   XFireDB XQL parser
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,17 +16,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class String
-  def is_i?
-    /\A[-+]?\d+\z/ === self
+module XFireDB
+  class XQLCommand
+    attr_reader :cmd, :args, :raw
+
+    @cmd = nil
+    @args = nil
+    @raw = nil
+
+    def initialize(cmd, args, query)
+      @cmd = cmd
+      @args = args
+      @raw = query
+    end
   end
 
-  def rchomp(sep = $/)
-    self.start_with?(sep) ? self[sep.size..-1] : self
-  end
-
-  def tokenize
-    self.
-      split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).map { |s| s.strip.rchomp('"').chomp('"') }
+  class XQL
+    def XQL.parse(obj = nil, query)
+      cmdary = query.tokenize
+      cmd = cmdary.shift
+      return XQLCommand.new(cmd, cmdary, query)
+    end
   end
 end
+

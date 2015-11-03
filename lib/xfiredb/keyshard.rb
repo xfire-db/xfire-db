@@ -21,7 +21,7 @@ module XFireDB
     @slots = nil
     @keys = nil
 
-    def initialize(range)
+    def initialize(range = nil)
       @slots = Set.new
       @keys = Set.new
 

@@ -23,14 +23,17 @@ module XFireDB
     @addr = nil
     @port = nil
     @cluster_port = nil
-    @shard = nil
 
-    def initialize(shard, addr = nil, port = nil)
+    def initialize(addr, port)
       @addr = addr
       @port = port
       @cluster_port = port + 10000
-      @shard = XFireDB::KeyShard.new
-      @shard.add_slots(shard)
+    end
+
+    def cluster_query(query)
+    end
+
+    def query(query)
     end
   end
 end

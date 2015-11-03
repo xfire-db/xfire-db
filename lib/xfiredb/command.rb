@@ -1,5 +1,5 @@
 #
-#   XFireDB string extensions
+#   XFireDB commands
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,17 +16,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class String
-  def is_i?
-    /\A[-+]?\d+\z/ === self
-  end
+module XFireDB
+  class Command
+    @cmd = nil
+    @argv = nil
+    @raw = nil
 
-  def rchomp(sep = $/)
-    self.start_with?(sep) ? self[sep.size..-1] : self
-  end
-
-  def tokenize
-    self.
-      split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).map { |s| s.strip.rchomp('"').chomp('"') }
+    def initialize(cmd, argv, raw)
+      @cmd = cmd
+      @argv = argv
+      @raw = raw
+    end
   end
 end
+
