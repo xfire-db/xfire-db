@@ -41,7 +41,7 @@ module XFireDB
       if nodes
         nodes.each do |node|
           data = node.split(':')
-          @nodes[data[0]] = ClusterNode.new(data[1], data[2])
+          @nodes[data[0]] = ClusterNode.new(data[1], data[2].to_i)
         end
       end
 

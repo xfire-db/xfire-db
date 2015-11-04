@@ -48,27 +48,28 @@ module XFireDB
       serv = TCPServer.new(@config.addr, @config.port + 10000)
       Thread.new do
         loop do
-          request = serv.accept
-          type = request.gets.chop
-          reply = case type.upcase
-          when "QUERY"
-            query = XFireDB::XQL.parse(request.gets.chop)
-            @cluster.cluster_query(query)
-          when "PING"
-            "PONG"
-          when "GOSSIP"
-            gossip = request.gets.chop
-            gossip = gossip.split(':')
-            # 0 => node the gossip is about
-            # 1 => node IP
-            # 2 => node port
-            # 3 => node status code, or message
-            @cluster.gossip(gossip)
-            "OK"
-          end
+          Thread.start(serv.accept) do |request|
+            type = request.gets.chop
+            reply = case type.upcase
+            when "QUERY"
+              query = XFireDB::XQL.parse(request.gets.chop)
+              @cluster.cluster_query(query)
+            when "PING"
+              "PONG"
+            when "GOSSIP"
+              gossip = request.gets.chop
+              gossip = gossip.split(':')
+              # 0 => node the gossip is about
+              # 1 => node IP
+              # 2 => node port
+              # 3 => node status code, or message
+              @cluster.gossip(gossip)
+              "OK"
+            end
 
-          request.puts reply
-          request.close
+            request.puts reply
+            request.close
+          end
         end
       end
     end
