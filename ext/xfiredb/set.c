@@ -98,7 +98,7 @@ static VALUE rb_set_add(VALUE self, VALUE _key)
 	set = obj_to_set(self);
 	if(set_add(set, key, k) == -XFIRE_OK) {
 		if(e->key)
-			xfiredb_notice_disk(key, k->key, NULL, SET_ADD);
+			xfiredb_notice_disk(e->key, k->key, NULL, SET_ADD);
 
 		return _key;
 	}

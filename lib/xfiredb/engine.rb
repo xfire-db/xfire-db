@@ -73,7 +73,7 @@ module XFireDB
     def load_set_entry(key, skey)
       @db[key] ||= XFireDB::Set.new
       set = @db[key]
-      return unless map.class == XFireDB::Set
+      return unless set.class == XFireDB::Set
       set.add(skey)
     end
   end
