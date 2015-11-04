@@ -2,6 +2,7 @@ include_directories(${XFIRE_SERVER_INCLUDE_DIR})
 
 ADD_RUBY_EXTENSION(storage_engine
 	database.c
+	set.c
 	list.c
 	hashmap.c
 	storage_engine.c

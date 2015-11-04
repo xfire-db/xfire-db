@@ -32,6 +32,8 @@ module XFireDB
           self.load_list_entry(key, data)
         when "hashmap"
           self.load_map_entry(key, hash, data)
+        when "set"
+          self.load_set_entry(key, hash)
         end
       end
 
@@ -54,6 +56,13 @@ module XFireDB
       map = @db[key]
       return unless map.class == XFireDB::Hashmap
       map[hash] = data
+    end
+
+    def load_set_entry(key, skey)
+      @db[key] ||= XFireDB::Set.new
+      set = @db[key]
+      return unless map.class == XFireDB::Set
+      set.add(skey)
     end
   end
 end

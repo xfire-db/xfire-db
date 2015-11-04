@@ -98,6 +98,9 @@ static void raw_rb_db_delete(struct db_entry_container *entry)
 	} else if(entry->type == c_hashmap) {
 		rb_hashmap_free(entry);
 		entry->obj = Qnil;
+	} else if(entry->type == c_set) {
+		rb_set_free(entry);
+		entry->obj = Qnil;
 	}
 }
 

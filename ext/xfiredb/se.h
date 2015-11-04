@@ -39,6 +39,11 @@ struct db_entry_container {
 extern VALUE c_xfiredb_mod;
 extern VALUE c_hashmap;
 extern VALUE c_list;
+extern VALUE c_set;
+
+/* set funcs */
+extern void init_set(void);
+extern void rb_set_free(struct db_entry_container *e);
 
 /* hashmap funcs */
 extern VALUE rb_hashmap_each(VALUE hash);

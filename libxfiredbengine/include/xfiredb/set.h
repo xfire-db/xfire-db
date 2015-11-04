@@ -59,6 +59,11 @@ extern int set_add(struct set *s, char *key, struct set_key *k);
 extern bool set_contains(struct set *s, const char *key);
 extern struct set_key *set_remove(struct set *s, const char *key);
 extern int set_clear(struct set *set);
+
+static inline int set_size(struct set *set)
+{
+	return atomic_get(&set->num);
+}
 CDECL_END
 
 #endif
