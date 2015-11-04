@@ -55,6 +55,9 @@ typedef enum {
 	HM_ADD, //!< Add a hashmap entry.
 	HM_DEL, //!< Delete a hashmap entry.
 	HM_UPDATE, //!< Update a hashmap entry.
+
+	SET_ADD, //!<  Add a set key.
+	SET_DEL, //!< Delete a set key.
 } bio_operation_t;
 
 /**

@@ -28,6 +28,7 @@
 #include <xfiredb/string.h>
 #include <xfiredb/list.h>
 #include <xfiredb/hashmap.h>
+#include <xfiredb/set.h>
 #include <xfiredb/mem.h>
 
 /**
@@ -46,6 +47,9 @@ void container_init(struct container *c, container_type_t type)
 		break;
 	case CONTAINER_HASHMAP:
 		hashmap_init(&c->data.map);
+		break;
+	case CONTAINER_SET:
+		set_init(&c->data.set);
 		break;
 	default:
 		break;
@@ -87,6 +91,9 @@ void *container_get_data(struct container *c)
 	case CONTAINER_HASHMAP:
 		data = &c->data.map;
 		break;
+	case CONTAINER_SET:
+		data = &c->data.set;
+		break;
 	default:
 		data = NULL;
 		break;
@@ -110,6 +117,9 @@ void container_destroy(struct container *c)
 		break;
 	case CONTAINER_HASHMAP:
 		hashmap_destroy(&c->data.map);
+		break;
+	case CONTAINER_SET:
+		set_destroy(&c->data.set);
 		break;
 	default:
 		break;

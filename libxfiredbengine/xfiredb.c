@@ -125,6 +125,9 @@ void xfiredb_store_container(char *_key, struct container *c)
 	struct list_head *lh;
 	struct hashmap *map;
 	struct hashmap_node *node;
+	struct set *set;
+	struct set_key *k;
+	struct set_iterator *set_it;
 	hashmap_iterator_t it;
 
 	if(!se_state)
@@ -160,6 +163,18 @@ void xfiredb_store_container(char *_key, struct container *c)
 			bio_queue_add(key, arg, value, HM_ADD);
 		}
 		break;
+
+	case CONTAINER_SET:
+		set = container_get_data(c);
+		set_it = set_iterator_new(set);
+		for_each_set(set, k, set_it) {
+			xfire_sprintf(&key, "%s", _key);
+			xfire_sprintf(&arg, "%s", k->key);
+			bio_queue_add(key, arg, NULL, SET_ADD);
+		}
+
+		set_iterator_free(set_it);
+		break;
 	default:
 		break;
 	}
@@ -174,6 +189,8 @@ static container_type_t xfiredb_get_row_type(char *cell)
 		return CONTAINER_LIST;
 	if(!strcmp(cell, "hashmap"))
 		return CONTAINER_HASHMAP;
+	if(!strcmp(cell, "set"))
+		return CONTAINER_SET;
 
 	return 0;
 }
@@ -190,6 +207,8 @@ static void xfiredb_load(struct database *db,
 	struct string *s;
 	struct list_head *h;
 	struct hashmap *map;
+	struct set *set;
+	struct set_key *k;
 
 	for(i = 0; i < argc; i += 4) {
 		type = xfiredb_get_row_type(rows[i + TABLE_TYPE_IDX]);
@@ -232,6 +251,20 @@ static void xfiredb_load(struct database *db,
 			map = container_get_data(c);
 			s = string_alloc(data);
 			hashmap_add(map, skey, &s->node);
+
+			if(!available)
+				db_store(db, key, c);
+			break;
+
+		case CONTAINER_SET:
+			if(available)
+				c = dbdata.ptr;
+			else
+				c = container_alloc(CONTAINER_SET);
+
+			set = container_get_data(c);
+			k = xfire_zalloc(sizeof(*k));
+			set_add(set, skey, k);
 
 			if(!available)
 				db_store(db, key, c);

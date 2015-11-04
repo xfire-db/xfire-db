@@ -207,6 +207,30 @@ int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 }
 
 /**
+ * @brief Store a set key.
+ * @param d Disk to store onto.
+ * @param key Key to store the key under.
+ * @param skey Set key to store.
+ * @return An error code.
+ */
+int disk_store_set_key(struct disk *d, char *key, char *skey)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_STORE_QUERY, key, skey, "set", "null");
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk store failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
+/**
  * @brief Store a list entry.
  * @param d Disk to store on.
  * @param key Key to store \p data under.
@@ -434,6 +458,28 @@ int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey)
 	char *msg, *query;
 
 	xfire_sprintf(&query, DISK_DELETE_HM_QUERY, key, nodekey);
+	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
+
+	if(rc != SQLITE_OK)
+		fprintf(stderr, "Disk delete failed: %s\n", msg);
+
+	sqlite3_free(msg);
+	xfire_free(query);
+	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+}
+
+/**
+ * @brief Delete a set key.
+ * @param d Disk to delete from.
+ * @param key Key to delete.
+ * @param skey Set key to delete.
+ */
+int disk_delete_set_key(struct disk *d, char *key, char *skey)
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_DELETE_HM_QUERY, key, skey);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)

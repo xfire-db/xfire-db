@@ -72,6 +72,9 @@ extern int disk_store_string(struct disk *d, char *key, char *data);
 extern int disk_update_string(struct disk *d, char *key, void *data);
 extern int disk_delete_string(struct disk *d, char *key);
 
+extern int disk_store_set_key(struct disk *d, char *key, char *skey);
+extern int disk_delete_set_key(struct disk *d, char *key, char *skey);
+
 extern int disk_store_hm(struct disk *d, char *key, struct hashmap *map);
 extern int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data);
 extern int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey);

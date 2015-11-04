@@ -30,6 +30,7 @@
 #include <xfiredb/list.h>
 #include <xfiredb/string.h>
 #include <xfiredb/hashmap.h>
+#include <xfiredb/set.h>
 
 #define CONTAINER_STRING_MAGIC 0xFFAABBCC
 #define CONTAINER_LIST_MAGIC   0xEEAABBCC
@@ -42,6 +43,7 @@ typedef enum {
 	CONTAINER_STRING, //!< String container.
 	CONTAINER_LIST, //!< List container.
 	CONTAINER_HASHMAP, //!< Hashmap container.
+	CONTAINER_SET, //!< Set container.
 } container_type_t;
 
 /**
@@ -54,6 +56,7 @@ struct container {
 		struct list_head list; //!< List head.
 		struct string string; //!< String.
 		struct hashmap map; //!< Hashmap.
+		struct set set; //!< Set.
 	} data; //!< Container data union.
 };
 
