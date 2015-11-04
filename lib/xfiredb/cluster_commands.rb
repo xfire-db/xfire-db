@@ -95,6 +95,7 @@ module XFireDB
       local_pw = map["user::#{username}"]
       local_pw = BCrypt::Password.new(local_pw)
       return "INCORRECT" if local_pw.nil? or local_pw != password
+      # TODO: add node to the db
       return "OK"
     end
   end
