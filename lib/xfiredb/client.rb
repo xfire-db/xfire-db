@@ -1,5 +1,5 @@
 #
-#   XFireDB module
+#   XFireDB client
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,28 +17,39 @@
 #
 
 module XFireDB
-  class Server
-    attr_reader :config
+  class Client
+    attr_accessor :xql, :stream
+    attr_reader :request
 
-    def initialize(conf)
-      @config = XFireDB::Config.new(conf)
-      @bus = XFireDB::ClusterBus.new if @config.cluster
-      @pool = XFireDB::WorkerPool.new(XFireDB.worker_num)
-      @store = XFireDB::Engine.new
+    @request = nil
+    @stream = nil
+
+    def initialize(client, xql = nil)
+      @request = XFireDB::XQL.parse(xql) unless xql.nil?
+      @stream = client
     end
 
-    def stop
-      @store.stop
+    def Client.from_stream(stream)
+      client = Client.new(stream)
+      client.stream = stream
+      return client
     end
 
-    def start
-      log = "[init]: XFireDB started"
-      log = log + " in debugging mode" if @config.debug
-      puts log
+    def read
+      len = @stream.gets.chop
+      return unless len.is_i?
+      len = len.to_i
+      data = @stream.read(len)
+      return XFireDB::XQL.parse(data)
+    end
 
-      # start the cluster bus
-      gets.chomp
+    def process(xql = nil)
+      if xql.nil? && @process.nil?
+        raise ArgumentError.new("Cannot handle a process without a query")
+      end
+
+      @request = XFireDB::Request.new(xql) unless xql.nil?
+      @request.handle
     end
   end
 end
-

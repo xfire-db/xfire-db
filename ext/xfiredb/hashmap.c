@@ -62,15 +62,15 @@ void rb_hashmap_free(struct db_entry_container *c)
 VALUE rb_hashmap_alloc(VALUE klass)
 {
 	struct db_entry_container *container = xfire_zalloc(sizeof(*container));
-	VALUE obj;
 
 	container_init(&container->c, CONTAINER_HASHMAP);
-	obj = Data_Wrap_Struct(klass, NULL, rb_hashmap_release, container);
+	container->obj = Data_Wrap_Struct(klass, NULL, rb_hashmap_release, container);
 	container->intree = false;
 	container->type = klass;
 	container->obj_released = false;
 	container->release = rb_hashmap_release;
-	return obj;
+
+	return container->obj;
 }
 
 static struct hashmap *obj_to_map(VALUE obj)
@@ -224,7 +224,6 @@ VALUE hash_enum_size(VALUE hash, VALUE args, VALUE obj)
 
 VALUE rb_hashmap_each(VALUE hash)
 {
-	RETURN_SIZED_ENUMERATOR(hash, 0, 0, hash_enum_size);
 	hashmap_iterator_t it;
 	struct hashmap *map;
 	struct hashmap_node *node;
@@ -232,6 +231,7 @@ VALUE rb_hashmap_each(VALUE hash)
 	char *tmp;
 	struct string *s;
 
+	RETURN_SIZED_ENUMERATOR(hash, 0, 0, hash_enum_size);
 	map = obj_to_map(hash);
 	it = hashmap_new_iterator(map);
 

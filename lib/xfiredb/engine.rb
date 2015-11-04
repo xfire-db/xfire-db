@@ -1,5 +1,5 @@
 #
-#   XFireDB module
+#   XFireDB engine
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,10 @@ module XFireDB
 
     def initialize
       @db = XFireDB::Database.new
+      self.start
+    end
+
+    def start
       self.init
 
       self.load.each.each do |key, hash, type, data|
@@ -38,6 +42,14 @@ module XFireDB
       end
 
       self.set_loadstate(true)
+    end
+
+    def exit
+      self.set_loadstate(false)
+      @db.each do |key, value|
+        @db.delete(key)
+      end
+      self.stop(@db)
     end
 
     def load_string(key, data)

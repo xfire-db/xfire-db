@@ -98,12 +98,17 @@ static void raw_rb_list_clear(struct db_entry_container *container)
 	struct list_head *lh;
 	struct list *carriage, *tmp;
 	struct string *s;
+	char *data;
 
 	lh = container_get_data(&container->c);
 
 	list_for_each_safe(lh, carriage, tmp) {
 		list_del(lh, carriage);
 		s = container_of(carriage, struct string, entry);
+		string_get(s, &data);
+		if(container->key)
+			xfiredb_notice_disk(container->key, data, NULL, LIST_DEL);
+		xfire_free(data);
 		string_destroy(s);
 		xfire_free(s);
 	}

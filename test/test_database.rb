@@ -38,8 +38,11 @@ class TestStorageEngine < Test::Unit::TestCase
   end
 
   def test_delete
-    @db.delete("key3")
-    assert_equal(nil, @db["key3"], "DB delete failed")
+    @db.each do |key, value|
+      @db.delete(key)
+    end
+
+    assert_equal(0, @db.size)
   end
 
   def test_list
@@ -50,9 +53,6 @@ class TestStorageEngine < Test::Unit::TestCase
     @db["key4"] = list
 
     tmp = @db["key4"]
-    tmp.each do |value|
-      puts value
-    end
 
     @db.each do |key, value|
       puts "Data type of #{key} is #{value.class}"

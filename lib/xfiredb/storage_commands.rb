@@ -1,5 +1,5 @@
 #
-#   XFireDB Worker pool
+#   XFireDB storage commands
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,27 +17,46 @@
 #
 
 module XFireDB
-  class WorkerPool < Queue
-    def initialize(num, cluster)
-      super()
-      db = XFireDB.db
-      wokers = (0...num).map do
-        Thread.new do
-          begin
-            while stream = self.pop(false)
-              client = XFireDB::Client.from_stream(stream)
-              rq = client.read
-              stream.puts cluster.query(rq)
-              stream.close
-            end
-          rescue Exception => e
-            puts e
-          end
-        end
-      end
+  class CommandSet < XFireDB::Command
+    def initialize(argv)
+      super("SET", argv)
     end
 
-    def handle(client)
+    def exec
+      key = @argv[0]
+      data = @argv[1]
+      db = XFireDB.db
+
+      return "Syntax `GET <key> \"<data>\"'" unless key and data
+      db[key] = data
+      return "OK"
+    end
+  end
+
+  class CommandGet < XFireDB::Command
+    def initialize(argv)
+      super("GET", argv)
+    end
+
+    def exec
+      db = XFireDB.db
+      return unless @argv[0]
+      return db[@argv[0]]
+    end
+  end
+
+
+  class CommandDelete < XFireDB::Command
+    def initialize(argv)
+      super("DELETE", argv)
+    end
+
+    def exec
+      key = @argv[0]
+      db = XFireDB.db
+
+      return unless key
+      db.delete(key)
     end
   end
 end

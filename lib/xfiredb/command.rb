@@ -1,5 +1,5 @@
 #
-#   XFireDB Worker pool
+#   XFireDB commands
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,27 +17,15 @@
 #
 
 module XFireDB
-  class WorkerPool < Queue
-    def initialize(num, cluster)
-      super()
-      db = XFireDB.db
-      wokers = (0...num).map do
-        Thread.new do
-          begin
-            while stream = self.pop(false)
-              client = XFireDB::Client.from_stream(stream)
-              rq = client.read
-              stream.puts cluster.query(rq)
-              stream.close
-            end
-          rescue Exception => e
-            puts e
-          end
-        end
-      end
-    end
+  class Command
+    @cmd = nil
+    @argv = nil
+    @raw = nil
 
-    def handle(client)
+    def initialize(cmd, argv, raw = nil)
+      @cmd = cmd
+      @argv = argv
+      @raw = raw
     end
   end
 end

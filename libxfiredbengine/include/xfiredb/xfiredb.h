@@ -82,7 +82,7 @@ extern void xfiredb_store_container(char *_key, struct container *c);
 extern int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data));
 extern int xfiredb_list_clear(char *key, void (*hook)(char *key, char *data));
 extern void xfiredb_disk_clear(void);
-extern int xfire_sprintf(char **buf, char *format, ...);
+extern int xfire_sprintf(char **buf, const char *format, ...);
 extern void xfiredb_init(void);
 extern void xfiredb_exit(void);
 extern int xfiredb_string_set(char *key, char *str);

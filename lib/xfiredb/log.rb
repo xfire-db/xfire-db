@@ -1,5 +1,5 @@
 #
-#   XFireDB Worker pool
+#   XFireDB server
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,28 +17,10 @@
 #
 
 module XFireDB
-  class WorkerPool < Queue
-    def initialize(num, cluster)
-      super()
-      db = XFireDB.db
-      wokers = (0...num).map do
-        Thread.new do
-          begin
-            while stream = self.pop(false)
-              client = XFireDB::Client.from_stream(stream)
-              rq = client.read
-              stream.puts cluster.query(rq)
-              stream.close
-            end
-          rescue Exception => e
-            puts e
-          end
-        end
-      end
-    end
-
-    def handle(client)
-    end
+  class Log
+    LOG_INIT = "[init]: ".freeze
+    LOG_SERVER = "[server]: ".freeze
+    LOG_CLIENT = "[client]: ".freeze
+    LOG_XQL = "[xql]: ".freeze
   end
 end
-

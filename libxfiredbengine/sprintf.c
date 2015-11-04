@@ -42,7 +42,7 @@ static int xfire_vsprintf(char **str, const char *fmt, va_list args)
 	return size;
 }
 
-int xfire_sprintf(char **buf, char *format, ...)
+int xfire_sprintf(char **buf, const char *format, ...)
 {
 	int size;
 	va_list args;

@@ -20,41 +20,40 @@ require 'xfiredb'
 require 'test/unit'
 
 class TestStorageEngine < Test::Unit::TestCase
-  TEST_STRING_DATA = "Test string data"
-  TEST_STRING_KEY  = "key-1"
-
-  TEST_LIST_KEY = "key-2"
-  TEST_LIST_DATA1 = "Test list data 1"
-  TEST_LIST_DATA2 = "Test list data 2"
-  TEST_LIST_DATA3 = "Test list data 3"
-  TEST_LIST_DATA4 = "Test list data 4"
-
-  TEST_HM_KEY = "key-3"
-  TEST_HM_SUB_KEY1 = "sub-key-1"
-  TEST_HM_SUB_KEY2 = "sub-key-2"
-  TEST_HM_SUB_KEY3 = "sub-key-3"
-  TEST_HM_SUB_KEY4 = "sub-key-4"
-  TEST_HM_DATA1 = "Test hashmap data 1"
-  TEST_HM_DATA2 = "Test hashmap data 2"
-  TEST_HM_DATA3 = "Test hashmap data 3"
-  TEST_HM_DATA4 = "Test hashmap data 4" 
-
   def setup
     puts ""
     @engine = XFireDB::Engine.new
+    @engine.set_loadstate(false)
   end
 
   def teardown
     @engine.exit
   end
 
-  def test_hashmap
-  end
+  def test_stress
+    db = @engine.db
 
-  def test_list
-  end
+    40000.times do |x|
+      key = "key#{x}"
+      hkey = "hkey#{x}"
+      data = "Test data #{x}"
 
-  def test_string
+      db[key] ||= XFireDB::Hashmap.new
+      db[key][hkey] = data
+    end
+
+    assert_equal("Test data 800", db["key800"]["hkey800"], "First assert failed")
+    assert_equal("Test data 800", db["key800"]["hkey800"], "Second assert failed")
+
+    map = db['key4000']
+    map.each do |k, v|
+      assert_equal("hkey4000", k)
+      assert_equal("Test data 4000", v)
+    end
+
+    40000.times do |x|
+      key = "key#{x}"
+      assert_equal(key, db.delete(key))
+    end
   end
 end
-

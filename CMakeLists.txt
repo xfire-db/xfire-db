@@ -6,7 +6,7 @@ SET(API_VERSION 1.0)
 cmake_policy(SET CMP0007 NEW)
 INCLUDE (CheckIncludeFiles)
 
-include(scripts/filecheck.cmake)
+include(scripts/find_deps.cmake)
 include(scripts/directories.cmake)
 include(scripts/options.cmake)
 

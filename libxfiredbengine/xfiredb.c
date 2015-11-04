@@ -43,23 +43,24 @@ struct disk *dbg_disk;
 struct disk *xfire_disk;
 #endif
 
-static volatile bool se_state = false;
+static bool load_state = false;
 
-bool xfiredb_loadstate(void)
-{
-	return se_state;
-}
-
-void xfiredb_set_loadstate(bool v)
-{
-	se_state = v;
-}
-
+/**
+ * @brief Clear the entire disk.
+ */
 void xfiredb_disk_clear(void)
 {
 	disk_clear(disk_db);
 }
 
+/**
+ * @brief Set the load state of the engine.
+ * @param state Load state to set.
+ */
+void xfiredb_set_loadstate(bool state)
+{
+	load_state = state;
+}
 
 /**
  * @brief Initialise the XFireDB storage engine.
@@ -74,11 +75,19 @@ void xfiredb_se_init(void)
 	bio_init();
 }
 
+/**
+ * @brief Number of entry's (rows) on the disk.
+ * @return Number of entry's on the disk.
+ */
 long xfiredb_disk_size(void)
 {
 	return disk_size(disk_db);
 }
 
+/**
+ * @brief Load data from the hard disk using a hook.
+ * @param hook Called for each disk entry.
+ */
 void xfiredb_raw_load(void (*hook)(int argc, char **rows, char **cols))
 {
 	xfire_log_console(LOG_INIT, "Loading data from disk\n");
@@ -97,15 +106,22 @@ void xfiredb_se_exit(void)
 	xfiredb_set_loadstate(false);
 }
 
+/**
+ * @brief Notify the disk handler of a data change.
+ * @param _key Key that changed.
+ * @param _arg Extra info about the entry that changed.
+ * @param _data New data.
+ * @param _op Type of change.
+ */
 void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int _op)
 {
 	char *key, *arg, *data;
 	bio_operation_t op = _op;
 
-	key = arg = data = NULL;
-
-	if(!se_state)
+	if(!load_state)
 		return;
+
+	key = arg = data = NULL;
 
 	if(_key)
 		xfire_sprintf(&key, "%s", _key);
@@ -117,6 +133,11 @@ void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int _op)
 	bio_queue_add(key, arg, data, op);
 }
 
+/**
+ * @brief Store an entire storage container.
+ * @param _key Key to store \p c under.
+ * @param c Container to store.
+ */
 void xfiredb_store_container(char *_key, struct container *c)
 {
 	char *key, *arg, *value;
@@ -130,7 +151,7 @@ void xfiredb_store_container(char *_key, struct container *c)
 	struct set_iterator *set_it;
 	hashmap_iterator_t it;
 
-	if(!se_state)
+	if(!load_state)
 		return;
 
 	switch(c->type) {

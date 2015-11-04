@@ -1,5 +1,5 @@
 #
-#   XFireDB Worker pool
+#   XFireDB benchmark
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,29 +16,28 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-module XFireDB
-  class WorkerPool < Queue
-    def initialize(num, cluster)
-      super()
-      db = XFireDB.db
-      wokers = (0...num).map do
-        Thread.new do
-          begin
-            while stream = self.pop(false)
-              client = XFireDB::Client.from_stream(stream)
-              rq = client.read
-              stream.puts cluster.query(rq)
-              stream.close
-            end
-          rescue Exception => e
-            puts e
-          end
-        end
-      end
-    end
+require 'xfiredb'
+require 'benchmark'
 
-    def handle(client)
+engine = XFireDB::Engine.new
+engine.set_loadstate(false)
+
+Benchmark.bm do |mark|
+  result = mark.report {
+    db = engine.db
+
+    40000.times do |x|
+      key = "key#{x}"
+      data = "Test data #{x}"
+
+      db[key] = data
     end
-  end
+  }
+
+  puts "Results:"
+  puts "40000 database store's in #{result.real}s"
+  puts "Database store's per second: #{40000/result.real}"
 end
+
+engine.exit
 

@@ -30,16 +30,24 @@
 
 #include "se.h"
 
-static void rb_db_free(void *p)
+static void rb_db_release(void *p)
 {
-	struct database *db = p;
-	db_free(db);
+}
+
+static VALUE rb_container_to_obj(struct db_entry_container *c)
+{
+	if(c->obj_released) {
+		c->obj = Data_Wrap_Struct(c->type, NULL, c->release, c);
+		c->obj_released = false;
+	}
+
+	return c->obj;
 }
 
 VALUE rb_db_new(VALUE klass)
 {
 	struct database *db = db_alloc("xfire-database");
-	VALUE obj = Data_Wrap_Struct(klass, NULL, rb_db_free, db);
+	VALUE obj = Data_Wrap_Struct(klass, NULL, rb_db_release, db);
 
 	rb_gc_mark(obj);
 	return obj;
@@ -63,13 +71,7 @@ VALUE rb_db_ref(VALUE self, VALUE key)
 	entry = container_of(c, struct db_entry_container, c);
 
 	if(entry->type != rb_cString) {
-		if(entry->obj_released) {
-			rv = Data_Wrap_Struct(entry->type, NULL, entry->release, entry);
-			entry->obj_released = false;
-			return rv;
-		} else {
-			return entry->obj;
-		}
+		return rb_container_to_obj(entry);
 	} else {
 		s = container_get_data(&entry->c);
 		string_get(s, &tmp);
@@ -125,7 +127,16 @@ VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 	if(db_delete(db, tmp, &dbdata) == -XFIRE_OK) {
 		c = dbdata.ptr;
 		rb_c = container_of(c, struct db_entry_container, c);
-		raw_rb_db_delete(rb_c);
+		if(rb_c->obj != data) {
+			if(rb_c->type == rb_cString && rb_obj_class(data) == rb_cString) {
+				c = dbdata.ptr;
+				s = container_get_data(c);
+				string_set(s, StringValueCStr(data));
+				return data;
+			}
+
+			raw_rb_db_delete(rb_c);
+		}
 	}
 
 	if(rb_obj_class(data) != rb_cString) {
@@ -170,6 +181,14 @@ VALUE rb_db_delete(VALUE self, VALUE key)
 	return key;
 }
 
+void rb_db_free(VALUE self)
+{
+	struct database *db;
+
+	Data_Get_Struct(self, struct database, db);
+	db_free(db);
+}
+
 static VALUE db_enum_size(VALUE db, VALUE args, VALUE obj)
 {
 	return rb_db_size(db);
@@ -196,7 +215,7 @@ static VALUE rb_db_each_pair(VALUE db)
 		k = rb_str_new2(e->key);
 
 		if(db_c->type != rb_cString) {
-			v = db_c->obj;
+			v = rb_container_to_obj(db_c);
 		} else {
 			s_val = container_get_data(c);
 			string_get(s_val, &value);

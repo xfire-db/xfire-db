@@ -45,6 +45,8 @@ extern VALUE c_set;
 extern void init_set(void);
 extern void rb_set_free(struct db_entry_container *e);
 
+extern void init_log(void);
+
 /* hashmap funcs */
 extern VALUE rb_hashmap_each(VALUE hash);
 extern VALUE rb_hashmap_store(VALUE self, VALUE key, VALUE data);
@@ -58,22 +60,5 @@ extern void rb_hashmap_remove(struct db_entry_container *c);
 
 /* list funcs */
 extern void rb_list_free(struct db_entry_container *container);
-
-extern VALUE rb_se_list_del(VALUE self, VALUE _key, VALUE _start, VALUE _end);
-extern VALUE rb_se_list_del2(VALUE self, VALUE _key, VALUE indexes);
-extern VALUE rb_se_list_set(VALUE self, VALUE _key, VALUE index, VALUE _data);
-extern VALUE rb_se_list_rpush(VALUE self, VALUE _key, VALUE _data);
-extern VALUE rb_se_list_lpush(VALUE self, VALUE _key, VALUE _data);
-extern VALUE rb_se_list_get2(VALUE self, VALUE _key, VALUE indexes);
-extern VALUE rb_se_list_get(VALUE self, VALUE _key, VALUE _start, VALUE _end);
-extern VALUE rb_se_list_clear(VALUE self, VALUE _key);
-/* string funcs */
-extern VALUE rb_se_str_set(VALUE self, VALUE _key, VALUE data);
-extern VALUE rb_se_str_get(VALUE self, VALUE _key);
-/* hm funcs */
-extern VALUE rb_se_hm_get(VALUE self, VALUE _key, VALUE _skeys);
-extern VALUE rb_se_hm_clear(VALUE self, VALUE _key);
-extern VALUE rb_se_hm_set(VALUE self, VALUE _key, VALUE _skey, VALUE _data);
-extern VALUE rb_se_hm_del(VALUE self, VALUE _key, VALUE _skeys);
 #endif
 

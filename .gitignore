@@ -1,6 +1,9 @@
 *.o
+*.output
 build/
 Documentation/gen/
 
 *.swp
 config.h
+Gemfile.lock
+
