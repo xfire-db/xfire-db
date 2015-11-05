@@ -40,7 +40,7 @@ module XFireDB
 
       if nodes
         nodes.each do |node|
-          data = node.split(':')
+          data = node.split(' ')
           @nodes[data[0]] = ClusterNode.new(data[1], data[2].to_i)
         end
       end
@@ -50,6 +50,10 @@ module XFireDB
 
     def shell
       exit
+    end
+
+    def add_node(id, ip, port)
+      @nodes[id] = ClusterNode.new(ip, port)
     end
 
     def local_node
@@ -62,7 +66,7 @@ module XFireDB
     end
 
     def broadcast(cmd)
-      rv = Aray.new
+      rv = Array.new
 
       @nodes.each do |node|
         rv.push node.cluster_query(cmd)
@@ -88,7 +92,8 @@ module XFireDB
       return "INCORRECT" if local_pw.nil? or local_pw != password
 
       db['xfiredb-nodes'] ||= XFireDB::List.new
-      db['xfiredb-nodes'].push("#{source[0]}:#{source[1]}:#{source[2]}")
+      db['xfiredb-nodes'].push("#{source[0]} #{source[1]} #{source[2]}")
+      add_node(source[0], source[1], source[2].to_i)
       return "OK"
     end
 

@@ -44,6 +44,10 @@ module XFireDB
       end
     end
 
+    def to_s
+      "myself, #{@addr} #{@port}"
+    end
+
     def start_clusterbus
       serv = TCPServer.new(@config.addr, @config.port + 10000)
       Thread.new do
@@ -66,7 +70,7 @@ module XFireDB
               "PONG"
             when "GOSSIP"
               gossip = request.gets.chop
-              gossip = gossip.split(':')
+              gossip = gossip.split(' ')
               # 0 => node the gossip is about
               # 1 => node IP
               # 2 => node port

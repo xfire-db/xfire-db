@@ -37,8 +37,10 @@ module XFireDB
 
     def exec
       rv = case @subcmd.upcase
-           when "WHEREIS"
-             "OK"
+           when "NODES"
+             get_nodes
+           when "WHEREIS?"
+             where_is?
            when "GETID"
              cluster_get_id
            when "MEET"
@@ -53,6 +55,22 @@ module XFireDB
     end
 
     private
+    def where_is?
+      key = @argv[0]
+      return "Incorrect syntax: CLUSTER WHEREIS? <key>" unless key
+
+      query = "CLUSTER YOUHAVE? #{key}"
+      @cluster.nodes.each do |id, value|
+        socket = TCPSocket.new(value.addr, value.port + 10000)
+        socket.puts "QUERY"
+        socket.puts query
+        rv = socket.gets.chop
+        return rv unless rv == "false"
+      end
+
+      return "Key not known"
+    end
+
     def cluster_meet
       ip = @argv[0]
       port = @argv[1]
@@ -79,8 +97,18 @@ module XFireDB
         nodes = db['xfiredb-nodes']
         db['xfiredb-nodes'] = nodes = XFireDB::List.new unless nodes
         port = port - 10000
-        nodes.push("#{id}:#{ip}:#{port}")
+        nodes.push("#{id} #{ip} #{port}")
+        @cluster.add_node(id, ip, port)
       end
+      return rv
+    end
+
+    def get_nodes
+      rv = Array.new
+      @cluster.nodes.each do |key, value|
+        rv.push("#{key}\t#{value}")
+      end
+
       return rv
     end
 

@@ -42,6 +42,10 @@ module XFireDB
       socket.print(query)
       return socket.read
     end
+
+    def to_s
+      "#{@addr} #{@port}"
+    end
   end
 end
 
