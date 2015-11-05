@@ -71,6 +71,26 @@ module XFireDB
       return rv
     end
 
+    def auth_node(source, node)
+      source = source.split(' ')
+      node = node.split(' ')
+
+      username = node[0]
+      password = node[1]
+      return "Incorrect syntax: CLUSTER AUTH <username> <password>" unless username and password
+
+      db = XFireDB.db
+      map = db['xfiredb']
+      local_pw = map["user::#{username}"]
+      return "INCORRECT" if local_pw.nil?
+      local_pw = BCrypt::Password.new(local_pw)
+
+      return "INCORRECT" if local_pw.nil? or local_pw != password
+
+      puts "Source: #{source[0]} #{source[1]}"
+      return "OK"
+    end
+
     def query(request)
       cmd = XFireDB.cmds
       cmd = cmd[request.cmd]

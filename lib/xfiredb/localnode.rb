@@ -49,8 +49,13 @@ module XFireDB
       Thread.new do
         loop do
           Thread.start(serv.accept) do |request|
+            begin
             type = request.gets.chop
             reply = case type.upcase
+            when "AUTH"
+              source = request.gets.chop
+              auth = request.gets.chop
+              @cluster.auth_node(source, auth)
             when "QUERY"
               query = XFireDB::XQL.parse(request.gets.chop)
               dom, port, host, ip = request.peeraddr
@@ -72,6 +77,10 @@ module XFireDB
 
             request.puts reply
             request.close
+            rescue Exception => e
+              puts e
+              puts e.backtrace
+            end
           end
         end
       end

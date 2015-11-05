@@ -19,6 +19,7 @@
 module XFireDB
   class ClusterNode
     attr_accessor :shard
+    attr_reader :addr, :port
 
     @addr = nil
     @port = nil

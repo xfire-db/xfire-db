@@ -37,8 +37,6 @@ module XFireDB
 
     def exec
       rv = case @subcmd.upcase
-           when "AUTH"
-             cluster_auth
            when "WHEREIS"
              "OK"
            when "GETID"
@@ -62,11 +60,16 @@ module XFireDB
       pw = @argv[3]
       return "Incorrect syntax: CLUSTER MEET <ip> <port> <username> <password>" unless ip and port and uname and pw
       return "ERROR: The port should be numeral" unless port.is_i?
+
       port = port.to_i
       port = port + 10000
+      local_ip = @cluster.local_node.addr
+      local_port = @cluster.local_node.port
+
       sock = TCPSocket.new(ip, port)
-      sock.puts "QUERY"
-      sock.puts "CLUSTER AUTH #{uname} #{pw}"
+      sock.puts "AUTH"
+      sock.puts "#{local_ip} #{local_port}"
+      sock.puts "#{uname} #{pw}"
       rv = sock.gets.chop
 
       if rv == "OK"
@@ -89,21 +92,6 @@ module XFireDB
 
     def cluster_get_id
       XFireDB.db['xfiredb']['id']
-    end
-
-    def cluster_auth
-      username = @argv[0]
-      password = @argv[1]
-      return "Incorrect syntax: CLUSTER AUTH <username> <password>" unless username and password
-
-      db = XFireDB.db
-      map = db['xfiredb']
-      local_pw = map["user::#{username}"]
-      return "INCORRECT" if local_pw.nil?
-      local_pw = BCrypt::Password.new(local_pw)
-
-      return "INCORRECT" if local_pw.nil? or local_pw != password
-      return "OK"
     end
   end
 end
