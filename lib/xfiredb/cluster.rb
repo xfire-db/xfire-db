@@ -80,7 +80,7 @@ module XFireDB
     end
 
     def cluster_query(request)
-      cmd = XFireDB::ClusterCommand.new(self, request.args)
+      cmd = XFireDB::ClusterCommand.new(self, request.args, request.src_ip, request.src_port)
       return cmd.exec
     end
 

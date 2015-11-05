@@ -23,10 +23,16 @@ module XFireDB
     @subcmd = nil
     @cluster = nil
 
-    def initialize(cluster, argv)
+    @ip = nil
+    @port = nil
+
+    def initialize(cluster, argv, ip = nil, port = nil)
       super("CLUSTER", argv)
       @subcmd = @argv.shift
       @cluster = cluster
+
+      @ip = ip
+      @port = port
     end
 
     def exec
@@ -68,9 +74,9 @@ module XFireDB
         id = cluster_far_id(ip, port)
         nodes = db['xfiredb-nodes']
         db['xfiredb-nodes'] = nodes = XFireDB::List.new unless nodes
+        port = port - 10000
         nodes.push("#{id}:#{ip}:#{port}")
       end
-
       return rv
     end
 
@@ -93,9 +99,10 @@ module XFireDB
       db = XFireDB.db
       map = db['xfiredb']
       local_pw = map["user::#{username}"]
+      return "INCORRECT" if local_pw.nil?
       local_pw = BCrypt::Password.new(local_pw)
+
       return "INCORRECT" if local_pw.nil? or local_pw != password
-      # TODO: add node to the db
       return "OK"
     end
   end

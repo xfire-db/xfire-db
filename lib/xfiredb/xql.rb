@@ -19,10 +19,13 @@
 module XFireDB
   class XQLCommand
     attr_reader :cmd, :args, :raw
+    attr_accessor :src_ip, :src_port
 
     @cmd = nil
     @args = nil
     @raw = nil
+    @src_ip = nil
+    @src_port = nil
 
     def initialize(cmd, args, query)
       @cmd = cmd

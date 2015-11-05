@@ -53,6 +53,9 @@ module XFireDB
             reply = case type.upcase
             when "QUERY"
               query = XFireDB::XQL.parse(request.gets.chop)
+              dom, port, host, ip = request.peeraddr
+              query.src_ip = ip
+              query.src_port = port
               @cluster.cluster_query(query)
             when "PING"
               "PONG"
