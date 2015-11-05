@@ -30,8 +30,9 @@ module XFireDB
               stream.puts cluster.query(rq)
               stream.close
             end
-          rescue ThreadError => e
+          rescue Exception => e
             puts e
+            puts e.backtrace
           end
         end
       end

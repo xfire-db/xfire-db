@@ -87,15 +87,24 @@ module XFireDB
 
       return "INCORRECT" if local_pw.nil? or local_pw != password
 
-      puts "Source: #{source[0]} #{source[1]}"
+      db['xfiredb-nodes'] ||= XFireDB::List.new
+      db['xfiredb-nodes'].push("#{source[0]}:#{source[1]}:#{source[2]}")
       return "OK"
+    end
+
+    def get_far_id(ip, port)
+      sock = TCPSocket.new(ip, port)
+      sock.puts "QUERY"
+      sock.puts "CLUSTER GETID"
+      sock.gets.chop
     end
 
     def query(request)
       cmd = XFireDB.cmds
       cmd = cmd[request.cmd]
       return "Command not known" unless cmd
-      instance = cmd.new(request.args)
+      instance = cmd.new(request.args) unless request.cmd == "CLUSTER"
+      instance = cmd.new(self, request.args) if request.cmd == "CLUSTER"
       return instance.exec
     end
 

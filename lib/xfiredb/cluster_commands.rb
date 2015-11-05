@@ -66,9 +66,10 @@ module XFireDB
       local_ip = @cluster.local_node.addr
       local_port = @cluster.local_node.port
 
+      id = cluster_get_id
       sock = TCPSocket.new(ip, port)
       sock.puts "AUTH"
-      sock.puts "#{local_ip} #{local_port}"
+      sock.puts "#{id} #{local_ip} #{local_port}"
       sock.puts "#{uname} #{pw}"
       rv = sock.gets.chop
 
@@ -84,10 +85,7 @@ module XFireDB
     end
 
     def cluster_far_id(ip, port)
-      sock = TCPSocket.new(ip, port)
-      sock.puts "QUERY"
-      sock.puts "CLUSTER GETID"
-      sock.gets.chop
+      @cluster.get_far_id(ip, port)
     end
 
     def cluster_get_id
