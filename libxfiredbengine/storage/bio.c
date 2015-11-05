@@ -118,8 +118,10 @@ static void bio_worker(void *arg)
 			break;
 		case SET_ADD:
 			disk_store_set_key(d, q->key, q->arg);
+			break;
 		case SET_DEL:
 			disk_delete_set_key(d, q->key, q->arg);
+			break;
 		default:
 			break;
 		}

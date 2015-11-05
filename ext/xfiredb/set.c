@@ -32,10 +32,18 @@ VALUE c_set;
 
 void rb_set_remove(struct db_entry_container *e)
 {
-	struct container *c = &e->c;
-	struct set *set;
+	struct set_key *k;
+	struct set_iterator *it;
+	struct set *set = container_get_data(&e->c);
 
-	set = container_get_data(c);
+	if(e->key) {
+		it = set_iterator_new(set);
+		for_each_set(set, k, it)
+			xfiredb_notice_disk(e->key, k->key, NULL, SET_DEL);
+
+		set_iterator_free(it);
+	}
+
 	set_clear(set);
 }
 
@@ -129,21 +137,10 @@ static VALUE rb_set_remove_key(VALUE self, VALUE _key)
 
 static VALUE rb_set_clear(VALUE self)
 {
-	struct set *set = obj_to_set(self);
-	struct set_key *k;
-	struct set_iterator *it;
 	struct db_entry_container *e;
 
 	Data_Get_Struct(self, struct db_entry_container, e);
-	if(e->key) {
-		it = set_iterator_new(set);
-		for_each_set(set, k, it)
-			xfiredb_notice_disk(e->key, k->key, NULL, SET_DEL);
-
-		set_iterator_free(it);
-	}
-
-	set_clear(set);
+	rb_set_remove(e);
 	return self;
 }
 

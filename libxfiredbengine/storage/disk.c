@@ -446,6 +446,9 @@ int disk_update_string(struct disk *d, char *key, void *data)
 	"DELETE FROM xfiredb_data " \
 	"WHERE db_type = 'hashmap' AND db_key = '%s' AND db_secondary_key = '%s';"
 
+#define DISK_DELETE_SET_QUERY \
+	"DELETE FROM xfiredb_data " \
+	"WHERE db_type = 'set' AND db_key = '%s' AND db_secondary_key = '%s';"
 /**
  * @brief Delete a hashmap node.
  * @param d Disk to delete from.
@@ -479,7 +482,7 @@ int disk_delete_set_key(struct disk *d, char *key, char *skey)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_DELETE_HM_QUERY, key, skey);
+	xfire_sprintf(&query, DISK_DELETE_SET_QUERY, key, skey);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
