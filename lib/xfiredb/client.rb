@@ -36,10 +36,7 @@ module XFireDB
     end
 
     def read
-      len = @stream.gets.chop
-      return unless len.is_i?
-      len = len.to_i
-      data = @stream.read(len)
+      data = @stream.gets.chomp
       return XFireDB::XQL.parse(data)
     end
 
