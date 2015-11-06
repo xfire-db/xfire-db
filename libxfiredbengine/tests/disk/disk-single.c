@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 	struct disk *d;
 	struct string *s;
 
-	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
+	xfire_log_init(NULL, NULL);
 	d = disk_create(SQLITE_DB);
 	s = dbg_get_string("test-data");
 	if(!disk_store_string(d, "test-key", s->str))

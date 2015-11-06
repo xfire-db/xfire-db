@@ -32,7 +32,6 @@
 static FILE *xfire_stdout = NULL;
 static FILE *xfire_stderr = NULL;
 
-#if defined(HAVE_LOG) || defined(__DOXYGEN__)
 /**
  * @brief Initialise XFire logging.
  * @param out stdout file name.
@@ -40,16 +39,15 @@ static FILE *xfire_stderr = NULL;
  */
 void xfire_log_init(const char *out, const char *err)
 {
-#ifdef XFIRE_STDERR
-	xfire_stderr = fopen(err, "w+");
-#else
-	xfire_stderr = stderr;
-#endif
-#ifdef XFIRE_STDOUT
-	xfire_stdout = fopen(out, "w+");
-#else
-	xfire_stdout = stdout;
-#endif
+	if(out)
+		xfire_stderr = fopen(err, "w+");
+	else
+		xfire_stderr = stderr;
+
+	if(err)
+		xfire_stdout = fopen(out, "w+");
+	else
+		xfire_stdout = stdout;
 }
 
 /**
@@ -58,15 +56,10 @@ void xfire_log_init(const char *out, const char *err)
 void xfire_log_exit(void)
 {
 	raw_xfire_log("[exit]: XFIRE logger stopped.\n");
-#ifdef XFIRE_STDERR
 	fclose(xfire_stderr);
-#endif
-#ifdef XFIRE_STDOUT
 	fclose(xfire_stdout);
-#endif
 
 }
-#endif
 
 static void vfxfire_log(const char *src, const char *fmt, va_list args)
 {
@@ -90,8 +83,11 @@ void xfire_log_console(const char *src, const char *fmt, ...)
 	vfxfire_log(src, fmt, args);
 	va_end(args);
 
-	fprintf(stdout, "[%s]: ", src);
-	vfprintf(stdout, fmt, args2);
+	if(xfire_stdout != stdout) {
+		fprintf(stdout, "[%s]: ", src);
+		vfprintf(stdout, fmt, args2);
+	}
+
 	va_end(args2);
 }
 
@@ -117,7 +113,8 @@ void raw_xfire_log(const char *msg)
 
 void raw_xfire_log_console(const char *msg)
 {
-	fprintf(stdout, msg);
+	if(xfire_stdout != stdout)
+		fprintf(stdout, msg);
 	raw_xfire_log(msg);
 }
 

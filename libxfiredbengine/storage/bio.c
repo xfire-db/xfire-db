@@ -34,17 +34,14 @@
 #include <xfiredb/error.h>
 #include <xfiredb/disk.h>
 
-#ifndef NO_PERSIST
 extern struct disk *dbg_disk;
 #ifndef HAVE_DEBUG
 extern struct disk *xfire_disk;
 #endif
 static struct bio_q_head *bio_q;
-#endif
 
 #define BIO_WORKER_NAME "bio-worker"
 
-#ifndef NO_PERSIST
 static inline struct bio_q *bio_queue_pop(void)
 {
 	struct bio_q *tail;
@@ -71,9 +68,10 @@ static inline struct bio_q *bio_queue_pop(void)
 static int bio_try_wakeup_worker(void)
 {
 	static int wake_up_counter = 0;
+	struct config *conf = xfiredb_get_config();
 
 	wake_up_counter += 1;
-	if((wake_up_counter % PERSIST_LEVEL_COUNTER) == 0) {
+	if((wake_up_counter % (conf->persist_level + 1)) == 0) {
 		wake_up_counter = 0;
 		bg_process_signal(BIO_WORKER_NAME);
 		return 0;
@@ -146,9 +144,12 @@ void bio_sync(void)
  */
 void bio_init(void)
 {
+	struct config *config;
+
 	bio_q = xfire_zalloc(sizeof(*bio_q));
 	xfire_spinlock_init(&bio_q->lock);
-	disk_db = disk_create(SQLITE_DB);
+	config = xfiredb_get_config();
+	disk_db = disk_create(config->db_file);
 	bio_q->job = bg_process_create(BIO_WORKER_NAME, &bio_worker, disk_db);
 }
 
@@ -178,6 +179,10 @@ void bio_exit(void)
 void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 {
 	struct bio_q *q;
+	struct config *conf = xfiredb_get_config();
+
+	if(conf->persist_level >= 3)
+		return;
 
 	q = xfire_zalloc(sizeof(*q));
 	q->key = key;
@@ -197,41 +202,6 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 	xfire_spin_unlock(&bio_q->lock);
 	bio_try_wakeup_worker();
 }
-#else
-/**
- * @brief Add an entry to the BIO queue.
- * @param key The key of the entry.
- * @param arg Extra info about the added entry. See below.
- * @param newdata In case of an add or update, the new data to set.
- * @param op Type of operation.
- *
- * The \p arg argument can either point to the currently stored data, in case
- * of a list operation, or to the key within the hashmap in case of a
- * hashmap operation.
- */
-void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
-{
-	xfire_free(key);
-	xfire_free(arg);
-	xfire_free(newdata);
-}
-
-/**
- * @brief BIO destructor.
- */
-void bio_exit(void)
-{}
-/**
- * @brief Initialise the background I/O module.
- */
-void bio_init(void)
-{}
-/**
- * @brief Immediatly wake up the BIO worker.
- */
-void bio_sync(void)
-{}
-#endif
 
 #if defined(HAVE_DEBUG) || defined(__DOXYGEN__)
 
