@@ -21,8 +21,10 @@ module XFireDB
     @cmd = nil
     @argv = nil
     @raw = nil
+    @cluster = nil
 
-    def initialize(cmd, argv, raw = nil)
+    def initialize(cluster, cmd, argv, raw = nil)
+      @cluster = cluster
       @cmd = cmd
       @argv = argv
       @raw = raw

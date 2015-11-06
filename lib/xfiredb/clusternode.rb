@@ -39,8 +39,10 @@ module XFireDB
 
     def query(query)
       socket = TCPSocket.new(@addr, @port)
-      socket.print(query)
-      return socket.read
+      socket.puts(query)
+      rv = socket.gets
+      socket.close
+      return rv
     end
 
     def to_s

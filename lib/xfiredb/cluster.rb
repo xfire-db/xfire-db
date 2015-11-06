@@ -75,7 +75,7 @@ module XFireDB
       return rv
     end
 
-    def auth_node(source, node)
+    def auth_node(ip, source, node)
       source = source.split(' ')
       node = node.split(' ')
 
@@ -92,9 +92,18 @@ module XFireDB
       return "INCORRECT" if local_pw.nil? or local_pw != password
 
       db['xfiredb-nodes'] ||= XFireDB::List.new
-      db['xfiredb-nodes'].push("#{source[0]} #{source[1]} #{source[2]}")
-      add_node(source[0], source[1], source[2].to_i)
+      db['xfiredb-nodes'].push("#{source[0]} #{ip} #{source[1]}")
+      add_node(source[0], ip, source[1].to_i)
       return "OK"
+    end
+
+    def where_is?(key)
+      query = XFireDB::XQL.parse("CLUSTER WHEREIS? #{key}")
+      self.query(query)
+    end
+
+    def reshard(num, src, dst)
+      "OK"
     end
 
     def get_far_id(ip, port)
@@ -108,8 +117,7 @@ module XFireDB
       cmd = XFireDB.cmds
       cmd = cmd[request.cmd]
       return "Command not known" unless cmd
-      instance = cmd.new(request.args) unless request.cmd == "CLUSTER"
-      instance = cmd.new(self, request.args) if request.cmd == "CLUSTER"
+      instance = cmd.new(self, request.args)
       return instance.exec
     end
 

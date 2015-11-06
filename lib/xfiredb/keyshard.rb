@@ -22,8 +22,8 @@ module XFireDB
     @keys = nil
 
     def initialize(range = nil)
-      @slots = Set.new
-      @keys = Set.new
+      @slots = ::Set.new
+      @keys = ::Set.new
 
       range.nil? and return
 
@@ -62,12 +62,16 @@ module XFireDB
       @keys.delete(key)
     end
 
-    def rehard(shards, add)
-      if add
-        @slots = @slots + shards
-      else
-        @slots = @slots - shards
-      end
+    def reshard(num)
+      rm = ::Set.new
+
+      @slots.delete_if { |slot|
+        num -= 1
+        rm.add? slot if num >= 0
+        num >= 0
+      }
+
+      return rm
     end
 
     def size

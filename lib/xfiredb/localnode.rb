@@ -54,14 +54,15 @@ module XFireDB
         loop do
           Thread.start(serv.accept) do |request|
             begin
-            type = request.gets.chop
+            type = request.gets.chomp
             reply = case type.upcase
             when "AUTH"
-              source = request.gets.chop
-              auth = request.gets.chop
-              @cluster.auth_node(source, auth)
+              family, port, host, ip = request.peeraddr;
+              source = request.gets.chomp
+              auth = request.gets.chomp
+              @cluster.auth_node(ip, source, auth)
             when "QUERY"
-              query = XFireDB::XQL.parse(request.gets.chop)
+              query = XFireDB::XQL.parse(request.gets.chomp)
               dom, port, host, ip = request.peeraddr
               query.src_ip = ip
               query.src_port = port
@@ -69,7 +70,7 @@ module XFireDB
             when "PING"
               "PONG"
             when "GOSSIP"
-              gossip = request.gets.chop
+              gossip = request.gets.chomp
               gossip = gossip.split(' ')
               # 0 => node the gossip is about
               # 1 => node IP

@@ -27,9 +27,8 @@ module XFireDB
     @port = nil
 
     def initialize(cluster, argv, ip = nil, port = nil)
-      super("CLUSTER", argv)
+      super(cluster, "CLUSTER", argv)
       @subcmd = @argv.shift
-      @cluster = cluster
 
       @ip = ip
       @port = port
@@ -37,6 +36,10 @@ module XFireDB
 
     def exec
       rv = case @subcmd.upcase
+           when "SLOTS"
+             cluster_num_slots
+           when "RESHARD"
+             cluster_reshard
            when "NODES"
              get_nodes
            when "WHEREIS?"
@@ -55,6 +58,35 @@ module XFireDB
     end
 
     private
+    def cluster_num_slots
+      rv = Hash.new
+
+      if @port.nil?
+        @cluster.nodes.each do |id, node|
+          sock = TCPSocket.new(node.addr, node.port + 10000)
+          sock.puts("QUERY")
+          sock.puts("CLUSTER SLOTS")
+          rv[id] = sock.gets.to_i
+        end
+        return rv
+      else
+        return @cluster.local_node.shard.size
+      end
+    end
+
+    def cluster_reshard
+      num = @argv[0]
+      src = @argv[1]
+      dst = @argv[2]
+
+      unless num and src and dst and num.is_i?
+        return "Incorrect syntax: CLUSTER RESHARD <number-of-slots> <source> <destination>"
+      end
+
+      num = num.to_i
+      return @cluster.reshard(num, src, dst)
+    end
+
     def where_is?
       key = @argv[0]
       return "Incorrect syntax: CLUSTER WHEREIS? <key>" unless key
@@ -65,7 +97,7 @@ module XFireDB
         socket.puts "QUERY"
         socket.puts query
         rv = socket.gets.chop
-        return rv unless rv == "false"
+        return id unless rv == "false"
       end
 
       return "Key not known"
@@ -87,7 +119,7 @@ module XFireDB
       id = cluster_get_id
       sock = TCPSocket.new(ip, port)
       sock.puts "AUTH"
-      sock.puts "#{id} #{local_ip} #{local_port}"
+      sock.puts "#{id} #{local_port}"
       sock.puts "#{uname} #{pw}"
       rv = sock.gets.chop
 

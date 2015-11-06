@@ -18,8 +18,8 @@
 
 module XFireDB
   class CommandSet < XFireDB::Command
-    def initialize(argv)
-      super("SET", argv)
+    def initialize(cluster, argv)
+      super(cluster, "SET", argv)
     end
 
     def exec
@@ -28,14 +28,20 @@ module XFireDB
       db = XFireDB.db
 
       return "Syntax `GET <key> \"<data>\"'" unless key and data
-      db[key] = data
+      if @cluster.local_node.shard.include?(key)
+        db[key] = data
+      else
+        node = @cluster.where_is?(key)
+        node = @cluster.nodes[node]
+        return node.query("SET #{key} \"#{data}\"")
+      end
       return "OK"
     end
   end
 
   class CommandGet < XFireDB::Command
-    def initialize(argv)
-      super("GET", argv)
+    def initialize(cluster, argv)
+      super(cluster, "GET", argv)
     end
 
     def exec
@@ -47,8 +53,8 @@ module XFireDB
 
 
   class CommandDelete < XFireDB::Command
-    def initialize(argv)
-      super("DELETE", argv)
+    def initialize(cluster, argv)
+      super(cluster, "DELETE", argv)
     end
 
     def exec
