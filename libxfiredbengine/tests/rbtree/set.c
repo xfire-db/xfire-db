@@ -49,7 +49,6 @@ static struct set set;
 
 void setup(void)
 {
-	xfiredb_se_init();
 	set_init(&set);
 	test_set_insert(&set);
 	iterate_count = 0;
@@ -70,7 +69,6 @@ void teardown(void)
 	set_iterator_free(it);
 	assert(iterate_count == 4);
 	set_clear(&set);
-	xfiredb_se_exit();
 }
 
 void test_set(void)

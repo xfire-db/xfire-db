@@ -70,7 +70,8 @@
 struct database;
 struct container;
 CDECL
-extern void xfiredb_se_init(void);
+extern struct config *xfiredb_get_config(void);
+extern void xfiredb_se_init(struct config *conf);
 extern void xfiredb_set_loadstate(bool v);
 extern bool xfiredb_loadstate(void);
 extern long xfiredb_disk_size(void);

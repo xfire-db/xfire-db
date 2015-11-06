@@ -7,29 +7,21 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-${HAVE_DBG}
-${HAVE_LOG}
+struct config {
+	char *log_file;
+	char *err_log_file;
+	char *db_file;
+	int persist_level;
+};
 
-${XFIRE_STDERR} "${STDERR}"
-${XFIRE_STDOUT} "${STDOUT}"
+${HAVE_DBG}
+
 ${HAVE_LINUX}
 ${HAVE_RECURSION}
 
-#define PERSIST_LEVEL ${PERSIST_LEVEL}
-
-#if PERSIST_LEVEL == 0
-#define PERSIST_LEVEL_COUNTER 1
-#elif PERSIST_LEVEL == 1
-#define PERSIST_LEVEL_COUNTER 3
-#elif PERSIST_LEVEL == 2
-#define PERSIST_LEVEL_COUNTER 5
-#else
-#define NO_PERSIST
-#endif
+#define SQLITE_DB "${DATA_PATH}/xfire-dbg.db"
 
 #define XFIRE_STACK_SIZE ${STACK_SIZE}
-
-#define SQLITE_DB "${DATA_PATH}/xfire.db"
 
 #define DEBUG_DB_NAME "dbg-db"
 #ifdef HAVE_DBG

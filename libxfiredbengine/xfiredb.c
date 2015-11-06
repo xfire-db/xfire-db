@@ -43,7 +43,14 @@ struct disk *dbg_disk;
 struct disk *xfire_disk;
 #endif
 
+static struct config config;
+
 static bool load_state = false;
+
+struct config *xfiredb_get_config(void)
+{
+	return &config;
+}
 
 /**
  * @brief Clear the entire disk.
@@ -65,9 +72,10 @@ void xfiredb_set_loadstate(bool state)
 /**
  * @brief Initialise the XFireDB storage engine.
  */
-void xfiredb_se_init(void)
+void xfiredb_se_init(struct config *conf)
 {
-	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
+	memcpy(&config, conf, sizeof(*conf));
+	xfire_log_init(config.log_file, config.err_log_file);
 	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
 	xfire_log_console(LOG_INIT, "Initialising background processes\n");
 	bg_processes_init();
@@ -104,6 +112,9 @@ void xfiredb_se_exit(void)
 	bg_processes_exit();
 	xfire_log_exit();
 	xfiredb_set_loadstate(false);
+	xfire_free(config.log_file);
+	xfire_free(config.err_log_file);
+	xfire_free(config.db_file);
 }
 
 /**
@@ -304,17 +315,16 @@ static void xfiredb_load_hook(int argc, char **rows, char **cols)
  */
 void xfiredb_init(void)
 {
-	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
-	xfire_log_console(LOG_INIT, "Creating in memory database\n");
+	struct config conf;
+	conf.log_file = NULL;
+	conf.err_log_file = NULL;
+	conf.db_file = SQLITE_DB;
+	conf.persist_level = 0;
+
+	xfiredb_se_init(&conf);
 #ifdef HAVE_DEBUG
 	xfiredb = db_alloc("xfiredb");
 #endif
-	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
-	xfire_log_console(LOG_INIT, "Initialising background processes\n");
-	bg_processes_init();
-	xfire_log_console(LOG_INIT, "Initialising background I/O\n");
-	bio_init();
-	xfire_log_console(LOG_INIT, "Loading data from disk\n");
 	disk_load(disk_db, &xfiredb_load_hook);
 }
 

@@ -19,7 +19,7 @@
 module XFireDB
   class Config
     attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
-      :debug, :problems
+      :debug, :log_file, :err_log_file, :db_file, :persist_level, :problems
     attr_accessor :daemon
 
     CONFIG_PORT = "port"
@@ -28,6 +28,10 @@ module XFireDB
     CONFIG_CLUSTER_CONF = "cluster-config-file"
     CONFIG_DEBUG = "debug-mode"
     CONFIG_TEST_OPT = "test-option"
+    CONFIG_LOG_FILE = "stdout-file"
+    CONFIG_ERR_LOG_FILE = "stderr-file"
+    CONFIG_DB_FILE = "db-file"
+    CONFIG_PERSIST_LEVEL = "persist-level"
 
     @port = nil
     @addr = nil
@@ -35,6 +39,10 @@ module XFireDB
     @cluster_config = nil
     @debug = false
     @daemon = false
+    @log_file = nil
+    @err_log_file = nil
+    @db_file = nil
+    @persist_level = 0
 
     def initialize(file = nil)
       return unless file
@@ -44,7 +52,7 @@ module XFireDB
       fh = File.open(@filename, "r")
       puts "[config]: config file (#{file}) not found!" unless check_config(fh)
       fh.each do |line|
-        next if line.length <= 1
+        next if line.length <= 1 or line.lstrip.start_with?('#')
         string = line.split(/(.+?) (.+)/)
         opt = string[1]
         arg = string[2]
@@ -52,11 +60,53 @@ module XFireDB
         parse opt, arg
       end
       fh.close
+
+      check_mandatory
+    end
+
+    def check_mandatory
+      fail_count = 0
+
+      unless @port
+        puts "[config]: port is a required config option"
+        fail_count += 1
+      end
+
+      unless @addr
+        puts "[config]: bind-addr is a required config option"
+        fail_count += 1
+      end
+
+      unless @log_file
+        puts "[config]: stdout-file is a required config option" unless @log_file
+        fail_count += 1
+      end
+
+      unless @err_log_file
+        puts "[config]: stderr-file is a required config option" unless @err_log_file
+        fail_count += 1
+      end
+
+      unless @db_file and @persist_level < 3
+        puts "[config]: db-file is a required config option" unless @db_file
+        fail_count += 1
+      end
+
+      exit unless fail_count == 0
     end
 
     def parse(opt, arg)
       case opt
         # Main config options
+      when CONFIG_LOG_FILE
+        @log_file = arg
+      when CONFIG_ERR_LOG_FILE
+        @err_log_file = arg
+      when CONFIG_DB_FILE
+        @db_file = arg
+      when CONFIG_PERSIST_LEVEL
+        @persist_level = arg.to_i if arg.is_i?
+        puts "[config]: #{opt} should be numeric" unless arg.is_i?
       when CONFIG_PORT
         if arg.is_i?
           @port = arg.to_i

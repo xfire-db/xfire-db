@@ -32,9 +32,20 @@ extern void init_list(void);
 extern void init_database(void);
 extern void init_hashmap(void);
 
-VALUE rb_se_init(VALUE self)
+VALUE rb_se_init(VALUE self,
+		VALUE log_file,
+		VALUE err_log,
+		VALUE db_file,
+		VALUE pers_lvl)
 {
-	xfiredb_se_init();
+	struct config conf;
+
+	xfire_sprintf(&conf.log_file, "%s", StringValueCStr(log_file));
+	xfire_sprintf(&conf.err_log_file, "%s", StringValueCStr(err_log));
+	xfire_sprintf(&conf.db_file, "%s", StringValueCStr(db_file));
+	conf.persist_level = NUM2INT(pers_lvl);
+
+	xfiredb_se_init(&conf);
 	return self;
 }
 
@@ -98,7 +109,7 @@ void Init_storage_engine(void)
 	rb_cStorageEngine = rb_define_class_under(c_xfiredb_mod,
 			"Engine", rb_cObject);
 
-	rb_define_method(rb_cStorageEngine, "init", rb_se_init, 0);
+	rb_define_method(rb_cStorageEngine, "init", rb_se_init, 4);
 	rb_define_method(rb_cStorageEngine, "stop", rb_se_exit, 1);
 	rb_define_method(rb_cStorageEngine, "load", rb_se_load, 0);
 	rb_define_method(rb_cStorageEngine, "set_loadstate", rb_se_set_loadstate, 1);
