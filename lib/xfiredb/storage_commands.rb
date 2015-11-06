@@ -47,7 +47,14 @@ module XFireDB
     def exec
       db = XFireDB.db
       return unless @argv[0]
-      return db[@argv[0]]
+
+      if @cluster.local_node.shard.include?(@argv[0])
+        return db[@argv[0]]
+      else
+        node = @cluster.where_is?(@argv[0])
+        node = @cluster.nodes[node]
+        return node.query("GET #{@argv[0]}")
+      end
     end
   end
 
@@ -62,7 +69,14 @@ module XFireDB
       db = XFireDB.db
 
       return unless key
-      db.delete(key)
+      if @cluster.local_node.shard.include?(key)
+        db.delete(key)
+        return "OK"
+      else
+        node = @cluster.where_is?(key)
+        node = @cluster.nodes[node]
+        return node.query("DELETE #{key}")
+      end
     end
   end
 end
