@@ -99,11 +99,11 @@ module XFireDB
       case opt
         # Main config options
       when CONFIG_LOG_FILE
-        @log_file = arg
+        @log_file = File.expand_path(arg)
       when CONFIG_ERR_LOG_FILE
-        @err_log_file = arg
+        @err_log_file = File.expand_path(arg)
       when CONFIG_DB_FILE
-        @db_file = arg
+        @db_file = File.expand_path(arg)
       when CONFIG_PERSIST_LEVEL
         @persist_level = arg.to_i if arg.is_i?
         puts "[config]: #{opt} should be numeric" unless arg.is_i?
