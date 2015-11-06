@@ -32,6 +32,7 @@ module XFireDB
             end
           rescue Exception => e
             puts e
+            puts e.backtrace
           end
         end
       end

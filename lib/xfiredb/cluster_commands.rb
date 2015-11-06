@@ -23,16 +23,28 @@ module XFireDB
     @subcmd = nil
     @cluster = nil
 
-    def initialize(cluster, argv)
+    @ip = nil
+    @port = nil
+
+    def initialize(cluster, argv, ip = nil, port = nil)
       super("CLUSTER", argv)
       @subcmd = @argv.shift
       @cluster = cluster
+
+      @ip = ip
+      @port = port
     end
 
     def exec
       rv = case @subcmd.upcase
-           when "WHEREIS"
-             "OK"
+           when "NODES"
+             get_nodes
+           when "WHEREIS?"
+             where_is?
+           when "GETID"
+             cluster_get_id
+           when "MEET"
+             cluster_meet
            when "YOUHAVE?"
              key = @argv[0]
              local = @cluster.local_node
@@ -40,6 +52,72 @@ module XFireDB
            else
              "Command not known"
            end
+    end
+
+    private
+    def where_is?
+      key = @argv[0]
+      return "Incorrect syntax: CLUSTER WHEREIS? <key>" unless key
+
+      query = "CLUSTER YOUHAVE? #{key}"
+      @cluster.nodes.each do |id, value|
+        socket = TCPSocket.new(value.addr, value.port + 10000)
+        socket.puts "QUERY"
+        socket.puts query
+        rv = socket.gets.chop
+        return rv unless rv == "false"
+      end
+
+      return "Key not known"
+    end
+
+    def cluster_meet
+      ip = @argv[0]
+      port = @argv[1]
+      uname = @argv[2]
+      pw = @argv[3]
+      return "Incorrect syntax: CLUSTER MEET <ip> <port> <username> <password>" unless ip and port and uname and pw
+      return "ERROR: The port should be numeral" unless port.is_i?
+
+      port = port.to_i
+      port = port + 10000
+      local_ip = @cluster.local_node.addr
+      local_port = @cluster.local_node.port
+
+      id = cluster_get_id
+      sock = TCPSocket.new(ip, port)
+      sock.puts "AUTH"
+      sock.puts "#{id} #{local_ip} #{local_port}"
+      sock.puts "#{uname} #{pw}"
+      rv = sock.gets.chop
+
+      if rv == "OK"
+        db = XFireDB.db
+        id = cluster_far_id(ip, port)
+        nodes = db['xfiredb-nodes']
+        db['xfiredb-nodes'] = nodes = XFireDB::List.new unless nodes
+        port = port - 10000
+        nodes.push("#{id} #{ip} #{port}")
+        @cluster.add_node(id, ip, port)
+      end
+      return rv
+    end
+
+    def get_nodes
+      rv = Array.new
+      @cluster.nodes.each do |key, value|
+        rv.push("#{key}\t#{value}")
+      end
+
+      return rv
+    end
+
+    def cluster_far_id(ip, port)
+      @cluster.get_far_id(ip, port)
+    end
+
+    def cluster_get_id
+      XFireDB.db['xfiredb']['id']
     end
   end
 end

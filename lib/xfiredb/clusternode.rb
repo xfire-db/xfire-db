@@ -19,6 +19,7 @@
 module XFireDB
   class ClusterNode
     attr_accessor :shard
+    attr_reader :addr, :port
 
     @addr = nil
     @port = nil
@@ -40,6 +41,10 @@ module XFireDB
       socket = TCPSocket.new(@addr, @port)
       socket.print(query)
       return socket.read
+    end
+
+    def to_s
+      "#{@addr} #{@port}"
     end
   end
 end

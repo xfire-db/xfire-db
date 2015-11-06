@@ -40,8 +40,8 @@ module XFireDB
 
       if nodes
         nodes.each do |node|
-          data = node.split(':')
-          @nodes[data[0]] = ClusterNode.new(data[1], data[2])
+          data = node.split(' ')
+          @nodes[data[0]] = ClusterNode.new(data[1], data[2].to_i)
         end
       end
 
@@ -50,6 +50,10 @@ module XFireDB
 
     def shell
       exit
+    end
+
+    def add_node(id, ip, port)
+      @nodes[id] = ClusterNode.new(ip, port)
     end
 
     def local_node
@@ -62,7 +66,7 @@ module XFireDB
     end
 
     def broadcast(cmd)
-      rv = Aray.new
+      rv = Array.new
 
       @nodes.each do |node|
         rv.push node.cluster_query(cmd)
@@ -71,16 +75,46 @@ module XFireDB
       return rv
     end
 
+    def auth_node(source, node)
+      source = source.split(' ')
+      node = node.split(' ')
+
+      username = node[0]
+      password = node[1]
+      return "Incorrect syntax: CLUSTER AUTH <username> <password>" unless username and password
+
+      db = XFireDB.db
+      map = db['xfiredb']
+      local_pw = map["user::#{username}"]
+      return "INCORRECT" if local_pw.nil?
+      local_pw = BCrypt::Password.new(local_pw)
+
+      return "INCORRECT" if local_pw.nil? or local_pw != password
+
+      db['xfiredb-nodes'] ||= XFireDB::List.new
+      db['xfiredb-nodes'].push("#{source[0]} #{source[1]} #{source[2]}")
+      add_node(source[0], source[1], source[2].to_i)
+      return "OK"
+    end
+
+    def get_far_id(ip, port)
+      sock = TCPSocket.new(ip, port)
+      sock.puts "QUERY"
+      sock.puts "CLUSTER GETID"
+      sock.gets.chop
+    end
+
     def query(request)
       cmd = XFireDB.cmds
       cmd = cmd[request.cmd]
       return "Command not known" unless cmd
-      instance = cmd.new(request.args)
+      instance = cmd.new(request.args) unless request.cmd == "CLUSTER"
+      instance = cmd.new(self, request.args) if request.cmd == "CLUSTER"
       return instance.exec
     end
 
     def cluster_query(request)
-      cmd = XFireDB::ClusterCommand.new(self, request.args)
+      cmd = XFireDB::ClusterCommand.new(self, request.args, request.src_ip, request.src_port)
       return cmd.exec
     end
 

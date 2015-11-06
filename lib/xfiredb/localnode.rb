@@ -44,31 +44,48 @@ module XFireDB
       end
     end
 
+    def to_s
+      "myself, #{@addr} #{@port}"
+    end
+
     def start_clusterbus
       serv = TCPServer.new(@config.addr, @config.port + 10000)
       Thread.new do
         loop do
-          request = serv.accept
-          type = request.gets.chop
-          reply = case type.upcase
-          when "QUERY"
-            query = XFireDB::XQL.parse(request.gets.chop)
-            @cluster.cluster_query(query)
-          when "PING"
-            "PONG"
-          when "GOSSIP"
-            gossip = request.gets.chop
-            gossip = gossip.split(':')
-            # 0 => node the gossip is about
-            # 1 => node IP
-            # 2 => node port
-            # 3 => node status code, or message
-            @cluster.gossip(gossip)
-            "OK"
-          end
+          Thread.start(serv.accept) do |request|
+            begin
+            type = request.gets.chop
+            reply = case type.upcase
+            when "AUTH"
+              source = request.gets.chop
+              auth = request.gets.chop
+              @cluster.auth_node(source, auth)
+            when "QUERY"
+              query = XFireDB::XQL.parse(request.gets.chop)
+              dom, port, host, ip = request.peeraddr
+              query.src_ip = ip
+              query.src_port = port
+              @cluster.cluster_query(query)
+            when "PING"
+              "PONG"
+            when "GOSSIP"
+              gossip = request.gets.chop
+              gossip = gossip.split(' ')
+              # 0 => node the gossip is about
+              # 1 => node IP
+              # 2 => node port
+              # 3 => node status code, or message
+              @cluster.gossip(gossip)
+              "OK"
+            end
 
-          request.puts reply
-          request.close
+            request.puts reply
+            request.close
+            rescue Exception => e
+              puts e
+              puts e.backtrace
+            end
+          end
         end
       end
     end
