@@ -43,6 +43,8 @@ struct disk *dbg_disk;
 struct disk *xfire_disk;
 #endif
 
+static struct config config;
+
 static bool load_state = false;
 
 /**
@@ -65,8 +67,9 @@ void xfiredb_set_loadstate(bool state)
 /**
  * @brief Initialise the XFireDB storage engine.
  */
-void xfiredb_se_init(void)
+void xfiredb_se_init(struct config *conf)
 {
+	memcpy(&config, conf, sizeof(*conf));
 	xfire_log_init(XFIRE_STDOUT, XFIRE_STDERR);
 	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
 	xfire_log_console(LOG_INIT, "Initialising background processes\n");
@@ -104,6 +107,9 @@ void xfiredb_se_exit(void)
 	bg_processes_exit();
 	xfire_log_exit();
 	xfiredb_set_loadstate(false);
+	xfire_free(config.log_file);
+	xfire_free(config.err_log_file);
+	xfire_free(config.db_file);
 }
 
 /**

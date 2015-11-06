@@ -26,7 +26,8 @@ module XFireDB
     end
 
     def start
-      self.init
+      config = XFireDB.config
+      self.init(config.log_file, config.err_log_file, config.db_file, config.persist_level)
 
       self.load.each.each do |key, hash, type, data|
         case type
