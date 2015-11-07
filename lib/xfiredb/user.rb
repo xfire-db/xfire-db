@@ -1,5 +1,5 @@
 #
-#   XFireDB commands
+#   XFireDB user
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,19 +17,24 @@
 #
 
 module XFireDB
-  class Command
-    @cmd = nil
-    @argv = nil
-    @raw = nil
-    @cluster = nil
-    @client = nil
+  class User
+    attr_reader :user, :password, :authenticated
 
-    def initialize(cluster, cmd, client, raw = nil)
-      @cluster = cluster
-      @cmd = cmd
-      @argv = client.request.args
-      @raw = raw
-      @client = client
+    @user = nil
+    @password = nil
+    @authenticated = false
+
+    def initialize(user, pw)
+      @user = user
+      @password = pw
+    end
+
+    def auth
+      db = XFireDB.db
+      map = db['xfiredb']
+      local_pw = map["user::#{@user}"]
+      local_pw = BCrypt::Password.new(local_pw)
+      @authenticated = local_pw == @password ? true : false
     end
   end
 end

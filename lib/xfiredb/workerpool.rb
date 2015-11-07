@@ -25,9 +25,24 @@ module XFireDB
         Thread.new do
           begin
             while stream = self.pop(false)
-              client = XFireDB::Client.from_stream(stream)
-              rq = client.read
-              stream.puts cluster.query(rq)
+              client = XFireDB::Client.from_stream(stream, cluster)
+              if XFireDB.config.auth
+                auth = stream.gets.chomp
+                auth = XFireDB::XQL.parse(auth)
+                unless auth.cmd == "AUTH"
+                  stream.puts "Access denied"
+                  stream.close
+                  next
+                end
+
+                unless client.auth(auth.args[0], auth.args[1])
+                  stream.puts "Access denied"
+                  stream.close
+                  next
+                end
+              end
+              client.read
+              stream.puts cluster.query(client)
               stream.close
             end
           rescue Exception => e

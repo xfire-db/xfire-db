@@ -18,8 +18,8 @@
 
 module XFireDB
   class CommandSet < XFireDB::Command
-    def initialize(cluster, argv)
-      super(cluster, "SET", argv)
+    def initialize(cluster, client)
+      super(cluster, "SET", client)
     end
 
     def exec
@@ -33,15 +33,15 @@ module XFireDB
       else
         node = @cluster.where_is?(key)
         node = @cluster.nodes[node]
-        return node.query("SET #{key} \"#{data}\"")
+        return node.query(@client, "SET #{key} \"#{data}\"")
       end
       return "OK"
     end
   end
 
   class CommandGet < XFireDB::Command
-    def initialize(cluster, argv)
-      super(cluster, "GET", argv)
+    def initialize(cluster, client)
+      super(cluster, "GET", client)
     end
 
     def exec
@@ -53,15 +53,29 @@ module XFireDB
       else
         node = @cluster.where_is?(@argv[0])
         node = @cluster.nodes[node]
-        return node.query("GET #{@argv[0]}")
+        return node.query(@client, "GET #{@argv[0]}")
       end
     end
   end
 
+  class CommandAuth < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "AUTH", client)
+    end
+
+    def exec
+      user = @argv[0]
+      pw = @argv[1]
+      map = XFireDB.db['xfiredb']
+      local_pw = BCrypt::Password.new(map["user::#{user}"])
+      return "Access denied" if local_pw.nil? or local_pw != pw
+      return "OK"
+    end
+  end
 
   class CommandDelete < XFireDB::Command
-    def initialize(cluster, argv)
-      super(cluster, "DELETE", argv)
+    def initialize(cluster, client)
+      super(cluster, "DELETE", client)
     end
 
     def exec
@@ -75,7 +89,7 @@ module XFireDB
       else
         node = @cluster.where_is?(key)
         node = @cluster.nodes[node]
-        return node.query("DELETE #{key}")
+        return node.query(@client, "DELETE #{key}")
       end
     end
   end

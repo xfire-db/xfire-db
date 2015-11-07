@@ -26,12 +26,12 @@ module XFireDB
     @ip = nil
     @port = nil
 
-    def initialize(cluster, argv, ip = nil, port = nil)
-      super(cluster, "CLUSTER", argv)
+    def initialize(cluster, client)
+      super(cluster, "CLUSTER", client)
       @subcmd = @argv.shift
 
-      @ip = ip
-      @port = port
+      @ip = client.request.src_ip
+      @port = client.request.src_port
     end
 
     def exec
@@ -119,7 +119,7 @@ module XFireDB
       id = cluster_get_id
       sock = TCPSocket.new(ip, port)
       sock.puts "AUTH"
-      sock.puts "#{id} #{local_port}"
+      sock.puts "#{id} #{local_ip} #{local_port}"
       sock.puts "#{uname} #{pw}"
       rv = sock.gets.chop
 

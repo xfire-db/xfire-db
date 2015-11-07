@@ -29,13 +29,14 @@ require 'set'
 require 'io/console'
 
 require 'xfiredb/storage_engine'
+require 'xfiredb/digest'
+require 'xfiredb/user'
 require 'xfiredb/cluster'
 require 'xfiredb/clusternode'
 require 'xfiredb/localnode'
 require 'xfiredb/command'
 require 'xfiredb/storage_commands'
 require 'xfiredb/cluster_commands'
-require 'xfiredb/digest'
 require 'xfiredb/engine'
 require 'xfiredb/config'
 require 'xfiredb/string'
@@ -55,6 +56,7 @@ module XFireDB
     "GET" => XFireDB::CommandGet,
     "SET" => XFireDB::CommandSet,
     "DELETE" => XFireDB::CommandDelete,
+    "AUTH" => XFireDB::CommandAuth,
     "CLUSTER" => XFireDB::ClusterCommand
   }
 

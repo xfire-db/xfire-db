@@ -54,19 +54,23 @@ module XFireDB
         loop do
           Thread.start(serv.accept) do |request|
             begin
+            family, port, host, ip = request.peeraddr;
             type = request.gets.chomp
+            if not @cluster.request_from_node?(ip) and type.upcase != "AUTH"
+              request.puts "Access denied"
+              request.close
+              next
+            end
             reply = case type.upcase
             when "AUTH"
-              family, port, host, ip = request.peeraddr;
               source = request.gets.chomp
               auth = request.gets.chomp
               @cluster.auth_node(ip, source, auth)
             when "QUERY"
-              query = XFireDB::XQL.parse(request.gets.chomp)
               dom, port, host, ip = request.peeraddr
-              query.src_ip = ip
-              query.src_port = port
-              @cluster.cluster_query(query)
+              client = XFireDB::Client.from_stream(request)
+              client.read(ip, port)
+              @cluster.cluster_query(client)
             when "PING"
               "PONG"
             when "GOSSIP"

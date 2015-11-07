@@ -37,8 +37,9 @@ module XFireDB
       return socket.read
     end
 
-    def query(query)
+    def query(client, query)
       socket = TCPSocket.new(@addr, @port)
+      socket.puts "AUTH #{client.user.user} #{client.user.password}"
       socket.puts(query)
       rv = socket.gets
       socket.close

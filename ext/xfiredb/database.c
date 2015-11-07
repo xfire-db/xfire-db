@@ -49,7 +49,6 @@ VALUE rb_db_new(VALUE klass)
 	struct database *db = db_alloc("xfire-database");
 	VALUE obj = Data_Wrap_Struct(klass, NULL, rb_db_release, db);
 
-	rb_gc_mark(obj);
 	return obj;
 }
 
@@ -132,7 +131,7 @@ VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 				c = dbdata.ptr;
 				s = container_get_data(c);
 				string_set(s, StringValueCStr(data));
-				return data;
+				return db_store(db, tmp, c) == -XFIRE_OK ? data : Qnil;
 			}
 
 			raw_rb_db_delete(rb_c);

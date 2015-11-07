@@ -92,37 +92,45 @@ module XFireDB
       return "INCORRECT" if local_pw.nil? or local_pw != password
 
       db['xfiredb-nodes'] ||= XFireDB::List.new
-      db['xfiredb-nodes'].push("#{source[0]} #{ip} #{source[1]}")
-      add_node(source[0], ip, source[1].to_i)
+      db['xfiredb-nodes'].push("#{source[0]} #{source[1]} #{source[2]}")
+      add_node(source[0], source[1], source[2].to_i)
       return "OK"
     end
 
     def where_is?(key)
-      query = XFireDB::XQL.parse("CLUSTER WHEREIS? #{key}")
-      self.query(query)
+      client = XFireDB::Client.new(nil, "CLUSTER WHEREIS? #{key}")
+      self.query(client)
     end
 
     def reshard(num, src, dst)
       "OK"
     end
 
+    def request_from_node?(ip)
+      @nodes.each do |id, node|
+        return true if node.addr == ip
+      end
+
+      return false
+    end
+
     def get_far_id(ip, port)
       sock = TCPSocket.new(ip, port)
       sock.puts "QUERY"
       sock.puts "CLUSTER GETID"
-      sock.gets.chop
+      sock.gets.chomp
     end
 
-    def query(request)
+    def query(client)
       cmd = XFireDB.cmds
-      cmd = cmd[request.cmd]
+      cmd = cmd[client.request.cmd]
       return "Command not known" unless cmd
-      instance = cmd.new(self, request.args)
+      instance = cmd.new(self, client)
       return instance.exec
     end
 
-    def cluster_query(request)
-      cmd = XFireDB::ClusterCommand.new(self, request.args, request.src_ip, request.src_port)
+    def cluster_query(client)
+      cmd = XFireDB::ClusterCommand.new(self, client)
       return cmd.exec
     end
 

@@ -18,26 +18,40 @@
 
 module XFireDB
   class Client
-    attr_accessor :xql, :stream
-    attr_reader :request
+    attr_accessor :stream, :cluster
+    attr_reader :request, :user
 
     @request = nil
     @stream = nil
+    @cluster = nil
+    @user = nil
 
     def initialize(client, xql = nil)
       @request = XFireDB::XQL.parse(xql) unless xql.nil?
       @stream = client
     end
 
-    def Client.from_stream(stream)
+    def Client.from_stream(stream, cluster = nil)
       client = Client.new(stream)
       client.stream = stream
+      client.cluster = cluster
       return client
     end
 
-    def read
+    def auth(user, password)
+      @user = XFireDB::User.new(user, password)
+      @user.auth
+    end
+
+    def auth?
+      @user.authenticated
+    end
+
+    def read(ip = nil, port = nil)
       data = @stream.gets.chomp
-      return XFireDB::XQL.parse(data)
+      @request = XFireDB::XQL.parse(data)
+      @request.src_ip = ip
+      @request.src_port = port
     end
 
     def process(xql = nil)

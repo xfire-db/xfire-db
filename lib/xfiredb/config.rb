@@ -19,7 +19,7 @@
 module XFireDB
   class Config
     attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
-      :debug, :log_file, :err_log_file, :db_file, :persist_level, :problems
+      :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems
     attr_accessor :daemon
 
     CONFIG_PORT = "port"
@@ -32,6 +32,7 @@ module XFireDB
     CONFIG_ERR_LOG_FILE = "stderr-file"
     CONFIG_DB_FILE = "db-file"
     CONFIG_PERSIST_LEVEL = "persist-level"
+    CONFIG_AUTH_REQUIRED = "auth-required"
 
     @port = nil
     @addr = nil
@@ -43,6 +44,7 @@ module XFireDB
     @err_log_file = nil
     @db_file = nil
     @persist_level = 0
+    @auth = false
 
     def initialize(file = nil)
       return unless file
@@ -98,6 +100,8 @@ module XFireDB
     def parse(opt, arg)
       case opt
         # Main config options
+      when CONFIG_AUTH_REQUIRED
+        @auth = true if arg.upcase == "TRUE"
       when CONFIG_LOG_FILE
         @log_file = File.expand_path(arg)
       when CONFIG_ERR_LOG_FILE
