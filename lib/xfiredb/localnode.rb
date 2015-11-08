@@ -117,7 +117,14 @@ module XFireDB
       end
     end
 
-    def cluster_query(query)
+    def migrate(num, dst)
+      slots, keys = @shard.reshard(num)
+      # TODO: migrate the given keys to dst
+    end
+
+    def gossip(gossip)
+      # this node is sending the gossip and therefore
+      # already knows the contents. No action required.
     end
 
     def query(query)

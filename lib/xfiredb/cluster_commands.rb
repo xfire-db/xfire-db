@@ -36,6 +36,8 @@ module XFireDB
 
     def exec
       rv = case @subcmd.upcase
+           when "MIGRATE"
+             cluster_migrate
            when "SLOTS"
              cluster_num_slots
            when "RESHARD"
@@ -74,6 +76,15 @@ module XFireDB
       end
     end
 
+    # CLUSTER MIGRATE <number-of-slots> <dst-id>
+    def cluster_migrate
+      slots = @argv[0]
+      dst = @argv[1]
+
+      return "Incorrect syntax: CLUSTER MIGRATE <num> <dst>" unless slots and dst
+      @cluster.local_node.migrate(num, dst) ? "OK" : "Migration failed"
+    end
+
     def cluster_reshard
       num = @argv[0]
       src = @argv[1]
@@ -93,10 +104,7 @@ module XFireDB
 
       query = "CLUSTER YOUHAVE? #{key}"
       @cluster.nodes.each do |id, value|
-        socket = TCPSocket.new(value.addr, value.port + 10000)
-        socket.puts "QUERY"
-        socket.puts query
-        rv = socket.gets.chop
+        rv = value.cluster_query query
         return id unless rv == "false"
       end
 
@@ -130,7 +138,15 @@ module XFireDB
         db['xfiredb-nodes'] = nodes = XFireDB::List.new unless nodes
         port = port - 10000
         nodes.push("#{id} #{ip} #{port}")
+
+        # send a to add the new node in the rest of the network
+        gossip = "#{id} #{ip} #{port} #{XFireDB::Cluster::GOSSIP_ADD}"
+        @cluster.nodes.each do |id, node|
+          gossip += " #{id} #{node.addr} #{node.port} #{XFireDB::Cluster::GOSSIP_CHECK}"
+        end
+
         @cluster.add_node(id, ip, port)
+        @cluster.gossip_send(gossip)
       end
       return rv
     end

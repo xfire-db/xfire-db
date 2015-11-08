@@ -47,6 +47,11 @@ module XFireDB
       @slots.add? slot
     end
 
+    def KeyShard.key_to_slot(key)
+      slot = XFireDB::Digest.crc16(key) % 16384
+      slot.to_s
+    end
+
     def include?(key)
       key = key.to_s if key.class == Fixnum
       hash = XFireDB::Digest.crc16(key) % 16384
@@ -64,6 +69,7 @@ module XFireDB
 
     def reshard(num)
       rm = ::Set.new
+      rmkeys = ::Set.new
 
       @slots.delete_if { |slot|
         num -= 1
@@ -71,7 +77,13 @@ module XFireDB
         num >= 0
       }
 
-      return rm
+      @keys.each do |key|
+        slot = XFireDB::KeyShard.key_to_slot(key)
+        rmkeys.add? key if rm.include? slot
+      end
+
+      @keys = @keys - rmkeys
+      [rm, rmkeys]
     end
 
     def size

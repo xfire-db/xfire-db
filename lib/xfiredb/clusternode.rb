@@ -31,18 +31,37 @@ module XFireDB
       @cluster_port = port + 10000
     end
 
+    def migrate(num, dst)
+      query = "CLUSTER MIGRATE #{num} #{dst}"
+      cluster_query(query)
+    end
+
     def cluster_query(query)
       socket = TCPSocket.new(@addr, @cluster_port)
-      socket.print(query)
-      return socket.read
+      socket.puts "QUERY"
+      socket.puts query
+      rv = socket.gets.chomp
+      socket.close
+
+      return rv
     end
 
     def query(client, query)
       socket = TCPSocket.new(@addr, @port)
-      socket.puts "AUTH #{client.user.user} #{client.user.password}"
+      socket.puts "AUTH #{client.user.user} #{client.user.password}" if XFireDB.config.auth
       socket.puts(query)
       rv = socket.gets
       socket.close
+      return rv
+    end
+
+    def gossip(gossip)
+      socket = TCPSocket.new(@addr, @cluster_port)
+      socket.puts "GOSSIP"
+      socket.puts gossip
+      rv = socket.gets
+      socket.close
+
       return rv
     end
 

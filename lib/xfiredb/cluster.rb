@@ -20,6 +20,11 @@ module XFireDB
   class Cluster
     attr_reader :nodes, :local
 
+    GOSSIP_ADD = "100"
+    GOSSIP_DEL = "101"
+    GOSSIP_MOVE = "102"
+    GOSSIP_CHECK = "103"
+
     @nodes = nil
     @cluster_config = nil
     @engine = nil
@@ -54,6 +59,21 @@ module XFireDB
 
     def add_node(id, ip, port)
       @nodes[id] = ClusterNode.new(ip, port)
+    end
+
+    def remove_node(id)
+      node = @nodes.delete(id)
+      return unless node;
+
+      dbnodes = XFireDB.db['xfiredb-nodes']
+      idx = 0
+      dbnodes.each do |info|
+        __id, ip, port = info.split(' ')
+        break if id == __id
+        idx += 1
+      end
+
+      dbnodes.pop(idx)
     end
 
     def local_node
@@ -103,7 +123,60 @@ module XFireDB
     end
 
     def reshard(num, src, dst)
+      if src == "all"
+      else
+        srcnode = @nodes[src]
+        dstnode = @nodes[dst]
+
+        return "Source or destination not known" unless srcnode and dstnode
+      end
+
       "OK"
+    end
+
+    def gossip_send(gossip)
+      @nodes.each do |id, node|
+        node.gossip(gossip)
+      end
+    end
+
+    # Parse gossip packet
+    # latest[n+0] = node id
+    # latest[n+0] = node ip
+    # latest[n+0] = node port
+    # latest[n+0] = node state/msg
+    def gossip(latest)
+      pp latest
+      len = latest.length
+      len = len / 4
+
+      len.times do |idx|
+        i = idx * 4
+        id = latest[i]
+        ip = latest[i+1]
+        port = latest[i+2]
+        msg = latest[i+3]
+        node = @nodes[id]
+        dbnodes = XFireDB.db['xfiredb-nodes']
+
+        case msg
+        when GOSSIP_ADD
+          if node.nil?
+            dbnodes.push("#{id} #{ip} #{port}")
+            self.add_node(id, ip, port.to_i)
+          end
+        when GOSSIP_DEL
+          self.remove_node(id) unless node
+        when GOSSIP_MOVE
+          self.remove(id) unless node
+          self.add_node(id, ip, port)
+        when GOSSIP_CHECK
+          if node.nil?
+            dbnodes.push("#{id} #{ip} #{port}")
+            self.add_node(id, ip, port.to_i)
+          end
+        end
+      end
     end
 
     def request_from_node?(ip)
