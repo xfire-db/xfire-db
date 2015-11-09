@@ -33,6 +33,10 @@ class String
     eval %Q{"#{self}"}
   end
 
+  def quote
+    "\"#{self}\""
+  end
+
   def tokenize
     self.
       split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).

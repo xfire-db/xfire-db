@@ -172,6 +172,9 @@ int set_add(struct set *s, char *key, struct set_key *k)
 {
 	u32 hash;
 
+	if(set_contains(s, key))
+		return -XFIRE_ERR;
+
 	rb_init_node(&k->node);
 	xfire_sprintf(&k->key, "%s", key);
 	hash = set_hash_key(k->key, SET_SEED);

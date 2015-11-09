@@ -17,6 +17,94 @@
 #
 
 module XFireDB
+  class CommandSInclude < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "SINCLUDE", client)
+    end
+
+    def exec
+      key = @argv.shift
+
+      return forward(key, "SINCLUDE #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
+      return "Syntax error: SINCLUDE <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+
+      set = XFireDB.db[key]
+      return "nil" unless set.is_a? XFireDB::Set
+
+      rv = Array.new
+      @argv.each do |hkey|
+        rv.push set.include?(hkey).to_s
+      end
+
+      return rv
+    end
+  end
+
+  class CommandSClear < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "SCLEAR", client)
+    end
+
+    def exec
+      key = @argv[0]
+
+      return forward(key, "SCLEAR #{key}") unless @cluster.local_node.shard.include? key
+      return "Syntax error: SCEAR <key>" unless key and @argv.length > 0
+
+      set = XFireDB.db[key]
+      return "nil" unless set.is_a? XFireDB::Set
+
+      XFireDB.db.delete(key)
+      return "OK"
+    end
+  end
+
+  class CommandSDel < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "SDEL", client)
+    end
+
+    def exec
+      key = @argv.shift
+
+      return forward(key, "SDEL #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
+      return "Syntax error: SDEL <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+
+      set = XFireDB.db[key]
+      return "nil" unless set.is_a? XFireDB::Set
+
+      rv = 0
+      @argv.each do |hkey|
+        rv += 1 unless set.remove(hkey).nil?
+      end
+
+      return rv
+    end
+  end
+
+  class CommandSAdd < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "SADD", client)
+    end
+
+    def exec
+      key = @argv.shift
+
+      return forward(key, "SADD #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
+      return "Syntax error: SADD <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+
+      XFireDB.db[key] = XFireDB::Set.new unless XFireDB.db[key].is_a? XFireDB::Set
+      set = XFireDB.db[key]
+
+      rv = 0
+      @argv.each do |hkey|
+        rv += 1 unless set.add(hkey).nil?
+      end
+
+      return rv
+    end
+  end
+
   class CommandMDel < XFireDB::Command
     def initialize(cluster, client)
       super(cluster, "MDEL", client)

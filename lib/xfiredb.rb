@@ -57,11 +57,18 @@ module XFireDB
     "GET" => XFireDB::CommandGet,
     "SET" => XFireDB::CommandSet,
     "DELETE" => XFireDB::CommandDelete,
+
     "MADD" => XFireDB::CommandMAdd,
     "MREF" => XFireDB::CommandMRef,
     "MCLEAR" => XFireDB::CommandMClear,
     "MDEL" => XFireDB::CommandMDel,
     "MSIZE" => XFireDB::CommandMSize,
+
+    "SADD" => XFireDB::CommandSAdd,
+    "SDEL" => XFireDB::CommandSDel,
+    "SCLEAR" => XFireDB::CommandSClear,
+    "SINCLUDE" => XFireDB::CommandSInclude,
+
     "LCLEAR" => XFireDB::CommandLClear,
     "LPUSH" => XFireDB::CommandLPush,
     "LPOP" => XFireDB::CommandLPop,
