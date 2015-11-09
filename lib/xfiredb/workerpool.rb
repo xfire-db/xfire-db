@@ -45,9 +45,16 @@ module XFireDB
               stream.puts cluster.query(client)
               stream.close
             end
+          rescue IllegalKeyException => e
+            stream.puts e
+            stream.close
+            next
           rescue Exception => e
             puts e
             puts e.backtrace
+            stream.puts "Query failed"
+            stream.close
+            next
           end
         end
       end

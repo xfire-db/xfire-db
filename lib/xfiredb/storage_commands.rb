@@ -17,6 +17,149 @@
 #
 
 module XFireDB
+  class CommandLPush < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "LPUSH", client)
+    end
+
+    # LPUSH <key> <data>
+    def exec
+      key = @argv[0]
+      data = @argv[1]
+
+      return forward(key, "LPUSH #{key} \"#{data}\"") unless @cluster.local_node.shard.include? key
+
+      db = XFireDB.db
+      db[key] = XFireDB::List.new unless db[key].is_a? XFireDB::List
+      db[key].push data
+      return "OK"
+    end
+  end
+
+  class CommandLPop < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "LPOP", client)
+    end
+
+    # LPOP <key> idx
+    # LPOP <key> n..m
+    def exec
+      key = @argv[0]
+      idx = @argv[1]
+
+      return forward key, "LPOP #{key} #{idx}" unless @cluster.local_node.shard.include? key
+      unless idx.is_i?
+        range = idx.split('..')
+        return "LPOP range invalid: #{idx}" unless range[0].is_i? and range[1].is_i?
+
+        list = XFireDB.db[key]
+        return "nil" unless list.is_a? XFireDB::List
+
+        range[0] = range[0].to_i
+        range[1] = range[1].to_i
+        range[0] += list.length unless range[0] >= 0
+        range[1] += list.length unless range[1] >= 0
+        return "LPOP range invalid: #{idx}" unless range[0] <= range[1]
+
+        rv = Array.new
+        n = range[0]
+
+        while range[0] <= range[1]
+          rv.push list.pop n
+          range[0] += 1
+        end
+
+        # delete the entire list unless there are entry's left
+        XFireDB.db.delete(key) unless list.length > 0
+
+        return rv
+      else
+        idx = idx.to_i
+        list = XFireDB.db[key]
+
+        return "nil" unless list.is_a? XFireDB::List
+        rv = list.pop idx
+        XFireDB.db.delete key unless list.length > 0
+        return rv
+      end
+    end
+  end
+
+  class CommandLRef < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "LREF", client)
+    end
+
+    # LREF <key> idx
+    # LREF <key> n..m
+    def exec
+      key = @argv[0]
+      idx = @argv[1]
+
+      return forward key, "LREF #{key} #{idx}" unless @cluster.local_node.shard.include? key
+
+      unless idx.is_i?
+        range = idx.split('..')
+        return "LREF range invalid: #{idx}" unless range[0].is_i? and range[1].is_i?
+
+        list = XFireDB.db[key]
+        return "nil" unless list.is_a? XFireDB::List
+
+        range[0] = range[0].to_i
+        range[1] = range[1].to_i
+        range[0] += list.length unless range[0] >= 0
+        range[1] += list.length unless range[1] >= 0
+
+        return "LREF range invalid: #{idx}" unless range[0] <= range[1]
+
+        rv = Array.new
+        while range[0] <= range[1]
+          entry = list[range[0]]
+          rv.push unless entry.nil?
+          rv.push "nil" if entry.nil?
+
+          range[0] += 1
+        end
+
+        return rv
+      else
+        idx = idx.to_i
+        list = XFireDB.db[key]
+
+        return "nil" unless list.is_a? XFireDB::List
+        return list[idx]
+      end
+    end
+  end
+
+  class CommandLSize < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "LSIZE", client)
+    end
+
+    # LSIZE <key>
+    def exec
+      key = @argv[0]
+
+      return "Syntax error: LSIZE <key>" unless key
+      return forward key, "LSIZE #{key}" unless @cluster.local_node.shard.include? key
+
+      list = XFireDB.db[key]
+      return "nil" unless list.is_a? XFireDB::List
+      return list.length
+    end
+  end
+
+  class CommandLSet < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "LSET", client)
+    end
+
+    # LSET <key> <idx> <data>
+    def exec
+    end
+  end
+
   class CommandSet < XFireDB::Command
     def initialize(cluster, client)
       super(cluster, "SET", client)

@@ -30,6 +30,7 @@ require 'io/console'
 
 require 'xfiredb/storage_engine'
 require 'xfiredb/digest'
+require 'xfiredb/illegalkeyexception'
 require 'xfiredb/user'
 require 'xfiredb/cluster'
 require 'xfiredb/clusternode'
@@ -56,9 +57,15 @@ module XFireDB
     "GET" => XFireDB::CommandGet,
     "SET" => XFireDB::CommandSet,
     "DELETE" => XFireDB::CommandDelete,
+    "LPUSH" => XFireDB::CommandLPush,
+    "LPOP" => XFireDB::CommandLPop,
+    "LREF" => XFireDB::CommandLRef,
+    "LSIZE" => XFireDB::CommandLSize,
     "AUTH" => XFireDB::CommandAuth,
     "CLUSTER" => XFireDB::ClusterCommand
   }
+
+  @@illegals = ["xfiredb", "xfiredb-nodes"]
 
   def XFireDB.start(cmdargs)
     @options = OpenStruct.new
@@ -134,6 +141,10 @@ module XFireDB
       XFireDB.exit
       server.start
     end
+  end
+
+  def XFireDB.illegal_key?(key)
+    @@illegals.include? key
   end
 
   def XFireDB.config

@@ -146,7 +146,6 @@ module XFireDB
     # latest[n+0] = node port
     # latest[n+0] = node state/msg
     def gossip(latest)
-      pp latest
       len = latest.length
       len = len / 4
 
