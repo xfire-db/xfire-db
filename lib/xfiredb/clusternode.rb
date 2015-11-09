@@ -50,7 +50,12 @@ module XFireDB
       socket = TCPSocket.new(@addr, @port)
       socket.puts "AUTH #{client.user.user} #{client.user.password}" if XFireDB.config.auth
       socket.puts(query)
-      rv = socket.gets
+
+      rv = Array.new
+      while line = socket.gets
+        line = line.chomp
+        rv.push line
+      end
       socket.close
       return rv
     end

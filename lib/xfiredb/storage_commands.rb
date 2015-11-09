@@ -17,6 +17,114 @@
 #
 
 module XFireDB
+  class CommandMDel < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "MDEL", client)
+    end
+
+    def exec
+      key = @argv.shift
+
+      return forward(key, "MDEL #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
+      return "Syntax error: MDEL <key> <hkey1> <hkey2> ..." unless key
+
+      map = XFireDB.db[key]
+      return "nil" unless map.is_a? XFireDB::Hashmap
+
+      rv = 0
+      @argv.each do |hkey|
+        rv += 1 unless map.delete(hkey).nil?
+      end
+
+      return rv
+    end
+  end
+
+  class CommandMRef < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "MREF", client)
+    end
+
+    # MREF <key> <hkey1> <hkey2> ...
+    def exec
+      key = @argv.shift
+
+      return forward(key, "MREF #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
+      return "Syntax error: MREF <key> <hkey1> <hkey2> ..." unless key
+
+      map = XFireDB.db[key]
+      return "nil" unless map.is_a? XFireDB::Hashmap
+
+      rv = Array.new
+      @argv.each do |hkey|
+        rv.push map[hkey]
+      end
+
+      return rv
+    end
+  end
+
+  class CommandMClear < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "MCLEAR", client)
+    end
+
+    def exec
+      key = @argv[0]
+
+      return "Syntax error: MCLEAR <key>" unless key
+      return forward(key, "MCLEAR #{key}") unless @cluster.local_node.shard.include? key
+      db = XFireDB.db
+      map = db[key]
+
+      if map.is_a? XFireDB::Hashmap
+        db.delete(key)
+        return "OK"
+      else
+        return "nil"
+      end
+    end
+  end
+
+  class CommandMAdd < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "MADD", client)
+    end
+
+    # MADD <key> <mapkey> <data>
+    def exec
+      key = @argv[0]
+      hkey = @argv[1]
+      data = @argv[2]
+
+      return "Syntax error: MADD <key> <map-key> <data>" unless key and hkey and data
+      return forward(key, "MADD #{key} #{hkey} \"#{data}\"") unless @cluster.local_node.shard.include? key
+
+      db = XFireDB.db
+      db[key] = XFireDB::Hashmap.new unless db[key].is_a? XFireDB::Hashmap
+      db[key][hkey] = data
+      return "OK"
+    end
+  end
+
+  class CommandMSize < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "MSIZE", client)
+    end
+
+    def exec
+      key = @argv[0]
+
+      return "Syntax error: MSIZE <key>" unless key
+      return forward(key, "MSIZE #{key}") unless @cluster.local_node.shard.include? key
+
+      map = XFireDB.db[key]
+      return "nil" unless map.is_a? XFireDB::Hashmap
+
+      return map.size
+    end
+  end
+
   class CommandLPush < XFireDB::Command
     def initialize(cluster, client)
       super(cluster, "LPUSH", client)
@@ -32,6 +140,23 @@ module XFireDB
       db = XFireDB.db
       db[key] = XFireDB::List.new unless db[key].is_a? XFireDB::List
       db[key].push data
+      return "OK"
+    end
+  end
+
+  class CommandLClear < XFireDB::Command
+    def initialize(cluster, client)
+      super(cluster, "LCLEAR", client)
+    end
+
+    def exec
+      key = @argv[0]
+
+      return forward key, "LCLEAR #{key}" unless @cluster.local_node.shard.include? key
+      list = XFireDB.db[key]
+
+      return "nil" unless list.is_a? XFireDB::List
+      XFireDB.db.delete(key)
       return "OK"
     end
   end
