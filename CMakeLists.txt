@@ -22,6 +22,8 @@ include(scripts/ruby.cmake)
 
 include_directories(${XFIRE_INCLUDE_DIR})
 
+add_subdirectory(scripts)
+
 if(XFIRE_SERVER)
 	add_subdirectory(${XFIRE_ENG_PATH})
 	add_subdirectory(${XFIRE_EXTENSION_PATH})

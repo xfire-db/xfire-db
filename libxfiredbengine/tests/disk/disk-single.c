@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 
 	dbg_list_store(d);
 	dbg_hm_store(d);
-	disk_dump(d);
+	disk_dump(d, stdout);
 	disk_destroy(d);
 	xfire_log_exit();
 	return -EXIT_SUCCESS;

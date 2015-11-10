@@ -25,6 +25,7 @@
 #define __DISK_H__
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 #include <xfiredb/xfiredb.h>
@@ -59,7 +60,7 @@ extern long disk_size(struct disk *d);
 extern void disk_clear(struct disk *d);
 extern struct disk *disk_create(const char *path);
 extern void disk_destroy(struct disk *disk);
-extern void disk_dump(struct disk *d);
+extern void disk_dump(struct disk *d, FILE *out);
 extern int disk_load(struct disk *disk,
 		void (*hook)(int argc, char **rows, char **colnames));
 

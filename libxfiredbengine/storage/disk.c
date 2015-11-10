@@ -310,10 +310,11 @@ int disk_store_string(struct disk *d, char *key, char *data)
 static int dump_hook(void *arg, int argc, char **row, char **colname)
 {
 	int i;
+	FILE *output = arg;
 
 	for(i = 0; i < argc; i+=4)
-		printf("%s = %s :: %s = %s :: %s = %s :: %s = %s\n", row[i], colname[i],
-				row[i+1], colname[i+1], row[i+2], colname[i+2], row[i+3], colname[i+3]);
+		fprintf(output, "%s = %s :: %s = %s :: %s = %s :: %s = %s\n", colname[i], row[i],
+				colname[i+1], row[i+1], colname[i+2], row[i+2], colname[i+3], row[i+3]);
 
 	//len = strlen(row[1]);
 	//*data = xfire_zalloc(len + 1);
@@ -327,12 +328,12 @@ static int dump_hook(void *arg, int argc, char **row, char **colname)
  * @param d Disk to dump.
  * @note Function for debugging purposes only.
  */
-void disk_dump(struct disk *d)
+void disk_dump(struct disk *d, FILE *output)
 {
 	int rc;
 	char *msg;
 
-	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &dump_hook, NULL, &msg);
+	rc = sqlite3_exec(d->handle, "SELECT * FROM xfiredb_data", &dump_hook, output, &msg);
 
 	switch(rc) {
 	case SQLITE_OK:

@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	sleep(1);
 	bg_process_signal("bio-worker");
 	sleep(1);
-	disk_dump(dbg_disk);
+	disk_dump(dbg_disk, stdout);
 	
 	xfiredb_exit();
 
