@@ -36,6 +36,8 @@ module XFireDB
 
     def exec
       rv = case @subcmd.upcase
+           when "FORGET"
+             cluster_forget
            when "MIGRATE"
              cluster_migrate
            when "SLOTS"
@@ -74,6 +76,13 @@ module XFireDB
       else
         return @cluster.local_node.shard.size
       end
+    end
+
+    def cluster_forget
+      node = @argv[0]
+
+      return "Syntax error: CLUSTER FORGET <id>" unless node
+      @cluster.forget(node)
     end
 
     # CLUSTER MIGRATE <number-of-slots> <dst-id>

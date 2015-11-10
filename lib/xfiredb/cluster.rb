@@ -185,6 +185,29 @@ module XFireDB
       "OK"
     end
 
+    def forget(node_id)
+      node = @nodes[node_id]
+      return "Node not known" unless node
+
+      num = node.shards.to_i
+      while num > 0
+        per_node = num / (@nodes.size - 1)
+        per_node = num if per_node == 0
+
+        @nodes.each do |id, cnode|
+          next if node_id == id
+          node.migrate_query(per_node, id)
+          num -= per_node
+          break unless num > 0
+        end
+      end
+
+      gsp = "#{node_id} #{node.addr} #{node.port} #{XFireDB::Cluster::GOSSIP_DEL}"
+      self.gossip_send(gsp)
+      self.remove_node(node_id)
+      "OK"
+    end
+
     def gossip_send(gossip)
       @nodes.each do |id, node|
         node.gossip(gossip)
@@ -216,9 +239,9 @@ module XFireDB
             self.add_node(id, ip, port.to_i)
           end
         when GOSSIP_DEL
-          self.remove_node(id) unless node
+          self.remove_node(id) unless node.nil?
         when GOSSIP_MOVE
-          self.remove(id) unless node
+          self.remove(id) unless node.nil?
           self.add_node(id, ip, port)
         when GOSSIP_CHECK
           if node.nil?
