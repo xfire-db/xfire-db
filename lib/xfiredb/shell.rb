@@ -42,6 +42,9 @@ module XFireDB
       res = case cmd[0]
             when "daemonize"
               "Daemonizing XFireDB"
+            when "reset"
+              Shell.reset
+              Shell.reset_root_node if cmd[1] == "root-node"
             when "setup"
               Shell.setup
               Shell.setup_root_node if cmd[1] == "root-node"
@@ -70,6 +73,15 @@ module XFireDB
       map = db['xfiredb']
       map["user::#{user}"] = BCrypt::Password.create passw
       puts "\nUser created!"
+    end
+
+    def Shell.reset
+      db = @@engine.db
+      db['xfiredb'].delete('shards') unless db['xfiredb'].nil?
+    end
+
+    def Shell.reset_root_node
+      Shell.setup_root_node
     end
 
     def Shell.setup

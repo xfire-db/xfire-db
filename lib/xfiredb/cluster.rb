@@ -53,8 +53,19 @@ module XFireDB
       @nodes[local['id']] = LocalNode.new(addr, port, self)
     end
 
-    def shell
-      exit
+    def add_slots(slots)
+      local_node.shard.add_slots(slots)
+      db = XFireDB.db
+      dbslots = db['xfiredb']['shards']
+
+      unless dbslots.nil?
+        dbslots = "#{slots.join(':')}:#{dbslots}"
+      else
+        dbslots = slots.join(':')
+      end
+
+      db['xfiredb']['shards'] = dbslots
+      "OK"
     end
 
     def add_node(id, ip, port)
@@ -129,6 +140,7 @@ module XFireDB
         dstnode = @nodes[dst]
 
         return "Source or destination not known" unless srcnode and dstnode
+        srcnode.migrate(num, dst)
       end
 
       "OK"

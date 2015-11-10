@@ -66,6 +66,10 @@ module XFireDB
               source = request.gets.chomp
               auth = request.gets.chomp
               @cluster.auth_node(ip, source, auth)
+            when "ADDSLOTS"
+              slots = request.gets.chomp
+              @cluster.add_slots(slots.split(' '))
+              "OK"
             when "QUERY"
               dom, port, host, ip = request.peeraddr
               client = XFireDB::Client.from_stream(request)
@@ -117,9 +121,40 @@ module XFireDB
       end
     end
 
-    def migrate(num, dst)
+    def migrate(client, num, dst)
+      db = XFireDB.db
       slots, keys = @shard.reshard(num)
-      # TODO: migrate the given keys to dst
+
+      if @shard.slots.size > 0
+        db['xfiredb']['shards'] = @shard.slots.to_a.join(':')
+      else
+        db['xfiredb'].delete('shards')
+      end
+
+      dst = @cluster.nodes[dst]
+      dst.add_slots(slots.to_a.join(' '))
+
+      keys.each do |key|
+        val = db[key]
+        case val
+        when String
+          dst.query(client, "SET #{key} \"#{val}\"")
+        when XFireDB::List
+          val.each do |entry|
+            dst.query(client, "LPUSH #{key} \"#{entry}\"")
+          end
+        when XFireDB::Hashmap
+          val.each do |k, v|
+            dst.query(client, "MADD #{key} #{k} \"#{v}\"")
+          end
+        when XFireDB::Set
+          val.each do |k|
+            dst.query(client, "SADD #{key} \"#{k}\"")
+          end
+        end
+        db.delete(key)
+      end
+      return true
     end
 
     def gossip(gossip)

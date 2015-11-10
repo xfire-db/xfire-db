@@ -143,7 +143,6 @@ module XFireDB
     unless @options.action == "stop"
       @@options = @options
       @@config = XFireDB::Config.new(@options[:config])
-      puts @options.action if @options.action == "stop"
       XFireDB.create
       XFireDB::Shell.start(XFireDB.engine) if @options[:shell]
       unless missing.empty?

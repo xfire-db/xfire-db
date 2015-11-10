@@ -55,6 +55,7 @@ module XFireDB
       return "nil" unless set.is_a? XFireDB::Set
 
       XFireDB.db.delete(key)
+      super(false)
       return "OK"
     end
   end
@@ -76,6 +77,11 @@ module XFireDB
       rv = 0
       @argv.each do |hkey|
         rv += 1 unless set.remove(hkey).nil?
+      end
+
+      unless set.size > 0
+        XFireDB.db.delete(key)
+        super(false)
       end
 
       return rv
@@ -101,6 +107,8 @@ module XFireDB
         rv += 1 unless set.add(hkey).nil?
       end
 
+      super(true)
+
       return rv
     end
   end
@@ -122,6 +130,11 @@ module XFireDB
       rv = 0
       @argv.each do |hkey|
         rv += 1 unless map.delete(hkey).nil?
+      end
+
+      unless map.size > 0
+        XFireDB.db.delete(key)
+        super(false)
       end
 
       return rv
@@ -167,6 +180,7 @@ module XFireDB
 
       if map.is_a? XFireDB::Hashmap
         db.delete(key)
+        super(false)
         return "OK"
       else
         return "nil"
@@ -191,6 +205,7 @@ module XFireDB
       db = XFireDB.db
       db[key] = XFireDB::Hashmap.new unless db[key].is_a? XFireDB::Hashmap
       db[key][hkey] = data
+      super(true)
       return "OK"
     end
   end
@@ -228,6 +243,7 @@ module XFireDB
       db = XFireDB.db
       db[key] = XFireDB::List.new unless db[key].is_a? XFireDB::List
       db[key].push data
+      super(true)
       return "OK"
     end
   end
@@ -245,6 +261,7 @@ module XFireDB
 
       return "nil" unless list.is_a? XFireDB::List
       XFireDB.db.delete(key)
+      super(false)
       return "OK"
     end
   end
@@ -283,7 +300,10 @@ module XFireDB
         end
 
         # delete the entire list unless there are entry's left
-        XFireDB.db.delete(key) unless list.length > 0
+        unless list.length > 0
+          XFireDB.db.delete(key) unless list.length > 0
+          super(false)
+        end
 
         return rv
       else
@@ -292,7 +312,11 @@ module XFireDB
 
         return "nil" unless list.is_a? XFireDB::List
         rv = list.pop idx
-        XFireDB.db.delete key unless list.length > 0
+
+        unless list.length > 0
+          XFireDB.db.delete key unless list.length > 0
+          super false
+        end
         return rv
       end
     end
@@ -370,6 +394,20 @@ module XFireDB
 
     # LSET <key> <idx> <data>
     def exec
+      key = @argv[0]
+      idx = @argv[1]
+      data = @argv[3]
+
+      return "Syntax error: LSET <key> <idx> <data>" unless key and idx and data and idx.is_is?
+      return forward key, "LSET #{key} #{idx} \"#{data}\"" unless @cluster.local_node.shard.include? key
+
+      list = XFireDB.db[key]
+      return "nil" unless list.is_a? XFireDB::List
+
+      idx = idx.to_i
+      list[idx] = data
+      super(true)
+      "OK"
     end
   end
 
@@ -386,6 +424,7 @@ module XFireDB
       return "Syntax `GET <key> \"<data>\"'" unless key and data
       if @cluster.local_node.shard.include?(key)
         db[key] = data
+        super(true)
       else
         node = @cluster.where_is?(key)
         node = @cluster.nodes[node]
@@ -441,6 +480,7 @@ module XFireDB
       return unless key
       if @cluster.local_node.shard.include?(key)
         db.delete(key)
+        super(false)
         return "OK"
       else
         node = @cluster.where_is?(key)

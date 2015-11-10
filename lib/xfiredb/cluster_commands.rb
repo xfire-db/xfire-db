@@ -78,11 +78,12 @@ module XFireDB
 
     # CLUSTER MIGRATE <number-of-slots> <dst-id>
     def cluster_migrate
-      slots = @argv[0]
+      num = @argv[0]
       dst = @argv[1]
 
-      return "Incorrect syntax: CLUSTER MIGRATE <num> <dst>" unless slots and dst
-      @cluster.local_node.migrate(num, dst) ? "OK" : "Migration failed"
+      return "Incorrect syntax: CLUSTER MIGRATE <num> <dst>" unless num and dst and num.is_i?
+      num = num.to_i
+      @cluster.local_node.migrate(@client, num, dst) ? "OK" : "Migration failed"
     end
 
     def cluster_reshard

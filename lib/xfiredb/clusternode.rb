@@ -36,6 +36,16 @@ module XFireDB
       cluster_query(query)
     end
 
+    def add_slots(slots)
+      socket = TCPSocket.new(@addr, @cluster_port)
+      socket.puts "ADDSLOTS"
+      socket.puts slots
+      rv = socket.gets
+      socket.close
+
+      return rv
+    end
+
     def cluster_query(query)
       socket = TCPSocket.new(@addr, @cluster_port)
       socket.puts "QUERY"
