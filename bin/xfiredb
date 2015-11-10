@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'xfiredb'
+require 'xfiredb-serv'
 
 XFireDB.start(ARGV)
 
