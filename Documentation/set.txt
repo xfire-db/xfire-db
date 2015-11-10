@@ -1,0 +1,9 @@
+/**
+ * @defgroup set Set API
+ * @ingroup storage
+ * @brief Set user API
+ *
+ * A set is a collection of unordered values with no duplicates. This is
+ * a hybrid between a List and a Hashmap. Sets are using hashmaps as backend
+ * though, to allow for better and faster lookups.
+ */
