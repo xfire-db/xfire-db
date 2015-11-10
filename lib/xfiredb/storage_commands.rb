@@ -352,7 +352,7 @@ module XFireDB
         rv = Array.new
         while range[0] <= range[1]
           entry = list[range[0]]
-          rv.push unless entry.nil?
+          rv.push entry unless entry.nil?
           rv.push "nil" if entry.nil?
 
           range[0] += 1

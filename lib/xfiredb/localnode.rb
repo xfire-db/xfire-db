@@ -154,6 +154,8 @@ module XFireDB
         end
         db.delete(key)
       end
+
+      GC.start
       return true
     end
 

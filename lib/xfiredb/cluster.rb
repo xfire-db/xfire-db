@@ -135,12 +135,51 @@ module XFireDB
 
     def reshard(num, src, dst)
       if src == "all"
+        dstnode = @nodes[dst]
+        return "Destination node not known" if dstnode.nil?
+
+        shard_dist = Hash.new
+
+        @nodes.each do |id, node|
+          shard_dist[id] = node.shards.to_i
+        end
+
+        total = 16384 - shard_dist[dst]
+
+        return "Reshard operation not possible" if num > total
+
+        shard_dist.delete(dst)
+
+        while num > 0
+          shard_dist.delete_if {|id, shards| shards == 0}
+
+          per_node = num / shard_dist.size
+          per_node = num if per_node == 0
+          # sort the shard distribution in descending order
+          shard_dist = shard_dist.sort_by { |id, num| num }.reverse
+
+          # take shards from the most populated nodes first
+          x = 0
+          shard_dist.each_with_object({}) { |(id, shards), hash|
+            if per_node <= shards
+              hash[id] = shards - per_node
+              x = per_node
+            else
+              hash[id] = 0
+              x = shards
+            end
+
+            @nodes[id].migrate_query(x, dst)
+            num -= x
+            break if num <= 0
+          }
+        end
       else
         srcnode = @nodes[src]
         dstnode = @nodes[dst]
 
         return "Source or destination not known" unless srcnode and dstnode
-        srcnode.migrate(num, dst)
+        srcnode.migrate_query(num, dst)
       end
 
       "OK"

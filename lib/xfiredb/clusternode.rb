@@ -31,7 +31,12 @@ module XFireDB
       @cluster_port = port + 10000
     end
 
-    def migrate(num, dst)
+    def shards
+      query = "CLUSTER SLOTS"
+      cluster_query(query)
+    end
+
+    def migrate_query(num, dst)
       query = "CLUSTER MIGRATE #{num} #{dst}"
       cluster_query(query)
     end

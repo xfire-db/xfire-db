@@ -87,7 +87,6 @@ module XFireDB
       }
 
       @keys.each do |key|
-        puts key
         slot = XFireDB::KeyShard.key_to_slot(key)
         rmkeys.add? key if rm.include? slot
       end
