@@ -16,6 +16,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# Answer prefixes:
+#
+# + --> Data answer (straight out of the database)
+# - --> Error code answer ('nil' and 'OK' are considered error codes too)
+# % --> Numeral answer.
+
 module XFireDB
   class CommandSInclude < XFireDB::Command
     def initialize(cluster, client)
@@ -26,14 +32,14 @@ module XFireDB
       key = @argv.shift
 
       return forward(key, "SINCLUDE #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
-      return "Syntax error: SINCLUDE <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+      return "-Syntax error: SINCLUDE <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
 
       set = XFireDB.db[key]
-      return "nil" unless set.is_a? XFireDB::Set
+      return "-nil" unless set.is_a? XFireDB::Set
 
       rv = Array.new
       @argv.each do |hkey|
-        rv.push set.include?(hkey).to_s
+        rv.push "+" + set.include?(hkey).to_s
       end
 
       return rv
@@ -49,14 +55,14 @@ module XFireDB
       key = @argv[0]
 
       return forward(key, "SCLEAR #{key}") unless @cluster.local_node.shard.include? key
-      return "Syntax error: SCEAR <key>" unless key and @argv.length > 0
+      return "-Syntax error: SCEAR <key>" unless key and @argv.length > 0
 
       set = XFireDB.db[key]
-      return "nil" unless set.is_a? XFireDB::Set
+      return "-nil" unless set.is_a? XFireDB::Set
 
       XFireDB.db.delete(key)
       super(false)
-      return "OK"
+      return "-OK"
     end
   end
 
@@ -69,10 +75,10 @@ module XFireDB
       key = @argv.shift
 
       return forward(key, "SDEL #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
-      return "Syntax error: SDEL <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+      return "-Syntax error: SDEL <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
 
       set = XFireDB.db[key]
-      return "nil" unless set.is_a? XFireDB::Set
+      return "-nil" unless set.is_a? XFireDB::Set
 
       rv = 0
       @argv.each do |hkey|
@@ -84,6 +90,7 @@ module XFireDB
         super(false)
       end
 
+      rv = "%" + rv.to_s
       return rv
     end
   end
@@ -97,7 +104,7 @@ module XFireDB
       key = @argv.shift
 
       return forward(key, "SADD #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
-      return "Syntax error: SADD <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+      return "-Syntax error: SADD <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
 
       XFireDB.db[key] = XFireDB::Set.new unless XFireDB.db[key].is_a? XFireDB::Set
       set = XFireDB.db[key]
@@ -109,6 +116,7 @@ module XFireDB
 
       super(true)
 
+      rv = "%" + rv.to_s
       return rv
     end
   end
@@ -122,10 +130,10 @@ module XFireDB
       key = @argv.shift
 
       return forward(key, "MDEL #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
-      return "Syntax error: MDEL <key> <hkey1> <hkey2> ..." unless key
+      return "-Syntax error: MDEL <key> <hkey1> <hkey2> ..." unless key
 
       map = XFireDB.db[key]
-      return "nil" unless map.is_a? XFireDB::Hashmap
+      return "-nil" unless map.is_a? XFireDB::Hashmap
 
       rv = 0
       @argv.each do |hkey|
@@ -137,6 +145,7 @@ module XFireDB
         super(false)
       end
 
+      rv = "%" + rv.to_s
       return rv
     end
   end
@@ -151,14 +160,16 @@ module XFireDB
       key = @argv.shift
 
       return forward(key, "MREF #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
-      return "Syntax error: MREF <key> <hkey1> <hkey2> ..." unless key
+      return "-Syntax error: MREF <key> <hkey1> <hkey2> ..." unless key
 
       map = XFireDB.db[key]
-      return "nil" unless map.is_a? XFireDB::Hashmap
+      return "-nil" unless map.is_a? XFireDB::Hashmap
 
       rv = Array.new
       @argv.each do |hkey|
-        rv.push map[hkey]
+        v = map[hkey]
+        rv.push "-" + "nil" if v.nil?
+        rv.push "+" + v if v
       end
 
       return rv
@@ -173,7 +184,7 @@ module XFireDB
     def exec
       key = @argv[0]
 
-      return "Syntax error: MCLEAR <key>" unless key
+      return "-Syntax error: MCLEAR <key>" unless key
       return forward(key, "MCLEAR #{key}") unless @cluster.local_node.shard.include? key
       db = XFireDB.db
       map = db[key]
@@ -181,9 +192,9 @@ module XFireDB
       if map.is_a? XFireDB::Hashmap
         db.delete(key)
         super(false)
-        return "OK"
+        return "-OK"
       else
-        return "nil"
+        return "-nil"
       end
     end
   end
@@ -199,14 +210,14 @@ module XFireDB
       hkey = @argv[1]
       data = @argv[2]
 
-      return "Syntax error: MADD <key> <map-key> <data>" unless key and hkey and data
+      return "-Syntax error: MADD <key> <map-key> <data>" unless key and hkey and data
       return forward(key, "MADD #{key} #{hkey} \"#{data}\"") unless @cluster.local_node.shard.include? key
 
       db = XFireDB.db
       db[key] = XFireDB::Hashmap.new unless db[key].is_a? XFireDB::Hashmap
       db[key][hkey] = data
       super(true)
-      return "OK"
+      return "-OK"
     end
   end
 
@@ -218,13 +229,14 @@ module XFireDB
     def exec
       key = @argv[0]
 
-      return "Syntax error: MSIZE <key>" unless key
+      return "-Syntax error: MSIZE <key>" unless key
       return forward(key, "MSIZE #{key}") unless @cluster.local_node.shard.include? key
 
       map = XFireDB.db[key]
-      return "nil" unless map.is_a? XFireDB::Hashmap
+      return "-nil" unless map.is_a? XFireDB::Hashmap
 
-      return map.size
+      rv = "%" + map.size.to_s
+      return rv
     end
   end
 
@@ -244,7 +256,7 @@ module XFireDB
       db[key] = XFireDB::List.new unless db[key].is_a? XFireDB::List
       db[key].push data
       super(true)
-      return "OK"
+      return "-OK"
     end
   end
 
@@ -259,10 +271,10 @@ module XFireDB
       return forward key, "LCLEAR #{key}" unless @cluster.local_node.shard.include? key
       list = XFireDB.db[key]
 
-      return "nil" unless list.is_a? XFireDB::List
+      return "-nil" unless list.is_a? XFireDB::List
       XFireDB.db.delete(key)
       super(false)
-      return "OK"
+      return "-OK"
     end
   end
 
@@ -280,22 +292,24 @@ module XFireDB
       return forward key, "LPOP #{key} #{idx}" unless @cluster.local_node.shard.include? key
       unless idx.is_i?
         range = idx.split('..')
-        return "LPOP range invalid: #{idx}" unless range[0].is_i? and range[1].is_i?
+        return "-LPOP range invalid: #{idx}" unless range[0].is_i? and range[1].is_i?
 
         list = XFireDB.db[key]
-        return "nil" unless list.is_a? XFireDB::List
+        return "-nil" unless list.is_a? XFireDB::List
 
         range[0] = range[0].to_i
         range[1] = range[1].to_i
         range[0] += list.length unless range[0] >= 0
         range[1] += list.length unless range[1] >= 0
-        return "LPOP range invalid: #{idx}" unless range[0] <= range[1]
+        return "-LPOP range invalid: #{idx}" unless range[0] <= range[1]
 
         rv = Array.new
         n = range[0]
 
         while range[0] <= range[1]
-          rv.push list.pop n
+          v = list.pop n
+          rv.push "-nil" if v.nil?
+          rv.push "+" + v if v
           range[0] += 1
         end
 
@@ -310,8 +324,9 @@ module XFireDB
         idx = idx.to_i
         list = XFireDB.db[key]
 
-        return "nil" unless list.is_a? XFireDB::List
+        return "-nil" unless list.is_a? XFireDB::List
         rv = list.pop idx
+        rv = "+" + rv
 
         unless list.length > 0
           XFireDB.db.delete key unless list.length > 0
@@ -337,23 +352,23 @@ module XFireDB
 
       unless idx.is_i?
         range = idx.split('..')
-        return "LREF range invalid: #{idx}" unless range[0].is_i? and range[1].is_i?
+        return "-LREF range invalid: #{idx}" unless range[0].is_i? and range[1].is_i?
 
         list = XFireDB.db[key]
-        return "nil" unless list.is_a? XFireDB::List
+        return "-nil" unless list.is_a? XFireDB::List
 
         range[0] = range[0].to_i
         range[1] = range[1].to_i
         range[0] += list.length unless range[0] >= 0
         range[1] += list.length unless range[1] >= 0
 
-        return "LREF range invalid: #{idx}" unless range[0] <= range[1]
+        return "-LREF range invalid: #{idx}" unless range[0] <= range[1]
 
         rv = Array.new
         while range[0] <= range[1]
           entry = list[range[0]]
-          rv.push entry unless entry.nil?
-          rv.push "nil" if entry.nil?
+          rv.push "+" + entry if entry
+          rv.push "-nil" if entry.nil?
 
           range[0] += 1
         end
@@ -363,8 +378,8 @@ module XFireDB
         idx = idx.to_i
         list = XFireDB.db[key]
 
-        return "nil" unless list.is_a? XFireDB::List
-        return list[idx]
+        return "-nil" unless list.is_a? XFireDB::List
+        return "+" + list[idx]
       end
     end
   end
@@ -378,12 +393,12 @@ module XFireDB
     def exec
       key = @argv[0]
 
-      return "Syntax error: LSIZE <key>" unless key
+      return "-Syntax error: LSIZE <key>" unless key
       return forward key, "LSIZE #{key}" unless @cluster.local_node.shard.include? key
 
       list = XFireDB.db[key]
-      return "nil" unless list.is_a? XFireDB::List
-      return list.length
+      return "-nil" unless list.is_a? XFireDB::List
+      return "%" + list.length
     end
   end
 
@@ -398,16 +413,16 @@ module XFireDB
       idx = @argv[1]
       data = @argv[3]
 
-      return "Syntax error: LSET <key> <idx> <data>" unless key and idx and data and idx.is_is?
+      return "-Syntax error: LSET <key> <idx> <data>" unless key and idx and data and idx.is_is?
       return forward key, "LSET #{key} #{idx} \"#{data}\"" unless @cluster.local_node.shard.include? key
 
       list = XFireDB.db[key]
-      return "nil" unless list.is_a? XFireDB::List
+      return "-nil" unless list.is_a? XFireDB::List
 
       idx = idx.to_i
       list[idx] = data
       super(true)
-      "OK"
+      "-OK"
     end
   end
 
@@ -421,7 +436,7 @@ module XFireDB
       data = @argv[1]
       db = XFireDB.db
 
-      return "Syntax `GET <key> \"<data>\"'" unless key and data
+      return "-Syntax `GET <key> \"<data>\"'" unless key and data
       if @cluster.local_node.shard.include?(key)
         db[key] = data
         super(true)
@@ -430,7 +445,7 @@ module XFireDB
         node = @cluster.nodes[node]
         return node.query(@client, "SET #{key} \"#{data}\"")
       end
-      return "OK"
+      return "-OK"
     end
   end
 
@@ -444,7 +459,7 @@ module XFireDB
       return unless @argv[0]
 
       if @cluster.local_node.shard.include?(@argv[0])
-        return db[@argv[0]]
+        return "+" + db[@argv[0]]
       else
         node = @cluster.where_is?(@argv[0])
         node = @cluster.nodes[node]
@@ -463,8 +478,8 @@ module XFireDB
       pw = @argv[1]
       map = XFireDB.db['xfiredb']
       local_pw = BCrypt::Password.new(map["user::#{user}"])
-      return "Access denied" if local_pw.nil? or local_pw != pw
-      return "OK"
+      return "-Access denied" if local_pw.nil? or local_pw != pw
+      return "-OK"
     end
   end
 
@@ -481,7 +496,7 @@ module XFireDB
       if @cluster.local_node.shard.include?(key)
         db.delete(key)
         super(false)
-        return "OK"
+        return "-OK"
       else
         node = @cluster.where_is?(key)
         node = @cluster.nodes[node]

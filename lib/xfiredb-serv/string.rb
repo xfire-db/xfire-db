@@ -29,6 +29,17 @@ class String
     self.inspect[1..-2]
   end
 
+  def shift
+    c = self[0]
+    self[0] = ''
+
+    return c
+  end
+
+  def unshift(c)
+    self.insert(0, c)
+  end
+
   def unescape
     eval %Q{"#{self}"}
   end
@@ -38,14 +49,6 @@ class String
   end
 
   def tokenize
-    self.
-      split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).
-      select {|s| not s.empty? }.
-      map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
+    self.scan(/(?:"(?:\\.|[^"])*"|[^" ])+/).map {|s| s.strip.rchomp('"').chomp('"')}
   end
-
-#def tokenize
-    #self.
-      #split(/\s(?=(?:[^"]|"[^"]*")*$)/).map { |s| s.strip.rchomp('"').chomp('"') }
-  #end
 end
