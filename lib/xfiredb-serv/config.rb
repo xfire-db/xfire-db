@@ -19,7 +19,8 @@
 module XFireDB
   class Config
     attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
-      :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems
+      :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
+      :ssl, :ssl_cert, :ssl_key
     attr_accessor :daemon
 
     CONFIG_PORT = "port"
@@ -33,6 +34,9 @@ module XFireDB
     CONFIG_DB_FILE = "db-file"
     CONFIG_PERSIST_LEVEL = "persist-level"
     CONFIG_AUTH_REQUIRED = "auth-required"
+    CONFIG_SSL_SERV = 'ssl-required'
+    CONFIG_SSL_CERT = 'ssl-certificate'
+    CONFIG_SSL_KEY = 'ssl-key'
 
     @port = nil
     @addr = nil
@@ -45,6 +49,9 @@ module XFireDB
     @db_file = nil
     @persist_level = 0
     @auth = false
+    @ssl = false
+    @ssl_cert = nil
+    @ssl_key = nil
 
     def initialize(file = nil)
       return unless file
@@ -100,6 +107,12 @@ module XFireDB
     def parse(opt, arg)
       case opt
         # Main config options
+      when CONFIG_SSL_CERT
+        @ssl_cert = File.expand_path(arg)
+      when CONFIG_SSL_KEY
+        @ssl_key = File.expand_path(arg)
+      when CONFIG_SSL_SERV
+        @ssl = true if arg.upcase == "TRUE"
       when CONFIG_AUTH_REQUIRED
         @auth = true if arg.upcase == "TRUE"
       when CONFIG_LOG_FILE

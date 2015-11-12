@@ -49,7 +49,16 @@ module XFireDB
     end
 
     def start_clusterbus
-      serv = TCPServer.new(@config.addr, @config.port + 10000)
+      server = TCPServer.new(@config.addr, @config.port + 10000)
+      if @config.ssl
+        context = OpenSSL::SSL::SSLContext.new
+        context.cert = OpenSSL::X509::Certificate.new(File.open(@config.ssl_cert))
+        context.key = OpenSSL::PKey::RSA.new(File.open(@config.ssl_key))
+        serv = OpenSSL::SSL::SSLServer.new(server, context)
+      else
+        serv = server
+      end
+
       Thread.new do
         loop do
           Thread.start(serv.accept) do |request|
@@ -111,7 +120,16 @@ module XFireDB
                            "(#{@config.problems} problems)\n", false, false)
         XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Initialisation complete, " \
                           "database started!\n", false, false)
-        serv = TCPServer.new(@config.addr, @config.port)
+        server = TCPServer.new(@config.addr, @config.port)
+        if @config.ssl
+          context = OpenSSL::SSL::SSLContext.new
+          context.cert = OpenSSL::X509::Certificate.new(File.open(@config.ssl_cert))
+          context.key = OpenSSL::PKey::RSA.new(File.open(@config.ssl_key))
+          serv = OpenSSL::SSL::SSLServer.new(server, context)
+        else
+          serv = server
+        end
+
         loop do
           @pool.push(serv.accept)
         end

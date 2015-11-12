@@ -67,7 +67,7 @@ module XFireDB
 
       if @port.nil?
         @cluster.nodes.each do |id, node|
-          sock = TCPSocket.new(node.addr, node.port + 10000)
+          sock = XFireDB::SocketFactory.create_socket node.addr, node.port + 10000
           sock.puts("QUERY")
           sock.puts("CLUSTER SLOTS")
           rv[id] = sock.gets.to_i
@@ -135,7 +135,7 @@ module XFireDB
       local_port = @cluster.local_node.port
 
       id = cluster_get_id
-      sock = TCPSocket.new(ip, port)
+      sock = XFireDB::SocketFactory.create_socket ip, port
       sock.puts "AUTH"
       sock.puts "#{id} #{local_ip} #{local_port}"
       sock.puts "#{uname} #{pw}"

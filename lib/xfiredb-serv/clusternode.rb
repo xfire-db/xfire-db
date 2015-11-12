@@ -42,7 +42,7 @@ module XFireDB
     end
 
     def add_slots(slots)
-      socket = TCPSocket.new(@addr, @cluster_port)
+      socket = XFireDB::SocketFactory.create_socket @addr, @cluster_port
       socket.puts "ADDSLOTS"
       socket.puts slots
       rv = socket.gets
@@ -52,7 +52,7 @@ module XFireDB
     end
 
     def cluster_query(query)
-      socket = TCPSocket.new(@addr, @cluster_port)
+      socket = XFireDB::SocketFactory.create_socket @addr, @cluster_port
       socket.puts "QUERY"
       socket.puts query
       rv = socket.gets.chomp
@@ -62,7 +62,7 @@ module XFireDB
     end
 
     def query(client, query)
-      socket = TCPSocket.new(@addr, @port)
+      socket = XFireDB::SocketFactory.create_socket @addr, @port
       socket.puts "AUTH #{client.user.user} #{client.user.password}" if XFireDB.config.auth
       socket.puts(query)
 
@@ -76,7 +76,7 @@ module XFireDB
     end
 
     def gossip(gossip)
-      socket = TCPSocket.new(@addr, @cluster_port)
+      socket = XFireDB::SocketFactory.create_socket @addr, @cluster_port
       socket.puts "GOSSIP"
       socket.puts gossip
       rv = socket.gets

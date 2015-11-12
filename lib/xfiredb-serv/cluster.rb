@@ -261,7 +261,7 @@ module XFireDB
     end
 
     def get_far_id(ip, port)
-      sock = TCPSocket.new(ip, port)
+      sock = XFireDB::SocketFactory.create_socket ip, port
       sock.puts "QUERY"
       sock.puts "CLUSTER GETID"
       sock.gets.chomp
