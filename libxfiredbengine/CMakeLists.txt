@@ -32,7 +32,8 @@ add_library(xfiredbengine SHARED
 	bitops.c
 	xfiredb.c
 	log.c
-	sprintf.c)
+	sprintf.c
+	quotearg.c)
 
 
 target_link_libraries(xfiredbengine LINK_PUBLIC ${SQLITE3_LIB})

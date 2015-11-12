@@ -41,6 +41,9 @@ extern VALUE c_hashmap;
 extern VALUE c_list;
 extern VALUE c_set;
 
+/* string funcs */
+extern void init_string(void);
+
 /* set funcs */
 extern void init_set(void);
 extern void rb_set_free(struct db_entry_container *e);
