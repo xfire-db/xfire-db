@@ -140,7 +140,8 @@ module XFireDB
     def start
       puts "[init]: XFireDB started in debugging mode" if @config.debug
       ontop = @config.debug
-      opts = {:ARGV => [@options.action], :ontop => ontop, :log_output => true}
+      opts = {:ARGV => [@options.action], :ontop => ontop, :dir_mode => :normal,
+              :dir => @config.pid_file, :log_output => true}
       Daemons.run_proc('xfiredb', opts) do
       self.start_clusterbus
       begin

@@ -139,14 +139,15 @@ module XFireDB
         exit
       end
 
+    @@config = XFireDB::Config.new(@options[:config])
     case @options.action
     when "stop"
-      Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
+      opts = {:ARGV => [@options.action], :dir_mode => :script, :dir => @@config.pid_file }
+      Daemons.run_proc('xfiredb', opts) do
       end
     when "status"
     else
       @@options = @options
-      @@config = XFireDB::Config.new(@options[:config])
       XFireDB.create
       XFireDB::Shell.start(XFireDB.engine) if @options[:shell]
       unless missing.empty?

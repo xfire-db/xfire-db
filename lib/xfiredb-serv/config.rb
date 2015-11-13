@@ -20,7 +20,7 @@ module XFireDB
   class Config
     attr_reader :port, :config_port, :addr, :cluster,
       :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
-      :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_pass, :cluster_auth
+      :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_pass, :cluster_auth, :pid_file
     attr_accessor :daemon
 
     CONFIG_PORT = "port"
@@ -38,6 +38,7 @@ module XFireDB
     CONFIG_SSL_KEY = 'ssl-key'
     CONFIG_CLUSER_USER = 'cluster-user'
     CONFIG_CLUSTER_PW = 'cluster-password'
+    CONFIG_PID_FILE = 'pid-file'
 
     @port = nil
     @addr = nil
@@ -56,6 +57,7 @@ module XFireDB
     @cluster_user = nil
     @cluster_pass = nil
     @cluser_auth = false
+    @pid_file = nil
 
     def initialize(file = nil)
       return unless file
@@ -95,6 +97,11 @@ module XFireDB
         end
       end
 
+      unless @pid_file
+        puts "[config]: pid-file is a required configuration option"
+        fail_count += 1
+      end
+
       unless @port
         puts "[config]: port is a required config option"
         fail_count += 1
@@ -126,6 +133,8 @@ module XFireDB
     def parse(opt, arg)
       case opt
         # Main config options
+      when CONFIG_PID_FILE
+        @pid_file = arg
       when CONFIG_CLUSER_USER
         @cluster_user = arg
       when CONFIG_CLUSTER_PW
