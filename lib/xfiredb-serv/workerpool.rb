@@ -41,15 +41,19 @@ module XFireDB
                   next
                 end
               end
-              client.read
+              loop do
+                client.read
+                break if client.quit_recv
 
-              v = cluster.query(client)
-              if v.is_a? Array
-                v.each do |val|
-                  stream.puts val
+                v = cluster.query(client)
+                if v.is_a? Array
+                  v.each do |val|
+                    stream.puts val
+                  end
+                else
+                  stream.puts v
                 end
-              else
-                stream.puts v
+                break unless client.keep
               end
               stream.close
             end

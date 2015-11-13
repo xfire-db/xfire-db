@@ -19,12 +19,14 @@
 module XFireDB
   class Client
     attr_accessor :stream, :cluster
-    attr_reader :request, :user
+    attr_reader :request, :user, :keep, :quit_recv
 
     @request = nil
     @stream = nil
     @cluster = nil
     @user = nil
+    @keep = false
+    @quit_recv = false
 
     def initialize(client, xql = nil)
       @request = XFireDB::XQL.parse(xql) unless xql.nil?
@@ -49,6 +51,14 @@ module XFireDB
 
     def read(ip = nil, port = nil)
       data = @stream.gets.chomp
+      if data.upcase == "STREAM"
+        @keep = true
+        data = @stream.gets.chomp
+      elsif data.upcase == "QUIT"
+        @quit_recv = true
+        return
+      end
+
       @request = XFireDB::XQL.parse(data)
       @request.src_ip = ip
       @request.src_port = port
