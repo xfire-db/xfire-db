@@ -459,6 +459,8 @@ module XFireDB
       return unless @argv[0]
 
       if @cluster.local_node.shard.include?(@argv[0])
+        val = db[@argv[0]]
+        return "-nil" if val.nil?
         return "+" + db[@argv[0]]
       else
         node = @cluster.where_is?(@argv[0])

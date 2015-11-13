@@ -67,10 +67,7 @@ module XFireDB
 
       if @port.nil?
         @cluster.nodes.each do |id, node|
-          sock = XFireDB::SocketFactory.create_socket node.addr, node.port + 10000
-          sock.puts("QUERY")
-          sock.puts("CLUSTER SLOTS")
-          rv[id] = sock.gets.to_i
+          rv[id] = node.cluster_query("CLUSTER SLOTS").to_i
         end
         return rv
       else
@@ -150,12 +147,12 @@ module XFireDB
         nodes.push("#{id} #{ip} #{port}")
 
         # send a to add the new node in the rest of the network
-        gossip = "#{id} #{ip} #{port} #{XFireDB::Cluster::GOSSIP_ADD}"
+        @cluster.add_node(id, ip, port)
+        gossip = ""
         @cluster.nodes.each do |id, node|
           gossip += " #{id} #{node.addr} #{node.port} #{XFireDB::Cluster::GOSSIP_CHECK}"
         end
 
-        @cluster.add_node(id, ip, port)
         @cluster.gossip_send(gossip)
       end
       return rv

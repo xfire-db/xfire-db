@@ -65,6 +65,33 @@ module XFireDB
             begin
             family, port, host, ip = request.peeraddr;
             type = request.gets.chomp
+            if not type.upcase == "AUTH" and @config.cluster_auth
+              auth_cmd = type.split(' ')
+              if not auth_cmd[0].upcase == "AUTH"
+                request.puts "Access denied"
+                request.close
+                next
+              else
+                db = XFireDB.db
+                cluster_user = db['xfiredb']["user::#{auth_cmd[1]}"]
+                # does the user exist
+                if cluster_user.nil?
+                  request.puts "Access denied"
+                  request.close
+                  next
+                end
+
+                cluster_user = BCrypt::Password.new(cluster_user)
+                if cluster_user != auth_cmd[2]
+                  request.puts "Access denied"
+                  request.close
+                  next
+                end
+              end
+              request.puts "OK"
+              type = request.gets.chomp
+            end
+
             if not @cluster.request_from_node?(ip) and type.upcase != "AUTH"
               request.puts "Access denied"
               request.close

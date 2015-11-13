@@ -42,7 +42,15 @@ module XFireDB
                 end
               end
               client.read
-              stream.puts cluster.query(client)
+
+              v = cluster.query(client)
+              if v.is_a? Array
+                v.each do |val|
+                  stream.puts val
+                end
+              else
+                stream.puts v
+              end
               stream.close
             end
           rescue IllegalKeyException => e

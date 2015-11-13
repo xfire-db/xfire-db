@@ -20,7 +20,7 @@ module XFireDB
   class Config
     attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
       :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
-      :ssl, :ssl_cert, :ssl_key
+      :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_pass, :cluster_auth
     attr_accessor :daemon
 
     CONFIG_PORT = "port"
@@ -37,6 +37,8 @@ module XFireDB
     CONFIG_SSL_SERV = 'ssl-required'
     CONFIG_SSL_CERT = 'ssl-certificate'
     CONFIG_SSL_KEY = 'ssl-key'
+    CONFIG_CLUSER_USER = 'cluster-user'
+    CONFIG_CLUSTER_PW = 'cluster-password'
 
     @port = nil
     @addr = nil
@@ -52,6 +54,9 @@ module XFireDB
     @ssl = false
     @ssl_cert = nil
     @ssl_key = nil
+    @cluster_user = nil
+    @cluster_pass = nil
+    @cluser_auth = false
 
     def initialize(file = nil)
       return unless file
@@ -71,6 +76,8 @@ module XFireDB
       fh.close
 
       check_mandatory
+
+      @cluster_auth = true if @cluster_user and @cluster_pass
     end
 
     def check_mandatory
@@ -107,6 +114,10 @@ module XFireDB
     def parse(opt, arg)
       case opt
         # Main config options
+      when CONFIG_CLUSER_USER
+        @cluster_user = arg
+      when CONFIG_CLUSTER_PW
+        @cluster_pass = arg
       when CONFIG_SSL_CERT
         @ssl_cert = File.expand_path(arg)
       when CONFIG_SSL_KEY

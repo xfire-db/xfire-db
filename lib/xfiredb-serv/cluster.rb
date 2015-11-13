@@ -261,10 +261,12 @@ module XFireDB
     end
 
     def get_far_id(ip, port)
-      sock = XFireDB::SocketFactory.create_socket ip, port
+      sock = XFireDB::SocketFactory.create_cluster_socket ip, port
       sock.puts "QUERY"
       sock.puts "CLUSTER GETID"
-      sock.gets.chomp
+      rv = sock.gets.chomp
+      sock.close
+      return rv
     end
 
     def query(client)
@@ -272,7 +274,7 @@ module XFireDB
       cmd = cmd[client.request.cmd]
       return "Command not known" unless cmd
       instance = cmd.new(self, client)
-      return instance.exec
+      instance.exec
     end
 
     def cluster_query(client)

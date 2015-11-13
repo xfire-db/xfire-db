@@ -78,6 +78,7 @@ module XFireDB
     def Shell.reset
       db = @@engine.db
       db['xfiredb'].delete('shards') unless db['xfiredb'].nil?
+      db.delete('xfiredb-nodes')
     end
 
     def Shell.reset_root_node
@@ -103,6 +104,7 @@ module XFireDB
       rv = (0..16383).to_a
       rv = rv.join(':')
       db['xfiredb']['shards'] = rv
+      db.delete('xfiredb-nodes')
       return
     end
 
