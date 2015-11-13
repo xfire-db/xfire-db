@@ -139,7 +139,9 @@ module XFireDB
 
     def start
       puts "[init]: XFireDB started in debugging mode" if @config.debug
-      Daemons.run_proc('xfiredb', {:ARGV => [@options.action], :ontop => true, :log_output => true}) do
+      ontop = @config.debug
+      opts = {:ARGV => [@options.action], :ontop => ontop, :log_output => true}
+      Daemons.run_proc('xfiredb', opts) do
       self.start_clusterbus
       begin
         XFireDB.create
@@ -163,7 +165,9 @@ module XFireDB
           @pool.push(serv.accept)
         end
         rescue SystemExit => e
-          XFireDB.stop if @options.action == "stop"
+          if @options.action == "stop" or @options.action == "restart"
+            XFireDB.stop
+          end
         end
       end
     end

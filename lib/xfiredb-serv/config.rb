@@ -18,7 +18,7 @@
 
 module XFireDB
   class Config
-    attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
+    attr_reader :port, :config_port, :addr, :cluster,
       :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
       :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_pass, :cluster_auth
     attr_accessor :daemon
@@ -26,7 +26,6 @@ module XFireDB
     CONFIG_PORT = "port"
     CONFIG_BIND_ADDR = "bind-addr"
     CONFIG_CLUSTER = "cluster-enabled"
-    CONFIG_CLUSTER_CONF = "cluster-config-file"
     CONFIG_DEBUG = "debug-mode"
     CONFIG_TEST_OPT = "test-option"
     CONFIG_LOG_FILE = "stdout-file"
@@ -75,13 +74,26 @@ module XFireDB
       end
       fh.close
 
-      check_mandatory
-
       @cluster_auth = true if @cluster_user and @cluster_pass
+      check_mandatory
     end
 
     def check_mandatory
       fail_count = 0
+
+      if @auth and @cluster
+        unless @cluster_user and @cluster_pass
+          puts "cluster-user and cluster-password required when using authentication"
+          fail_count += 1
+        end
+      end
+
+      if @ssl
+        unless @ssl_key and @ssl_cert
+          puts "ssl-key and ssl-certificate are required when using SSL"
+          fail_count += 1
+        end
+      end
 
       unless @port
         puts "[config]: port is a required config option"
@@ -146,9 +158,6 @@ module XFireDB
         @addr = arg
       when CONFIG_CLUSTER
         @cluster = true if arg.eql? "true"
-      when CONFIG_CLUSTER_CONF
-        puts "[config]: (#{opt}) File \'#{arg}\' not found!" unless check_config(arg)
-        @cluster_config = arg
       when CONFIG_DEBUG
         @debug = true if arg.eql? "true"
         # cluster config options

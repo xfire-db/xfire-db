@@ -28,6 +28,9 @@ module XFireDB
 
     def initialize(cluster, client)
       super(cluster, "CLUSTER", client)
+
+      raise IllegalCommandException,
+        "Cluster commands not allowed in non-cluster mode" unless XFireDB.config.cluster
       config = XFireDB.config
       @subcmd = @argv.shift
 

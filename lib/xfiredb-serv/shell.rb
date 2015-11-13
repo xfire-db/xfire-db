@@ -96,6 +96,7 @@ module XFireDB
       passw = STDIN.noecho(&:gets).chomp
       puts "\nSetup complete!"
       map["user::#{user}"] = BCrypt::Password.create passw
+      Shell.setup_root_node unless XFireDB.config.cluster
       return
     end
 

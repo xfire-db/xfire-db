@@ -32,6 +32,7 @@ require 'io/console'
 require 'xfiredb-serv/storage_engine'
 require 'xfiredb-serv/digest'
 require 'xfiredb-serv/illegalkeyexception'
+require 'xfiredb-serv/illegalcommandexception'
 require 'xfiredb-serv/socket'
 require 'xfiredb-serv/user'
 require 'xfiredb-serv/cluster'
@@ -138,12 +139,12 @@ module XFireDB
         exit
       end
 
-    if @options.action == "stop"
+    case @options.action
+    when "stop"
       Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
       end
-    end
-
-    unless @options.action == "stop"
+    when "status"
+    else
       @@options = @options
       @@config = XFireDB::Config.new(@options[:config])
       XFireDB.create
@@ -156,6 +157,7 @@ module XFireDB
       XFireDB.exit
       server.start
     end
+
   end
 
   def XFireDB.illegal_key?(key)
