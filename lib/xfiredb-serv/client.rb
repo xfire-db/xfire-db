@@ -18,8 +18,8 @@
 
 module XFireDB
   class Client
-    attr_accessor :stream, :cluster
-    attr_reader :request, :user, :keep, :quit_recv
+    attr_accessor :stream, :cluster, :user
+    attr_reader :request, :keep, :quit_recv
 
     @request = nil
     @stream = nil
