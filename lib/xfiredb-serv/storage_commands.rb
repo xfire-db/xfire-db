@@ -411,9 +411,9 @@ module XFireDB
     def exec
       key = @argv[0]
       idx = @argv[1]
-      data = @argv[3]
+      data = @argv[2]
 
-      return "-Syntax error: LSET <key> <idx> <data>" unless key and idx and data and idx.is_is?
+      return "-Syntax error: LSET <key> <idx> <data>" unless key and idx and data and idx.is_i?
       return forward key, "LSET #{key} #{idx} \"#{data}\"" unless @cluster.local_node.shard.include? key
 
       list = XFireDB.db[key]

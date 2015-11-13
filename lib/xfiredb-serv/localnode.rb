@@ -108,7 +108,9 @@ module XFireDB
               "OK"
             when "QUERY"
               dom, port, host, ip = request.peeraddr
+              config = XFireDB.config
               client = XFireDB::Client.from_stream(request)
+              client.auth config.cluster_user, config.cluster_pass
               client.read(ip, port)
               @cluster.cluster_query(client)
             when "PING"

@@ -28,6 +28,7 @@ module XFireDB
 
     def initialize(cluster, client)
       super(cluster, "CLUSTER", client)
+      config = XFireDB.config
       @subcmd = @argv.shift
 
       @ip = client.request.src_ip
@@ -153,7 +154,7 @@ module XFireDB
           gossip += " #{id} #{node.addr} #{node.port} #{XFireDB::Cluster::GOSSIP_CHECK}"
         end
 
-        @cluster.gossip_send(gossip)
+        @cluster.gossip_send(gossip.lstrip)
       end
       return rv
     end

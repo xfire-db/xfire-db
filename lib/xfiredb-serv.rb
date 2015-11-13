@@ -74,6 +74,7 @@ module XFireDB
     "LCLEAR" => XFireDB::CommandLClear,
     "LPUSH" => XFireDB::CommandLPush,
     "LPOP" => XFireDB::CommandLPop,
+    "LSET" => XFireDB::CommandLSet,
     "LREF" => XFireDB::CommandLRef,
     "LSIZE" => XFireDB::CommandLSize,
     "AUTH" => XFireDB::CommandAuth,
