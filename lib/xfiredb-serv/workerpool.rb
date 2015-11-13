@@ -26,6 +26,7 @@ module XFireDB
           begin
             while stream = self.pop(false)
               client = XFireDB::Client.from_stream(stream, cluster)
+              family, port, host, ip = stream.peeraddr
               if XFireDB.config.auth
                 auth = stream.gets.chomp
                 auth = XFireDB::XQL.parse(auth)
@@ -36,11 +37,14 @@ module XFireDB
                 end
 
                 unless client.auth(auth.args[0], auth.args[1])
+                  XFireDB::Log.auth_fail(ip, auth.args[0])
                   stream.puts "Access denied"
                   stream.close
                   next
                 end
               end
+
+              XFireDB::Log.connecting_client(ip, auth ? auth.args[0] : nil)
               loop do
                 client.read
                 break if client.quit_recv
@@ -62,7 +66,13 @@ module XFireDB
             stream.close
             next
           rescue Exception => e
-            puts e
+            if e.is_a? BCrypt::Errors::InvalidHash
+              stream.puts "Access denied for #{auth.args[0]}"
+              XFireDB::Log.auth_fail(ip, auth.args[0])
+              stream.close
+              next
+            end
+
             puts e.backtrace
             stream.puts "Query failed"
             stream.close
