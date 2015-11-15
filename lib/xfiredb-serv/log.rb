@@ -1,5 +1,5 @@
 #
-#   XFireDB storage commands
+#   XFireDB server
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,47 +17,19 @@
 #
 
 module XFireDB
-  class CommandSet < XFireDB::Command
-    def initialize(argv)
-      super("SET", argv)
+  class Log
+    LOG_INIT = "[init]: ".freeze
+    LOG_SERVER = "[server]: ".freeze
+    LOG_CLIENT = "[client]: ".freeze
+    LOG_XQL = "[xql]: ".freeze
+
+    def Log.connecting_client(client,user = nil)
+      XFireDB::Log.write(Log::LOG_SERVER + "Client [#{client}] connected")
+      XFireDB::Log.write(" (authenticated as #{user})\n") unless user.nil?
     end
 
-    def exec
-      key = @argv[0]
-      data = @argv[1]
-      db = XFireDB.db
-
-      return "Syntax `GET <key> \"<data>\"'" unless key and data
-      db[key] = data
-      return "OK"
-    end
-  end
-
-  class CommandGet < XFireDB::Command
-    def initialize(argv)
-      super("GET", argv)
-    end
-
-    def exec
-      db = XFireDB.db
-      return unless @argv[0]
-      return db[@argv[0]]
-    end
-  end
-
-
-  class CommandDelete < XFireDB::Command
-    def initialize(argv)
-      super("DELETE", argv)
-    end
-
-    def exec
-      key = @argv[0]
-      db = XFireDB.db
-
-      return unless key
-      db.delete(key)
+    def Log.auth_fail(ip, user)
+      XFireDB::Log.write(XFireDB::Log::LOG_SERVER + "Client [#{ip}] failed to authenticate as #{user}\n")
     end
   end
 end
-

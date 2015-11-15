@@ -111,6 +111,7 @@ static VALUE rb_set_add(VALUE self, VALUE _key)
 		return _key;
 	}
 
+	xfire_free(k);
 	return Qnil;
 }
 

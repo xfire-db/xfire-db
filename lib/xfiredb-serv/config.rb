@@ -18,20 +18,25 @@
 
 module XFireDB
   class Config
-    attr_reader :port, :config_port, :addr, :cluster, :cluster_config,
-      :debug, :log_file, :err_log_file, :db_file, :persist_level, :problems
-    attr_accessor :daemon
+    attr_reader :port, :config_port, :addr, :cluster,
+      :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
+      :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_auth, :pid_file
+    attr_accessor :daemon, :secret
 
     CONFIG_PORT = "port"
     CONFIG_BIND_ADDR = "bind-addr"
     CONFIG_CLUSTER = "cluster-enabled"
-    CONFIG_CLUSTER_CONF = "cluster-config-file"
     CONFIG_DEBUG = "debug-mode"
     CONFIG_TEST_OPT = "test-option"
     CONFIG_LOG_FILE = "stdout-file"
     CONFIG_ERR_LOG_FILE = "stderr-file"
     CONFIG_DB_FILE = "db-file"
     CONFIG_PERSIST_LEVEL = "persist-level"
+    CONFIG_AUTH_REQUIRED = "auth-required"
+    CONFIG_SSL_SERV = 'ssl-required'
+    CONFIG_SSL_CERT = 'ssl-certificate'
+    CONFIG_SSL_KEY = 'ssl-key'
+    CONFIG_PID_FILE = 'pid-file'
 
     @port = nil
     @addr = nil
@@ -43,12 +48,20 @@ module XFireDB
     @err_log_file = nil
     @db_file = nil
     @persist_level = 0
+    @auth = false
+    @ssl = false
+    @ssl_cert = nil
+    @ssl_key = nil
+    @secret = nil
+    @cluser_auth = false
+    @pid_file = nil
 
     def initialize(file = nil)
       return unless file
 
       @filename = file
       @problems = 0
+      @cluster_user = 'cluster'
       fh = File.open(@filename, "r")
       puts "[config]: config file (#{file}) not found!" unless check_config(fh)
       fh.each do |line|
@@ -61,11 +74,24 @@ module XFireDB
       end
       fh.close
 
+      @cluster_auth = @cluster
       check_mandatory
     end
 
     def check_mandatory
       fail_count = 0
+
+      if @ssl
+        unless @ssl_key and @ssl_cert
+          puts "ssl-key and ssl-certificate are required when using SSL"
+          fail_count += 1
+        end
+      end
+
+      unless @pid_file
+        puts "[config]: pid-file is a required configuration option"
+        fail_count += 1
+      end
 
       unless @port
         puts "[config]: port is a required config option"
@@ -98,6 +124,16 @@ module XFireDB
     def parse(opt, arg)
       case opt
         # Main config options
+      when CONFIG_PID_FILE
+        @pid_file = arg
+      when CONFIG_SSL_CERT
+        @ssl_cert = File.expand_path(arg)
+      when CONFIG_SSL_KEY
+        @ssl_key = File.expand_path(arg)
+      when CONFIG_SSL_SERV
+        @ssl = true if arg.upcase == "TRUE"
+      when CONFIG_AUTH_REQUIRED
+        @auth = true if arg.upcase == "TRUE"
       when CONFIG_LOG_FILE
         @log_file = File.expand_path(arg)
       when CONFIG_ERR_LOG_FILE
@@ -118,9 +154,6 @@ module XFireDB
         @addr = arg
       when CONFIG_CLUSTER
         @cluster = true if arg.eql? "true"
-      when CONFIG_CLUSTER_CONF
-        puts "[config]: (#{opt}) File \'#{arg}\' not found!" unless check_config(arg)
-        @cluster_config = arg
       when CONFIG_DEBUG
         @debug = true if arg.eql? "true"
         # cluster config options

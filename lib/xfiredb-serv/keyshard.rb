@@ -18,12 +18,20 @@
 
 module XFireDB
   class KeyShard
+    attr_reader :slots
+
     @slots = nil
     @keys = nil
 
     def initialize(range = nil)
-      @slots = Set.new
-      @keys = Set.new
+      db = XFireDB.db
+      @slots = ::Set.new
+      @keys = ::Set.new
+
+      db.each do |k, v|
+        next if XFireDB.illegal_key? k
+        @keys.add? k
+      end
 
       range.nil? and return
 
@@ -36,6 +44,7 @@ module XFireDB
         @slots.add(start)
         start += 1
       end
+
     end
 
     def add_slots(slots)
@@ -45,6 +54,11 @@ module XFireDB
     def add_slot(slot)
       return nil unless slot.class == String
       @slots.add? slot
+    end
+
+    def KeyShard.key_to_slot(key)
+      slot = XFireDB::Digest.crc16(key) % 16384
+      slot.to_s
     end
 
     def include?(key)
@@ -62,12 +76,23 @@ module XFireDB
       @keys.delete(key)
     end
 
-    def rehard(shards, add)
-      if add
-        @slots = @slots + shards
-      else
-        @slots = @slots - shards
+    def reshard(num)
+      rm = ::Set.new
+      rmkeys = ::Set.new
+
+      @slots.delete_if { |slot|
+        num -= 1
+        rm.add? slot if num >= 0
+        num >= 0
+      }
+
+      @keys.each do |key|
+        slot = XFireDB::KeyShard.key_to_slot(key)
+        rmkeys.add? key if rm.include? slot
       end
+
+      @keys = @keys - rmkeys
+      [rm, rmkeys]
     end
 
     def size

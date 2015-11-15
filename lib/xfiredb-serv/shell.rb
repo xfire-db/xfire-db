@@ -42,8 +42,12 @@ module XFireDB
       res = case cmd[0]
             when "daemonize"
               "Daemonizing XFireDB"
+            when "reset"
+              Shell.reset
+              Shell.reset_root_node if cmd[1] == "root-node"
             when "setup"
-              Shell.setup
+              cluster = cmd[1] == "root-node"
+              Shell.setup(cluster)
               Shell.setup_root_node if cmd[1] == "root-node"
             when "useradd"
               Shell.useradd
@@ -72,7 +76,17 @@ module XFireDB
       puts "\nUser created!"
     end
 
-    def Shell.setup
+    def Shell.reset
+      db = @@engine.db
+      db['xfiredb'].delete('shards') unless db['xfiredb'].nil?
+      db.delete('xfiredb-nodes')
+    end
+
+    def Shell.reset_root_node
+      Shell.setup_root_node
+    end
+
+    def Shell.setup(cluster)
       db = @@engine.db
       db['xfiredb'] ||= XFireDB::Hashmap.new
       map = db['xfiredb']
@@ -83,6 +97,13 @@ module XFireDB
       passw = STDIN.noecho(&:gets).chomp
       puts "\nSetup complete!"
       map["user::#{user}"] = BCrypt::Password.create passw
+      if cluster
+        db['xfiredb-users'] = XFireDB::Hashmap.new
+        db['xfiredb-users']["#{user}"] = BCrypt::Password.create passw
+        secret = SecureRandom.base64 32
+        db['xfiredb']['secret'] = secret
+        XFireDB.config.secret = secret
+      end
       return
     end
 
@@ -91,6 +112,7 @@ module XFireDB
       rv = (0..16383).to_a
       rv = rv.join(':')
       db['xfiredb']['shards'] = rv
+      db.delete('xfiredb-nodes')
       return
     end
 

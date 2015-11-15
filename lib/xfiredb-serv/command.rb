@@ -21,11 +21,36 @@ module XFireDB
     @cmd = nil
     @argv = nil
     @raw = nil
+    @cluster = nil
+    @client = nil
 
-    def initialize(cmd, argv, raw = nil)
+    def initialize(cluster, cmd, client, key = nil, raw = nil)
+      @cluster = cluster
       @cmd = cmd
-      @argv = argv
+      @argv = client.request.args
       @raw = raw
+      @client = client
+      @key = key unless key.nil?
+      @key = @argv[0] unless key
+
+      unless @cmd == "AUTH" or client.cluster_bus
+        raise IllegalKeyException, "Key: #{@key} is illegal" if XFireDB.illegal_key? @key or XFireDB.private_key? @key
+      end
+    end
+
+    def forward(key, query = nil)
+      node = @cluster.where_is? key
+      node = @cluster.nodes[node]
+      return node.cluster_query @raw unless @raw.nil?
+      return node.cluster_query query
+    end
+
+    def exec(add)
+      if add
+        @cluster.local_node.shard.add_key(@key) unless @key.nil?
+      else
+        @cluster.local_node.shard.del_key(@key) unless @key.nil?
+      end
     end
   end
 end

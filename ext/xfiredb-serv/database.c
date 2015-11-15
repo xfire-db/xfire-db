@@ -44,16 +44,15 @@ static VALUE rb_container_to_obj(struct db_entry_container *c)
 	return c->obj;
 }
 
-VALUE rb_db_new(VALUE klass)
+static VALUE rb_db_new(VALUE klass)
 {
 	struct database *db = db_alloc("xfire-database");
 	VALUE obj = Data_Wrap_Struct(klass, NULL, rb_db_release, db);
 
-	rb_gc_mark(obj);
 	return obj;
 }
 
-VALUE rb_db_ref(VALUE self, VALUE key)
+static VALUE rb_db_ref(VALUE self, VALUE key)
 {
 	struct database *db;
 	struct container *c;
@@ -106,7 +105,7 @@ static void raw_rb_db_delete(struct db_entry_container *entry)
 	}
 }
 
-VALUE rb_db_size(VALUE self)
+static VALUE rb_db_size(VALUE self)
 {
 	struct database *db;
 
@@ -114,7 +113,7 @@ VALUE rb_db_size(VALUE self)
 	return LONG2NUM(db_get_size(db));
 }
 
-VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
+static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 {
 	struct database *db;
 	struct container *c;
@@ -132,7 +131,8 @@ VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 				c = dbdata.ptr;
 				s = container_get_data(c);
 				string_set(s, StringValueCStr(data));
-				return data;
+				xfiredb_notice_disk((char*)tmp, NULL, StringValueCStr(data), STRING_UPDATE);
+				return db_store(db, tmp, c) == -XFIRE_OK ? data : Qnil;
 			}
 
 			raw_rb_db_delete(rb_c);
@@ -163,7 +163,7 @@ VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 	return data;
 }
 
-VALUE rb_db_delete(VALUE self, VALUE key)
+static VALUE rb_db_delete(VALUE self, VALUE key)
 {
 	struct database *db;
 	struct container *c;

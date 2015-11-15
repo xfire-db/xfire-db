@@ -23,40 +23,67 @@ require 'thread'
 require 'socket'
 require 'daemons'
 require 'securerandom'
+require 'openssl'
 require 'bcrypt'
 require 'set'
 
 require 'io/console'
 
-require 'xfiredb/storage_engine'
-require 'xfiredb/cluster'
-require 'xfiredb/clusternode'
-require 'xfiredb/localnode'
-require 'xfiredb/command'
-require 'xfiredb/storage_commands'
-require 'xfiredb/cluster_commands'
-require 'xfiredb/digest'
-require 'xfiredb/engine'
-require 'xfiredb/config'
-require 'xfiredb/string'
-require 'xfiredb/clusterbus'
-require 'xfiredb/workerpool'
-require 'xfiredb/client'
-require 'xfiredb/log'
-require 'xfiredb/shell'
-require 'xfiredb/keyshard'
-require 'xfiredb/xql'
+require 'xfiredb-serv/storage_engine'
+require 'xfiredb-serv/digest'
+require 'xfiredb-serv/illegalkeyexception'
+require 'xfiredb-serv/illegalcommandexception'
+require 'xfiredb-serv/socket'
+require 'xfiredb-serv/user'
+require 'xfiredb-serv/cluster'
+require 'xfiredb-serv/clusternode'
+require 'xfiredb-serv/localnode'
+require 'xfiredb-serv/command'
+require 'xfiredb-serv/storage_commands'
+require 'xfiredb-serv/cluster_commands'
+require 'xfiredb-serv/engine'
+require 'xfiredb-serv/config'
+require 'xfiredb-serv/string'
+require 'xfiredb-serv/clusterbus'
+require 'xfiredb-serv/workerpool'
+require 'xfiredb-serv/client'
+require 'xfiredb-serv/log'
+require 'xfiredb-serv/shell'
+require 'xfiredb-serv/keyshard'
+require 'xfiredb-serv/xql'
 
 module XFireDB
   @@config = nil
+  @@users = nil
   @@options = nil
   @@engine = nil
   @@commands = {
     "GET" => XFireDB::CommandGet,
     "SET" => XFireDB::CommandSet,
     "DELETE" => XFireDB::CommandDelete,
+
+    "MADD" => XFireDB::CommandMAdd,
+    "MREF" => XFireDB::CommandMRef,
+    "MCLEAR" => XFireDB::CommandMClear,
+    "MDEL" => XFireDB::CommandMDel,
+    "MSIZE" => XFireDB::CommandMSize,
+
+    "SADD" => XFireDB::CommandSAdd,
+    "SDEL" => XFireDB::CommandSDel,
+    "SCLEAR" => XFireDB::CommandSClear,
+    "SINCLUDE" => XFireDB::CommandSInclude,
+
+    "LCLEAR" => XFireDB::CommandLClear,
+    "LPUSH" => XFireDB::CommandLPush,
+    "LPOP" => XFireDB::CommandLPop,
+    "LSET" => XFireDB::CommandLSet,
+    "LREF" => XFireDB::CommandLRef,
+    "LSIZE" => XFireDB::CommandLSize,
     "CLUSTER" => XFireDB::ClusterCommand
   }
+
+  @@illegals = ["xfiredb", "xfiredb-nodes"]
+  @@private_keys = ["xfiredb-users"]
 
   def XFireDB.start(cmdargs)
     @options = OpenStruct.new
@@ -113,25 +140,50 @@ module XFireDB
         exit
       end
 
-    if @options.action == "stop"
-      Daemons.run_proc('xfiredb', :ARGV => [@options.action]) do
+    @@config = XFireDB::Config.new(@options[:config])
+    case @options.action
+    when "stop"
+      opts = {:ARGV => [@options.action], :dir_mode => :script, :dir => @@config.pid_file }
+      Daemons.run_proc('xfiredb', opts) do
       end
-    end
-
-    unless @options.action == "stop"
+    when "status"
+    else
       @@options = @options
-      @@config = XFireDB::Config.new(@options[:config])
-      puts @options.action if @options.action == "stop"
       XFireDB.create
       XFireDB::Shell.start(XFireDB.engine) if @options[:shell]
       unless missing.empty?
         XFireDB.exit
         exit
       end
+      XFireDB.create_users
       server = XFireDB::Cluster.new(@@config.addr, @@config.port)
       XFireDB.exit
       server.start
     end
+
+  end
+
+  def XFireDB.users
+    @@users
+  end
+
+  def XFireDB.create_users
+    map = XFireDB.db['xfiredb-users']
+    @@users = Hash.new
+    return if map.nil?
+
+    map.each do |username, hash|
+      user = XFireDB::User.from_hash(username, hash)
+      @@users[username] = user
+    end
+  end
+
+  def XFireDB.illegal_key?(key)
+    @@illegals.include? key
+  end
+
+  def XFireDB.private_key?(key)
+    @@private_keys.include? key
   end
 
   def XFireDB.config

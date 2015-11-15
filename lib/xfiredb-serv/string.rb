@@ -1,5 +1,5 @@
 #
-#   XFireDB clusternode
+#   XFireDB string extensions
 #   Copyright (C) 2015  Michel Megens <dev@michelmegens.net>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,36 +16,39 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-module XFireDB
-  class ClusterNode
-    attr_accessor :shard
-    attr_reader :addr, :port
+class String
+  def is_i?
+    /\A[-+]?\d+\z/ === self
+  end
 
-    @addr = nil
-    @port = nil
-    @cluster_port = nil
+  def rchomp(sep = $/)
+    self.start_with?(sep) ? self[sep.size..-1] : self
+  end
 
-    def initialize(addr, port)
-      @addr = addr
-      @port = port
-      @cluster_port = port + 10000
-    end
+  def escape
+    self.inspect[1..-2]
+  end
 
-    def cluster_query(query)
-      socket = TCPSocket.new(@addr, @cluster_port)
-      socket.print(query)
-      return socket.read
-    end
+  def shift
+    c = self[0]
+    self[0] = ''
 
-    def query(query)
-      socket = TCPSocket.new(@addr, @port)
-      socket.print(query)
-      return socket.read
-    end
+    return c
+  end
 
-    def to_s
-      "#{@addr} #{@port}"
-    end
+  def unshift(c)
+    self.insert(0, c)
+  end
+
+  def unescape
+    eval %Q{"#{self}"}
+  end
+
+  def quote
+    "\"#{self}\""
+  end
+
+  def tokenize
+    self.scan(/(?:"(?:\\.|[^"])*"|[^" ])+/).map {|s| s.strip.rchomp('"').chomp('"')}
   end
 end
-
