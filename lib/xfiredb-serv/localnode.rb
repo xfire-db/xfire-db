@@ -48,6 +48,13 @@ module XFireDB
       "myself, #{@addr} #{@port}"
     end
 
+    def auth_cluster_node(secret)
+      map = XFireDB.db['xfiredb']
+      known = map['secret']
+
+      return known == secret ? true : false
+    end
+
     def start_clusterbus
       server = TCPServer.new(@config.addr, @config.port + 10000)
       if @config.ssl
@@ -73,16 +80,8 @@ module XFireDB
                 next
               else
                 db = XFireDB.db
-                cluster_user = db['xfiredb']["user::#{auth_cmd[1]}"]
                 # does the user exist
-                if cluster_user.nil?
-                  request.puts "Access denied"
-                  request.close
-                  next
-                end
-
-                cluster_user = BCrypt::Password.new(cluster_user)
-                if cluster_user != auth_cmd[2]
+                unless auth_cluster_node(auth_cmd[1])
                   request.puts "Access denied"
                   request.close
                   next
@@ -108,13 +107,16 @@ module XFireDB
               "OK"
             when "QUERY"
               dom, port, host, ip = request.peeraddr
-              config = XFireDB.config
-              client = XFireDB::Client.from_stream(request)
-              client.user = XFireDB::User.new config.cluster_user, config.cluster_pass
+              client = XFireDB::Client.from_stream(request, @cluster, true)
               client.read(ip, port)
               @cluster.cluster_query(client)
             when "PING"
               "PONG"
+            when "UGOSSIP"
+              gossip = request.gets.chomp
+              gossip = gossip.split(' ')
+              @cluster.user_gossip(gossip)
+              "OK"
             when "GOSSIP"
               gossip = request.gets.chomp
               gossip = gossip.split(' ')
@@ -126,7 +128,13 @@ module XFireDB
               "OK"
             end
 
-            request.puts reply
+            if reply.is_a? Array
+              reply.each do |v|
+                request.puts v
+              end
+            else
+              request.puts reply
+            end
             request.close
             rescue Exception => e
               puts e
@@ -173,7 +181,7 @@ module XFireDB
       end
     end
 
-    def migrate(client, num, dst)
+    def migrate(num, dst)
       db = XFireDB.db
       slots, keys = @shard.reshard(num)
 
@@ -190,18 +198,18 @@ module XFireDB
         val = db[key]
         case val
         when String
-          dst.query(client, "SET #{key} \"#{val}\"")
+          dst.cluster_query("SET #{key} \"#{val}\"")
         when XFireDB::List
           val.each do |entry|
-            dst.query(client, "LPUSH #{key} \"#{entry}\"")
+            dst.cluster_query("LPUSH #{key} \"#{entry}\"")
           end
         when XFireDB::Hashmap
           val.each do |k, v|
-            dst.query(client, "MADD #{key} #{k} \"#{v}\"")
+            dst.cluster_query("MADD #{key} #{k} \"#{v}\"")
           end
         when XFireDB::Set
           val.each do |k|
-            dst.query(client, "SADD #{key} \"#{k}\"")
+            dst.cluster_query("SADD #{key} \"#{k}\"")
           end
         end
         db.delete(key)

@@ -46,7 +46,8 @@ module XFireDB
               Shell.reset
               Shell.reset_root_node if cmd[1] == "root-node"
             when "setup"
-              Shell.setup
+              cluster = cmd[1] == "root-node"
+              Shell.setup(cluster)
               Shell.setup_root_node if cmd[1] == "root-node"
             when "useradd"
               Shell.useradd
@@ -85,7 +86,7 @@ module XFireDB
       Shell.setup_root_node
     end
 
-    def Shell.setup
+    def Shell.setup(cluster)
       db = @@engine.db
       db['xfiredb'] ||= XFireDB::Hashmap.new
       map = db['xfiredb']
@@ -96,7 +97,13 @@ module XFireDB
       passw = STDIN.noecho(&:gets).chomp
       puts "\nSetup complete!"
       map["user::#{user}"] = BCrypt::Password.create passw
-      Shell.setup_root_node unless XFireDB.config.cluster
+      if cluster
+        db['xfiredb-users'] = XFireDB::Hashmap.new
+        db['xfiredb-users']["#{user}"] = BCrypt::Password.create passw
+        secret = SecureRandom.base64 32
+        db['xfiredb']['secret'] = secret
+        XFireDB.config.secret = secret
+      end
       return
     end
 

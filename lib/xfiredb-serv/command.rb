@@ -33,16 +33,16 @@ module XFireDB
       @key = key unless key.nil?
       @key = @argv[0] unless key
 
-      unless @cmd == "AUTH"
-        raise IllegalKeyException, "Key: #{@key} is illegal" if XFireDB.illegal_key? @key
+      unless @cmd == "AUTH" or client.cluster_bus
+        raise IllegalKeyException, "Key: #{@key} is illegal" if XFireDB.illegal_key? @key or XFireDB.private_key? @key
       end
     end
 
     def forward(key, query = nil)
       node = @cluster.where_is? key
       node = @cluster.nodes[node]
-      return node.query @client, @raw unless @raw.nil?
-      return node.query @client, query
+      return node.cluster_query @raw unless @raw.nil?
+      return node.cluster_query query
     end
 
     def exec(add)

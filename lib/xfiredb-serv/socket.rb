@@ -41,16 +41,17 @@ module XFireDB
       return XFireDB::SSLSocket.new(socket)
     end
 
-    def SocketFactory.create_cluster_socket(addr, port)
+    def SocketFactory.create_cluster_socket(addr, port, user = nil, pass = nil)
+      db = XFireDB.db
       config = XFireDB.config
       sock = SocketFactory.create_socket(addr, port)
       return sock unless config.cluster_auth
 
-      sock.puts "AUTH #{config.cluster_user} #{config.cluster_pass}"
+      secret = db['xfiredb']['secret']
+      sock.puts "AUTH #{secret}"
       reply = sock.gets.chomp
 
       unless reply == "OK"
-        puts "ahi"
         sock.close
         return nil
       end

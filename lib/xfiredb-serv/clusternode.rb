@@ -53,10 +53,21 @@ module XFireDB
 
     def cluster_query(query)
       socket = XFireDB::SocketFactory.create_cluster_socket @addr, @cluster_port
-      socket.puts "QUERY"
-      socket.puts query
-      rv = socket.gets.chomp
-      socket.close
+      unless socket.nil?
+        socket.puts "QUERY"
+        socket.puts query
+
+        rv = Array.new
+        while line = socket.gets
+          line = line.chomp
+          rv.push line
+        end
+        socket.close
+
+        rv = rv.shift if rv.length == 1
+      else
+        rv = "nil"
+      end
 
       return rv
     end

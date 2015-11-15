@@ -20,8 +20,8 @@ module XFireDB
   class Config
     attr_reader :port, :config_port, :addr, :cluster,
       :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
-      :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_pass, :cluster_auth, :pid_file
-    attr_accessor :daemon
+      :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_auth, :pid_file
+    attr_accessor :daemon, :secret
 
     CONFIG_PORT = "port"
     CONFIG_BIND_ADDR = "bind-addr"
@@ -36,8 +36,6 @@ module XFireDB
     CONFIG_SSL_SERV = 'ssl-required'
     CONFIG_SSL_CERT = 'ssl-certificate'
     CONFIG_SSL_KEY = 'ssl-key'
-    CONFIG_CLUSER_USER = 'cluster-user'
-    CONFIG_CLUSTER_PW = 'cluster-password'
     CONFIG_PID_FILE = 'pid-file'
 
     @port = nil
@@ -54,8 +52,7 @@ module XFireDB
     @ssl = false
     @ssl_cert = nil
     @ssl_key = nil
-    @cluster_user = nil
-    @cluster_pass = nil
+    @secret = nil
     @cluser_auth = false
     @pid_file = nil
 
@@ -64,6 +61,7 @@ module XFireDB
 
       @filename = file
       @problems = 0
+      @cluster_user = 'cluster'
       fh = File.open(@filename, "r")
       puts "[config]: config file (#{file}) not found!" unless check_config(fh)
       fh.each do |line|
@@ -76,19 +74,12 @@ module XFireDB
       end
       fh.close
 
-      @cluster_auth = true if @cluster_user and @cluster_pass
+      @cluster_auth = @cluster
       check_mandatory
     end
 
     def check_mandatory
       fail_count = 0
-
-      if @auth and @cluster
-        unless @cluster_user and @cluster_pass
-          puts "cluster-user and cluster-password required when using authentication"
-          fail_count += 1
-        end
-      end
 
       if @ssl
         unless @ssl_key and @ssl_cert
@@ -135,10 +126,6 @@ module XFireDB
         # Main config options
       when CONFIG_PID_FILE
         @pid_file = arg
-      when CONFIG_CLUSER_USER
-        @cluster_user = arg
-      when CONFIG_CLUSTER_PW
-        @cluster_pass = arg
       when CONFIG_SSL_CERT
         @ssl_cert = File.expand_path(arg)
       when CONFIG_SSL_KEY

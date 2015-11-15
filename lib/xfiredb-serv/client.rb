@@ -19,7 +19,7 @@
 module XFireDB
   class Client
     attr_accessor :stream, :cluster, :user
-    attr_reader :request, :keep, :quit_recv
+    attr_reader :request, :keep, :quit_recv, :cluster_bus
 
     @request = nil
     @stream = nil
@@ -27,22 +27,48 @@ module XFireDB
     @user = nil
     @keep = false
     @quit_recv = false
+    @cluster_bus = false
 
-    def initialize(client, xql = nil)
+    def initialize(client, xql = nil, cluster_bus = false)
       @request = XFireDB::XQL.parse(xql) unless xql.nil?
       @stream = client
+      @cluster_bus = cluster_bus
     end
 
-    def Client.from_stream(stream, cluster = nil)
-      client = Client.new(stream)
+    def Client.from_stream(stream, cluster = nil, cbus = false)
+      client = Client.new(stream, nil, cbus)
       client.stream = stream
       client.cluster = cluster
       return client
     end
 
+    def get_user(user)
+      query = "MREF xfiredb-users #{user}"
+      id = @cluster.where_is? 'xfiredb-users'
+      hash = @cluster.nodes[id].cluster_query(query)
+      return nil if hash.nil?
+      hash = hash.rchomp('+')
+      XFireDB::User.from_hash(user, hash)
+    end
+
     def auth(user, password)
-      @user = XFireDB::User.new(user, password)
-      @user.auth
+      if XFireDB.config.cluster_auth
+        users = XFireDB.users
+        u = users[user]
+        if u.nil?
+          u = users[user] = self.get_user(user) if u.nil?
+        else
+          return true if u.hash == password
+          u = users[user] = self.get_user(user)
+        end
+
+        @user = XFireDB::User.new(user, password)
+        @user.authenticated = u.hash == password ? true : false
+        return @user.authenticated
+      else
+        @user = XFireDB::User.new(user, password)
+        return @user.auth
+      end
     end
 
     def auth?

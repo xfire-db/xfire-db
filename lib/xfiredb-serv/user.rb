@@ -18,15 +18,35 @@
 
 module XFireDB
   class User
-    attr_reader :user, :password, :authenticated
+    attr_reader :user, :password
+    attr_accessor :authenticated
 
     @user = nil
     @password = nil
+    @hash = nil
     @authenticated = false
 
     def initialize(user, pw)
       @user = user
       @password = pw
+    end
+
+    def User.from_hash(user, hash)
+      u = User.new(user, nil)
+      u.hash = hash
+      return u
+    end
+
+    def hash=(hash)
+      if hash.is_a? BCrypt::Password
+        @hash = hash
+      else
+        @hash = BCrypt::Password.new(hash)
+      end
+    end
+
+    def hash
+      @hash
     end
 
     def auth
@@ -35,6 +55,7 @@ module XFireDB
       local_pw = map["user::#{@user}"]
       local_pw = BCrypt::Password.new(local_pw)
       @authenticated = local_pw == @password ? true : false
+      return @authenticated
     end
   end
 end

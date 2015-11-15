@@ -70,6 +70,7 @@ module XFireDB
 
     def add_node(id, ip, port)
       @nodes[id] = ClusterNode.new(ip, port)
+      @nodes[id]
     end
 
     def remove_node(id)
@@ -113,6 +114,7 @@ module XFireDB
       username = node[0]
       password = node[1]
       return "Incorrect syntax: CLUSTER AUTH <username> <password>" unless username and password
+      return "Already authenticated" if @nodes[source[0]]
 
       db = XFireDB.db
       map = db['xfiredb']
@@ -123,9 +125,10 @@ module XFireDB
       return "INCORRECT" if local_pw.nil? or local_pw != password
 
       db['xfiredb-nodes'] ||= XFireDB::List.new
-      db['xfiredb-nodes'].push("#{source[0]} #{source[1]} #{source[2]}")
-      add_node(source[0], source[1], source[2].to_i)
-      return "OK"
+      db['xfiredb-nodes'].push("#{source[0]} #{source[2]} #{source[3]}")
+      add_node(source[0], source[2], source[3].to_i)
+      db['xfiredb']['secret'] = source[1]
+      return "ID::#{db['xfiredb']['id']}"
     end
 
     def where_is?(key)
@@ -269,6 +272,12 @@ module XFireDB
       return rv
     end
 
+    def poison_user(user)
+      @nodes.each do |id, node|
+        node.cluster_query "CLUSTER USERPOISON #{user}"
+      end
+    end
+
     def query(client)
       cmd = XFireDB.cmds
       cmd = cmd[client.request.cmd]
@@ -278,8 +287,9 @@ module XFireDB
     end
 
     def cluster_query(client)
-      cmd = XFireDB::ClusterCommand.new(self, client)
-      return cmd.exec
+      return self.query(client)
+      #cmd = XFireDB::ClusterCommand.new(self, client)
+      #return cmd.exec
     end
 
   end

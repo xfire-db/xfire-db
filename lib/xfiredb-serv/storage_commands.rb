@@ -436,15 +436,10 @@ module XFireDB
       data = @argv[1]
       db = XFireDB.db
 
-      return "-Syntax `GET <key> \"<data>\"'" unless key and data
-      if @cluster.local_node.shard.include?(key)
-        db[key] = data
-        super(true)
-      else
-        node = @cluster.where_is?(key)
-        node = @cluster.nodes[node]
-        return node.query(@client, "SET #{key} \"#{data}\"")
-      end
+      return "-Syntax `SET <key> \"<data>\"'" unless key and data
+      return forward(key, "SET #{key} \"#{data}\"") unless @cluster.local_node.shard.include? key
+      db[key] = data
+      super(true)
       return "-OK"
     end
   end
@@ -456,32 +451,13 @@ module XFireDB
 
     def exec
       db = XFireDB.db
-      return unless @argv[0]
+      key = @argv[0]
+      return "Incorrect syntax: GET <key>" unless @argv[0]
 
-      if @cluster.local_node.shard.include?(@argv[0])
-        val = db[@argv[0]]
-        return "-nil" if val.nil?
-        return "+" + db[@argv[0]]
-      else
-        node = @cluster.where_is?(@argv[0])
-        node = @cluster.nodes[node]
-        return node.query(@client, "GET #{@argv[0]}")
-      end
-    end
-  end
-
-  class CommandAuth < XFireDB::Command
-    def initialize(cluster, client)
-      super(cluster, "AUTH", client)
-    end
-
-    def exec
-      user = @argv[0]
-      pw = @argv[1]
-      map = XFireDB.db['xfiredb']
-      local_pw = BCrypt::Password.new(map["user::#{user}"])
-      return "-Access denied" if local_pw.nil? or local_pw != pw
-      return "-OK"
+      return forward(key, "GET #{key}") unless @cluster.local_node.shard.include?(@argv[0])
+      val = db[@argv[0]]
+      return "-nil" if val.nil?
+      return "+" + db[@argv[0]]
     end
   end
 
@@ -494,16 +470,11 @@ module XFireDB
       key = @argv[0]
       db = XFireDB.db
 
-      return unless key
-      if @cluster.local_node.shard.include?(key)
-        db.delete(key)
-        super(false)
-        return "-OK"
-      else
-        node = @cluster.where_is?(key)
-        node = @cluster.nodes[node]
-        return node.query(@client, "DELETE #{key}")
-      end
+      return "Incorrect syntax: DELETE <key>" unless key
+      forward(key, "DELETE #{key}") unless @cluster.local_node.shard.include?(key)
+      db.delete(key)
+      super(false)
+      return "-OK"
     end
   end
 end

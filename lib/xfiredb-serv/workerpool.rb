@@ -67,12 +67,13 @@ module XFireDB
             next
           rescue Exception => e
             if e.is_a? BCrypt::Errors::InvalidHash
-              stream.puts "Access denied for #{auth.args[0]}"
+              stream.puts "Access denied for #{ip}"
               XFireDB::Log.auth_fail(ip, auth.args[0])
               stream.close
               next
             end
 
+            puts e
             puts e.backtrace
             stream.puts "Query failed"
             stream.close

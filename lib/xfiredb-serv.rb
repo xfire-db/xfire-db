@@ -54,6 +54,7 @@ require 'xfiredb-serv/xql'
 
 module XFireDB
   @@config = nil
+  @@users = nil
   @@options = nil
   @@engine = nil
   @@commands = {
@@ -78,11 +79,11 @@ module XFireDB
     "LSET" => XFireDB::CommandLSet,
     "LREF" => XFireDB::CommandLRef,
     "LSIZE" => XFireDB::CommandLSize,
-    "AUTH" => XFireDB::CommandAuth,
     "CLUSTER" => XFireDB::ClusterCommand
   }
 
   @@illegals = ["xfiredb", "xfiredb-nodes"]
+  @@private_keys = ["xfiredb-users"]
 
   def XFireDB.start(cmdargs)
     @options = OpenStruct.new
@@ -154,6 +155,7 @@ module XFireDB
         XFireDB.exit
         exit
       end
+      XFireDB.create_users
       server = XFireDB::Cluster.new(@@config.addr, @@config.port)
       XFireDB.exit
       server.start
@@ -161,8 +163,27 @@ module XFireDB
 
   end
 
+  def XFireDB.users
+    @@users
+  end
+
+  def XFireDB.create_users
+    map = XFireDB.db['xfiredb-users']
+    @@users = Hash.new
+    return if map.nil?
+
+    map.each do |username, hash|
+      user = XFireDB::User.from_hash(username, hash)
+      @@users[username] = user
+    end
+  end
+
   def XFireDB.illegal_key?(key)
     @@illegals.include? key
+  end
+
+  def XFireDB.private_key?(key)
+    @@private_keys.include? key
   end
 
   def XFireDB.config

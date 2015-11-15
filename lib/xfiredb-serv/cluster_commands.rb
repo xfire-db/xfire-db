@@ -40,6 +40,12 @@ module XFireDB
 
     def exec
       rv = case @subcmd.upcase
+           when "USERPOISON"
+             cluster_userpoison
+           when "USERADD"
+             cluster_useradd
+           when "USERDEL"
+             cluster_userdel
            when "FORGET"
              cluster_forget
            when "MIGRATE"
@@ -66,6 +72,49 @@ module XFireDB
     end
 
     private
+    def cluster_userpoison
+      user = @argv[0]
+      users = XFireDB.users
+
+      return "Syntax error: CLUSTER USERPOISON <user>" unless user
+      users.delete user
+      "OK"
+    end
+
+    def cluster_useradd
+      uname = @argv[0]
+      pass = @argv[1]
+      query = "CLUSTER USERADD #{uname} #{pass}"
+
+      return "Syntax error: USERADD username pass" unless uname and pass
+      return forward('xfiredb-users', query) unless @cluster.local_node.shard.include? 'xfiredb-users'
+      hash = BCrypt::Password.create pass
+
+      users = XFireDB.users
+      db = XFireDB.db
+      db['xfiredb-users'][uname] = hash
+      user = XFireDB::User.from_hash(uname, hash)
+      users[uname] = user
+      @cluster.poison_user uname
+      "OK"
+    end
+
+    def cluster_userdel
+      uname = @argv[0]
+      query = "CLUSTER USERDEL #{uname}"
+
+      return "Syntax error: USERDEL username" unless uname
+      return forward('xfiredb-users', query) unless @cluster.local_node.shard.include? 'xfiredb-users'
+      users = XFireDB.users
+      db = XFireDB.db
+
+      return "Cannot delete last user" unless db['xfiredb-users'].size > 1
+      users.delete uname
+      db['xfiredb-users'].delete uname
+      @cluster.poison_user uname
+      "OK"
+    end
+
     def cluster_num_slots
       rv = Hash.new
 
@@ -93,7 +142,7 @@ module XFireDB
 
       return "Incorrect syntax: CLUSTER MIGRATE <num> <dst>" unless num and dst and num.is_i?
       num = num.to_i
-      @cluster.local_node.migrate(@client, num, dst) ? "OK" : "Migration failed"
+      @cluster.local_node.migrate(num, dst) ? "OK" : "Migration failed"
     end
 
     def cluster_reshard
@@ -136,15 +185,20 @@ module XFireDB
       local_port = @cluster.local_node.port
 
       id = cluster_get_id
+      secret = XFireDB.db['xfiredb']['secret']
       sock = XFireDB::SocketFactory.create_socket ip, port
       sock.puts "AUTH"
-      sock.puts "#{id} #{local_ip} #{local_port}"
+      sock.puts "#{id} #{secret} #{local_ip} #{local_port}"
       sock.puts "#{uname} #{pw}"
-      rv = sock.gets.chop
+      rv = sock.gets.chomp
+      
+      if rv.start_with? "ID::"
+        rv = rv.split('::')
+        rv.shift
+        rv = rv.join('')
 
-      if rv == "OK"
         db = XFireDB.db
-        id = cluster_far_id(ip, port)
+        id = rv
         nodes = db['xfiredb-nodes']
         db['xfiredb-nodes'] = nodes = XFireDB::List.new unless nodes
         port = port - 10000
@@ -158,6 +212,7 @@ module XFireDB
         end
 
         @cluster.gossip_send(gossip.lstrip)
+        rv = "OK"
       end
       return rv
     end
