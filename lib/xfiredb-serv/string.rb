@@ -25,29 +25,6 @@ class String
     self.start_with?(sep) ? self[sep.size..-1] : self
   end
 
-  def escape
-    self.inspect[1..-2]
-  end
-
-  def shift
-    c = self[0]
-    self[0] = ''
-
-    return c
-  end
-
-  def unshift(c)
-    self.insert(0, c)
-  end
-
-  def unescape
-    eval %Q{"#{self}"}
-  end
-
-  def quote
-    "\"#{self}\""
-  end
-
   def tokenize
     self.scan(/(?:"(?:\\.|[^"])*"|[^" ])+/).map {|s| s.strip.rchomp('"').chomp('"')}
   end

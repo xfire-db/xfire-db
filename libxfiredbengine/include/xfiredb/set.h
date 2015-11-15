@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup set
+ * @{
+ */
+
 #ifndef __XFIREDB_SET_H__
 #define __XFIREDB_SET_H__
 
@@ -28,20 +33,35 @@
 #include <xfiredb/rbtree.h>
 #include <xfiredb/error.h>
 
+/**
+ * @brief Set datastructure.
+ */
 struct set {
-	struct rb_root root;
-	atomic_t num;
+	struct rb_root root; //!< Red-black tree root.
+	atomic_t num; //!< Set size.
 };
 
+/**
+ * @brief Set key structure.
+ */
 struct set_key {
-	char *key;
-	struct rb_node node;
+	char *key; //!< Key of the set-key.
+	struct rb_node node; //!< Red-black tree entry.
 };
 
+/**
+ * @brief Set iterator structure.
+ */
 struct set_iterator {
-	struct rb_iterator *it;
+	struct rb_iterator *it; //!< Red-black tree iterator.
 };
 
+/**
+ * @brief Iterate over a set.
+ * @param __s Set to iterate over.
+ * @param __k Key carriage.
+ * @param __it Set iterator.
+ */
 #define for_each_set(__s, __k, __it) \
 	for(__k = set_iterator_next(__it); __k; \
 			__k = set_iterator_next(__it))
@@ -60,6 +80,11 @@ extern bool set_contains(struct set *s, const char *key);
 extern struct set_key *set_remove(struct set *s, const char *key);
 extern int set_clear(struct set *set);
 
+/**
+ * @brief Get the number of keys in a set.
+ * @param set Set to get the size of.
+ * @return The number of elements is \p set.
+ */
 static inline int set_size(struct set *set)
 {
 	return atomic_get(&set->num);
@@ -67,4 +92,6 @@ static inline int set_size(struct set *set)
 CDECL_END
 
 #endif
+
+/** @} */
 
