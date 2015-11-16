@@ -181,8 +181,12 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 	struct bio_q *q;
 	struct config *conf = xfiredb_get_config();
 
-	if(conf->persist_level >= 3)
+	if(conf->persist_level >= 3) {
+		xfire_free(key);
+		xfire_free(arg);
+		xfire_free(newdata);
 		return;
+	}
 
 	q = xfire_zalloc(sizeof(*q));
 	q->key = key;

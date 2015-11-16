@@ -51,6 +51,8 @@ class TestStorageEngine < Test::Unit::TestCase
   end
 
   def test_iterate
-    @map.each { |key, value| puts "#{key} = #{value}" }
+    i = 0
+    @map.each { |key, value| i += 1 }
+    assert_equal(4, i)
   end
 end
