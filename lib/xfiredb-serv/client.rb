@@ -67,6 +67,7 @@ module XFireDB
           @user.level = u.level
           return true if @user.authenticated
           u = users[user] = self.get_user(user)
+          return false if u.nil?
         end
 
         @user.level = u.level
