@@ -18,13 +18,16 @@
 
 module XFireDB
   class User
+    ADMIN = 10
+    NORMAL = 1
     attr_reader :user, :password
-    attr_accessor :authenticated
+    attr_accessor :authenticated, :level
 
     @user = nil
     @password = nil
     @hash = nil
     @authenticated = false
+    @level = 1
 
     def initialize(user, pw)
       @user = user
@@ -56,6 +59,10 @@ module XFireDB
       local_pw = BCrypt::Password.new(local_pw)
       @authenticated = local_pw == @password ? true : false
       return @authenticated
+    end
+
+    def to_s
+      "#{@user}::#{@hash}::#{@level}"
     end
   end
 end

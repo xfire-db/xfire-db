@@ -172,8 +172,10 @@ module XFireDB
     @@users = Hash.new
     return if map.nil?
 
-    map.each do |username, hash|
+    map.each do |username, u|
+      hash, level = u.split(' ')
       user = XFireDB::User.from_hash(username, hash)
+      user.level = level.to_i
       @@users[username] = user
     end
   end

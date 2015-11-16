@@ -92,8 +92,9 @@ module XFireDB
 
       users = XFireDB.users
       db = XFireDB.db
-      db['xfiredb-users'][uname] = hash
       user = XFireDB::User.from_hash(uname, hash)
+      db['xfiredb-users'][uname] = "#{hash} #{XFireDB::User::NORMAL}"
+      user.level = XFireDB::User::NORMAL
       users[uname] = user
       @cluster.poison_user uname
       "OK"

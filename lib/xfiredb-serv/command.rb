@@ -36,6 +36,10 @@ module XFireDB
       unless @cmd == "AUTH" or client.cluster_bus
         raise IllegalKeyException, "Key: #{@key} is illegal" if XFireDB.illegal_key? @key or XFireDB.private_key? @key
       end
+
+      if client.user and cmd == "CLUSTER"
+        raise IllegalCommandException, "Not authorized to execute CLUSTER commands" unless client.user.level >= XFireDB::User::ADMIN
+      end
     end
 
     def forward(key, query = nil)

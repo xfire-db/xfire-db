@@ -99,7 +99,7 @@ module XFireDB
       map["user::#{user}"] = BCrypt::Password.create passw
       if cluster
         db['xfiredb-users'] = XFireDB::Hashmap.new
-        db['xfiredb-users']["#{user}"] = BCrypt::Password.create passw
+        db['xfiredb-users']["#{user}"] = "#{BCrypt::Password.create passw} #{XFireDB::User::ADMIN}"
         secret = SecureRandom.base64 32
         db['xfiredb']['secret'] = secret
         XFireDB.config.secret = secret

@@ -48,25 +48,33 @@ module XFireDB
       hash = @cluster.nodes[id].cluster_query(query)
       return nil if hash.nil?
       hash = hash.rchomp('+')
-      XFireDB::User.from_hash(user, hash)
+      hash, level = hash.split(' ')
+      u = XFireDB::User.from_hash(user, hash)
+      u.level = level.to_i
+      return u
     end
 
     def auth(user, password)
       if XFireDB.config.cluster_auth
         users = XFireDB.users
         u = users[user]
+        @user = XFireDB::User.new(user, password)
+
         if u.nil?
           u = users[user] = self.get_user(user) if u.nil?
         else
-          return true if u.hash == password
+          @user.authenticated = u.hash == password ? true : false
+          @user.level = u.level
+          return true if @user.authenticated
           u = users[user] = self.get_user(user)
         end
 
-        @user = XFireDB::User.new(user, password)
+        @user.level = u.level
         @user.authenticated = u.hash == password ? true : false
         return @user.authenticated
       else
         @user = XFireDB::User.new(user, password)
+        @user.level = XFireDB::User::ADMIN
         return @user.auth
       end
     end
