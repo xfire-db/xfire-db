@@ -4,11 +4,15 @@ include_directories(${XFIRE_SERVER_INCLUDE_DIR})
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIRE_OS_FILES
-		os/bg.c
 		os/linux.c
-		os/mem.c
 	)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+
+set(XFIRE_OS_FILES
+	${XFIRE_OS_FILES}
+	os/atomic.c
+	os/mem.c
+	os/bg.c)
 
 # libxfiredb
 add_library(xfiredbengine SHARED
