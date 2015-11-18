@@ -47,6 +47,6 @@ install (TARGETS xfiredbengine
 	)
 
 if(XFIRE_DEBUG)
-	include_directories(test)
+	add_subdirectory(test)
 endif(XFIRE_DEBUG)
 
