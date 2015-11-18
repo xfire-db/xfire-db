@@ -1,12 +1,10 @@
-include_directories(${XFIRE_SERVER_INCLUDE_DIR})
-
-# standard functions
-
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIRE_OS_FILES
 		os/linux.c
 	)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+
+include_directories(${XFIRE_INCLUDE_DIR})
 
 set(XFIRE_OS_FILES
 	${XFIRE_OS_FILES}
