@@ -1,15 +1,15 @@
 add_executable (xfiredb-test
-		tests/unit_test.c
-		tests/core/xfiredb.c)
+		unit_test.c
+		core/xfiredb.c)
 add_executable (db-load
-		tests/core/db-load.c)
+		core/db-load.c)
 
 add_executable (test-quotearg
-		tests/unit_test.c
-		tests/core/quotearg.c)
+		unit_test.c
+		core/quotearg.c)
 
 add_executable (bitops-single
-		tests/core/bitops.c)
+		core/bitops.c)
 
 target_link_libraries (test-quotearg LINK_PUBLIC xfiredbengine)
 target_link_libraries (db-load LINK_PUBLIC xfiredbengine)

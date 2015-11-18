@@ -1,18 +1,18 @@
 add_executable (dict-single
-		tests/unit_test.c
-		tests/dict/dict-single.c)
+		unit_test.c
+		dict/dict-single.c)
 
 add_executable (dict-iterator
-		tests/unit_test.c
-		tests/dict/dict-iterator.c)
+		unit_test.c
+		dict/dict-iterator.c)
 
 add_executable (dict-concurrent
-		tests/unit_test.c
-		tests/dict/dict-concurrent.c)
+		unit_test.c
+		dict/dict-concurrent.c)
 
 add_executable (dict-database
-		tests/unit_test.c
-		tests/dict/dict-database.c)
+		unit_test.c
+		dict/dict-database.c)
 
 target_link_libraries (dict-single LINK_PUBLIC xfiredbengine)
 target_link_libraries (dict-iterator LINK_PUBLIC xfiredbengine)

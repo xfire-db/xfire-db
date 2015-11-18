@@ -1,18 +1,18 @@
 add_executable (rb-concurrent
-		tests/unit_test.c
-		tests/rbtree/rb-concurrent.c)
+		unit_test.c
+		rbtree/rb-concurrent.c)
 
 add_executable (rb-single
-		tests/unit_test.c
-		tests/rbtree/rb-single.c)
+		unit_test.c
+		rbtree/rb-single.c)
 
 add_executable (rb-hashmap
-		tests/unit_test.c
-		tests/rbtree/hashmap.c)
+		unit_test.c
+		rbtree/hashmap.c)
 
 add_executable (rb-set
-		tests/unit_test.c
-		tests/rbtree/set.c)
+		unit_test.c
+		rbtree/set.c)
 
 target_link_libraries (rb-set LINK_PUBLIC xfiredbengine)
 target_link_libraries (rb-single LINK_PUBLIC xfiredbengine)

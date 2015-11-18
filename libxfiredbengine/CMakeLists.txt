@@ -43,10 +43,6 @@ install (TARGETS xfiredbengine
 	)
 
 if(XFIRE_DEBUG)
-	include (tests/rbtree/rb-test.cmake)
-	include (tests/dict/dict-test.cmake)
-	include (tests/disk/disk.cmake)
-	include (tests/bg/bg.cmake)
-	include (tests/core/core.cmake)
+	include_directories(test)
 endif(XFIRE_DEBUG)
 
