@@ -327,22 +327,6 @@ static inline void atomic64_init(atomic64_t *atom)
 	atom->val = 0LL;
 	xfire_spinlock_init(&atom->lock);
 }
-
-static inline void *mzalloc(size_t size)
-{
-       void *rv;
-
-       if(!size)
-               return NULL;
-
-       rv = malloc(size);
-       
-       if(!rv)
-               return NULL;
-
-       memset(rv, 0x0, size);
-       return rv;
-}
 CDECL_END
 
 #endif

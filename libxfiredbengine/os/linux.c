@@ -55,7 +55,7 @@ struct thread *__xfire_create_thread(const char *name,
 {
 	struct thread *tp;
 
-	tp = mzalloc(sizeof(*tp));
+	tp = xfire_zalloc(sizeof(*tp));
 	pthread_attr_init(&tp->attr);
 
 	if(stack)
