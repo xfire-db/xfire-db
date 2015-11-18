@@ -151,9 +151,8 @@ module XFireDB
       opts = {:ARGV => [@options.action], :ontop => ontop, :dir_mode => :normal,
               :dir => @config.pid_file, :log_output => true}
       Daemons.run_proc('xfiredb', opts) do
-      self.start_clusterbus
-      begin
-        XFireDB.create
+        self.start_clusterbus
+        #XFireDB.create
         @engine = XFireDB.engine
         @pool = XFireDB::WorkerPool.new(XFireDB.worker_num, @cluster)
         XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \
@@ -170,14 +169,25 @@ module XFireDB
           serv = server
         end
 
-        loop do
-          @pool.push(serv.accept)
-        end
-        rescue SystemExit => e
-          if @options.action == "stop" or @options.action == "restart"
-            XFireDB.stop
+        Signal.trap('TERM') {
+          puts "[signal]: TERMINATE received, stopping"
+          XFireDB.shutdown
+          serv.close
+        }
+
+        while XFireDB.running
+          begin
+            @pool.push(serv.accept)
+          rescue IO::WaitReadable, Errno::EINTR
+            IO.select([serv])
+            retry
+          rescue Errno::EBADF
+            break
           end
         end
+
+        XFireDB.save
+        exit
       end
     end
 

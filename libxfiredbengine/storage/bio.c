@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
@@ -59,6 +60,8 @@ static inline struct bio_q *bio_queue_pop(void)
 		}
 
 		tail->next = tail->prev = NULL;
+
+		bio_q->size--;
 	}
 	xfire_spin_unlock(&bio_q->lock);
 
@@ -132,14 +135,6 @@ static void bio_worker(void *arg)
 }
 
 /**
- * @brief Immediatly wake up the BIO worker.
- */
-void bio_sync(void)
-{
-	bg_process_signal(BIO_WORKER_NAME);
-}
-
-/**
  * @brief Initialise the background I/O module.
  */
 void bio_init(void)
@@ -147,6 +142,7 @@ void bio_init(void)
 	struct config *config;
 
 	bio_q = xfire_zalloc(sizeof(*bio_q));
+	bio_q->size = 0L;
 	xfire_spinlock_init(&bio_q->lock);
 	config = xfiredb_get_config();
 	disk_db = disk_create(config->db_file);
@@ -163,6 +159,32 @@ void bio_exit(void)
 	xfire_free(bio_q);
 
 	disk_destroy(disk_db);
+}
+
+static inline long bio_size(void)
+{
+	long s;
+
+	xfire_spin_lock(&bio_q->lock);
+	s = bio_q->size;
+	xfire_spin_unlock(&bio_q->lock);
+
+	return s;
+}
+
+/**
+ * @brief Immediatly wake up the BIO worker.
+ */
+void bio_sync(void)
+{
+	struct timespec spec;
+
+	bg_process_signal(BIO_WORKER_NAME);
+
+	spec.tv_sec = 0;
+	spec.tv_nsec = 100000;
+	while(bio_size())
+		nanosleep(&spec, NULL);
 }
 
 /**
@@ -191,6 +213,7 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 	q->operation = op;
 
 	xfire_spin_lock(&bio_q->lock);
+	bio_q->size++;
 	if(bio_q->next) {
 		q->next = bio_q->next;
 		bio_q->next->prev = q;

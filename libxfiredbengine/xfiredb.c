@@ -117,6 +117,11 @@ void xfiredb_se_exit(void)
 	xfire_free(config.db_file);
 }
 
+void xfiredb_se_save(void)
+{
+	bio_sync();
+}
+
 /**
  * @brief Notify the disk handler of a data change.
  * @param _key Key that changed.
