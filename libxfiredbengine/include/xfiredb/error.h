@@ -19,7 +19,7 @@
 #ifndef __XFIRE_ERROR_H__
 #define __XFIRE_ERROR_H__
 
-#define XFIRE_OK	0
-#define XFIRE_ERR	1
+#define XFIRE_OK	0 //!< SUCCESS error code
+#define XFIRE_ERR	1 //!< General error code
 
 #endif
