@@ -25,6 +25,10 @@ class String
     self.start_with?(sep) ? self[sep.size..-1] : self
   end
 
+  def quote
+    "\"#{self}\""
+  end
+
   def tokenize
     self.scan(/(?:"(?:\\.|[^"])*"|[^" ])+/).map {|s| s.strip.rchomp('"').chomp('"')}
   end
