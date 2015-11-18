@@ -7,11 +7,14 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+/**
+ * @brief Configuration structure.
+ */
 struct config {
-	char *log_file;
-	char *err_log_file;
-	char *db_file;
-	int persist_level;
+	char *log_file; //!< stdout file.
+	char *err_log_file; //!< stderr log file
+	char *db_file; //!< SQLite database file.
+	int persist_level; //!< Persistency level.
 };
 
 ${HAVE_DBG}
