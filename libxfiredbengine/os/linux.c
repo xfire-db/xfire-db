@@ -21,6 +21,7 @@
 #include <pthread.h>
 
 #include <xfiredb/xfiredb.h>
+#include <xfiredb/error.h>
 #include <xfiredb/types.h>
 #include <xfiredb/os.h>
 #include <xfiredb/mem.h>
@@ -94,7 +95,7 @@ int xfire_destroy_thread(struct thread *tp)
 	free(tp->name);
 	free(tp);
 
-	return -EXIT_SUCCESS;
+	return -XFIRE_OK;
 }
 
 void *xfire_thread_join(struct thread *tp)
@@ -105,65 +106,5 @@ void *xfire_thread_join(struct thread *tp)
 		rv = NULL;
 
 	return rv;
-}
-
-void atomic_destroy(atomic_t *atom)
-{
-	xfire_spinlock_destroy(&atom->lock);
-}
-
-void atomic64_destroy(atomic64_t *atom)
-{
-	xfire_spinlock_destroy(&atom->lock);
-}
-
-void atomic_add(atomic_t *atom, s32 val)
-{
-	xfire_spin_lock(&atom->lock);
-	atom->val += val;
-	xfire_spin_unlock(&atom->lock);
-}
-
-void atomic_sub(atomic_t *atom, s32 val)
-{
-	xfire_spin_lock(&atom->lock);
-	atom->val -= val;
-	xfire_spin_unlock(&atom->lock);
-}
-
-s32 atomic_get(atomic_t *atom)
-{
-	s32 tmp;
-
-	xfire_spin_lock(&atom->lock);
-	tmp = atom->val;
-	xfire_spin_unlock(&atom->lock);
-
-	return tmp;
-}
-
-void atomic64_add(atomic64_t *atom, s64 val)
-{
-	xfire_spin_lock(&atom->lock);
-	atom->val += val;
-	xfire_spin_unlock(&atom->lock);
-}
-
-void atomic64_sub(atomic64_t *atom, s64 val)
-{
-	xfire_spin_lock(&atom->lock);
-	atom->val -= val;
-	xfire_spin_unlock(&atom->lock);
-}
-
-s64 atomic64_get(atomic64_t *atom)
-{
-	s64 tmp;
-
-	xfire_spin_lock(&atom->lock);
-	tmp = atom->val;
-	xfire_spin_unlock(&atom->lock);
-
-	return tmp;
 }
 

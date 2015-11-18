@@ -47,6 +47,11 @@ static struct config config;
 
 static bool load_state = false;
 
+/**
+ * @brief Global configuration getter.
+ * @return The global configuration.
+ * @see struct config
+ */
 struct config *xfiredb_get_config(void)
 {
 	return &config;
@@ -115,6 +120,14 @@ void xfiredb_se_exit(void)
 	xfire_free(config.log_file);
 	xfire_free(config.err_log_file);
 	xfire_free(config.db_file);
+}
+
+/**
+ * @brief Save the current state of the database to disk.
+ */
+void xfiredb_se_save(void)
+{
+	bio_sync();
 }
 
 /**

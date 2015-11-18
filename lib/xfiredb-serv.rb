@@ -56,6 +56,7 @@ module XFireDB
   @@users = nil
   @@options = nil
   @@engine = nil
+  @@running = true
   @@commands = {
     "GET" => XFireDB::CommandGet,
     "SET" => XFireDB::CommandSet,
@@ -142,7 +143,7 @@ module XFireDB
     @@config = XFireDB::Config.new(@options[:config])
     case @options.action
     when "stop"
-      opts = {:ARGV => [@options.action], :dir_mode => :script, :dir => @@config.pid_file }
+      opts = {:ARGV => [@options.action], :dir_mode => :normal, :dir => @@config.pid_file, :log_output => true }
       Daemons.run_proc('xfiredb', opts) do
       end
     when "status"
@@ -151,15 +152,22 @@ module XFireDB
       XFireDB.create
       XFireDB::Shell.start(XFireDB.engine) if @options[:shell]
       unless missing.empty?
-        XFireDB.exit
+        XFireDB.save
         exit
       end
       XFireDB.create_users
       server = XFireDB::Cluster.new(@@config.addr, @@config.port)
-      XFireDB.exit
       server.start
     end
+  end
 
+  def XFireDB.shutdown
+    puts("[exit]: Shutting down XFireDB server process")
+    @@running = false
+  end
+
+  def XFireDB.running
+    @@running
   end
 
   def XFireDB.users
@@ -213,6 +221,10 @@ module XFireDB
 
   def XFireDB.exit
     @@engine.exit if @@engine
+  end
+
+  def XFireDB.save
+    @@engine.save if @@engine
   end
 
   def XFireDB.print(str)

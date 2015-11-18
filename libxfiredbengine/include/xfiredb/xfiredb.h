@@ -77,6 +77,7 @@ extern bool xfiredb_loadstate(void);
 extern long xfiredb_disk_size(void);
 extern void xfiredb_raw_load(void (*hook)(int argc, char **rows, char **cols));
 extern void xfiredb_se_exit(void);
+extern void xfiredb_se_save(void);
 extern void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int op);
 extern void xfiredb_store_container(char *_key, struct container *c);
 

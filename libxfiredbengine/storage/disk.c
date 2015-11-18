@@ -326,6 +326,7 @@ static int dump_hook(void *arg, int argc, char **row, char **colname)
 /**
  * @brief Dump the disk.
  * @param d Disk to dump.
+ * @param output Output stream to dump the disk to.
  * @note Function for debugging purposes only.
  */
 void disk_dump(struct disk *d, FILE *output)
