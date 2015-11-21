@@ -32,11 +32,16 @@ extern struct unit_test dict_concurrent_test;
 extern struct unit_test dict_iterator_test;
 extern struct unit_test dict_database_test;
 
+extern struct unit_test core_bitops_test;
+extern struct unit_test core_xfiredb_test;
+
 static struct unit_test *tests[] = {
 	&dict_single_test,
 	&dict_concurrent_test,
 	&dict_database_test,
-	&dict_concurrent_test,
+	&dict_iterator_test,
+	&core_bitops_test,
+	&core_xfiredb_test,
 	NULL,
 };
 
@@ -48,7 +53,6 @@ static void test_setup(struct dict *utests)
 	t = tests[i];
 	while(t) {
 		check = dict_add(utests, t->name, t, DICT_PTR);
-		printf("err: %i\n", check);
 		assert(check == -XFIRE_OK);
 		t = tests[++i];
 	}

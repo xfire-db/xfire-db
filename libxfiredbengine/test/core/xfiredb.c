@@ -89,12 +89,12 @@ static void dbg_hm_test(void)
 	xfire_free(data);
 }
 
-void setup(void)
+void setup(struct unit_test *test)
 {
 	xfiredb_init();
 }
 
-void teardown(void)
+void teardown(struct unit_test *test)
 {
 	xfiredb_exit();
 }
@@ -108,6 +108,11 @@ void test_storage_engine(void)
 	sleep(1);
 }
 
-test_func_t test_func_array[] = {test_storage_engine, NULL};
-const char *test_name = "Storage engine test";
+static test_func_t test_func_array[] = {test_storage_engine, NULL};
+struct unit_test core_xfiredb_test = {
+	.name = "core:xfiredb",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 
