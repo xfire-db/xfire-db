@@ -34,16 +34,15 @@
 #include <xfiredb/error.h>
 #include <xfiredb/disk.h>
 
+/**
+ * @brief XFireDB debugging databse.
+ */
 static struct database *xfiredb;
 
-struct disk *dbg_disk;
-#ifndef HAVE_DEBUG
-struct disk *xfire_disk;
-#endif
-
 static struct config config;
-
 static bool load_state = false;
+
+struct disk *disk_db;
 
 /**
  * @brief Global configuration getter.
