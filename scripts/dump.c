@@ -35,7 +35,7 @@ static struct option long_opts[] = {
 
 static void usage(const char *prog)
 {
-	printf("Usage: %s -b <path to database>\n", prog);
+	printf("Usage: %s -d <path to database>\n", prog);
 }
 
 static void help(const char *prog)
