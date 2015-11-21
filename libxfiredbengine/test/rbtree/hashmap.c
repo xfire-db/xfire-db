@@ -80,7 +80,7 @@ void test_hashmap(void)
 {
 	struct hashmap_node *node;
 	struct string *s;
-	hashmap_iterator_t it;
+	struct hashmap_iterator *it;
 
 	node = hashmap_find(&map, "key4");
 	s = container_of(node, struct string, node);

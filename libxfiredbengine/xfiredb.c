@@ -173,7 +173,7 @@ void xfiredb_store_container(char *_key, struct container *c)
 	struct set *set;
 	struct set_key *k;
 	struct set_iterator *set_it;
-	hashmap_iterator_t it;
+	struct hashmap_iterator *it;
 
 	if(!load_state)
 		return;

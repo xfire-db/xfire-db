@@ -183,7 +183,7 @@ int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 	struct hashmap_node *node;
 	char *data, *msg, *query;
 	struct string *s;
-	hashmap_iterator_t it;
+	struct hashmap_iterator *it;
 	int rc;
 
 	it = hashmap_new_iterator(map);

@@ -224,7 +224,7 @@ VALUE hash_enum_size(VALUE hash, VALUE args, VALUE obj)
 
 VALUE rb_hashmap_each(VALUE hash)
 {
-	hashmap_iterator_t it;
+	struct hashmap_iterator *it;
 	struct hashmap *map;
 	struct hashmap_node *node;
 	VALUE key, value;

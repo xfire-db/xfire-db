@@ -31,8 +31,6 @@
 #include <xfiredb/types.h>
 #include <xfiredb/rbtree.h>
 
-typedef struct rb_iterator* hashmap_iterator_t;
-
 #define hashmap_clear_foreach(__hm, __n) for(__n = hashmap_clear_next(__hm); \
 					     __n; __n = hashmap_clear_next(__hm))
 
@@ -43,6 +41,13 @@ struct hashmap {
 	struct rb_root root; //!< Red-black tree root.
 	atomic_t num; //!< Number of entry's in the hashmap.
 	void *privdata; //!< Private data.
+};
+
+/**
+ * @brief Hashmap iterator data structure.
+ */
+struct hashmap_iterator {
+	struct rb_iterator *it; //!< Red-black tree iterator.
 };
 
 /**
@@ -71,20 +76,17 @@ extern void hashmap_init(struct hashmap *hm);
 extern struct hashmap_node *hashmap_find(struct hashmap *hm, char *key);
 extern void hashmap_destroy(struct hashmap *hm);
 extern void hashmap_node_destroy(struct hashmap_node *n);
+extern struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map);
+extern void hashmap_free_iterator(struct hashmap_iterator *it);
 
-static inline hashmap_iterator_t hashmap_new_iterator(struct hashmap *map)
+static inline struct hashmap_node *hashmap_iterator_next(struct hashmap_iterator *it)
 {
-	return (hashmap_iterator_t)rb_new_iterator(&map->root);
-}
+	struct rb_node *node;
 
-static inline void hashmap_free_iterator(hashmap_iterator_t it)
-{
-	rb_free_iterator((struct rb_iterator*)it);
-}
+	if(!it || !it->it)
+		return NULL;
 
-static inline struct hashmap_node *hashmap_iterator_next(hashmap_iterator_t it)
-{
-	struct rb_node *node = rb_iterator_next((struct rb_iterator*)it);
+	node = rb_iterator_next(it->it);
 
 	if(!node)
 		return NULL;
@@ -94,8 +96,8 @@ static inline struct hashmap_node *hashmap_iterator_next(hashmap_iterator_t it)
 
 static inline struct hashmap_node *hashmap_clear_next(struct hashmap *map)
 {
-	struct rb_node *node = rb_get_root(&map->root);
 	struct hashmap_node *hnode;
+	struct rb_node *node = rb_get_root(&map->root);
 
 	if(!node)
 		return NULL;

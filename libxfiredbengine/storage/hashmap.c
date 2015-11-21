@@ -99,6 +99,21 @@ static u32 hashmap_hash(const char *key, u32 seed)
 	return hash;
 }
 
+struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map)
+{
+	struct hashmap_iterator *it;
+
+	it = xfire_zalloc(sizeof(*it));
+	it->it = rb_new_iterator(&map->root);
+	return it;
+}
+
+void hashmap_free_iterator(struct hashmap_iterator *it)
+{
+	rb_free_iterator(it->it);
+	xfire_free(it);
+}
+
 static bool hashmap_cmp_node(struct rb_node *node, const void *arg)
 {
 	const char *key = arg;
