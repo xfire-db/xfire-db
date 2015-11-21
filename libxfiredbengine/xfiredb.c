@@ -34,18 +34,15 @@
 #include <xfiredb/error.h>
 #include <xfiredb/disk.h>
 
-#ifdef HAVE_DEBUG
+/**
+ * @brief XFireDB debugging databse.
+ */
 static struct database *xfiredb;
-#endif
-
-struct disk *dbg_disk;
-#ifndef HAVE_DEBUG
-struct disk *xfire_disk;
-#endif
 
 static struct config config;
-
 static bool load_state = false;
+
+struct disk *disk_db;
 
 /**
  * @brief Global configuration getter.
@@ -225,7 +222,6 @@ void xfiredb_store_container(char *_key, struct container *c)
 	}
 }
 
-#ifdef HAVE_DEBUG
 static container_type_t xfiredb_get_row_type(char *cell)
 {
 	if(!strcmp(cell, "string"))
@@ -948,7 +944,6 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 	xfire_free(c);
 	return -XFIRE_OK;
 }
-#endif
 
 /** @} */
 

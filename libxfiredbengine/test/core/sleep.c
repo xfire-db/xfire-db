@@ -1,5 +1,5 @@
 /*
- *  Background processes
+ *  XFireDB sleep unit test
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -18,60 +18,35 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include <unistd.h>
+#include <time.h>
 #include <unittest.h>
 
 #include <xfiredb/xfiredb.h>
-#include <xfiredb/types.h>
-#include <xfiredb/bg.h>
-#include <xfiredb/mem.h>
-#include <xfiredb/error.h>
-
-static bool j1_trigger, j2_trigger, j3_trigger;
-
-static void job1_handler(void *arg)
-{
-	j1_trigger = true;
-}
-
-static void job2_handler(void *arg)
-{
-	j2_trigger = true;
-}
-
-static void job3_handler(void *arg)
-{
-	j3_trigger = true;
-}
+#include <xfiredb/time.h>
 
 static void setup(struct unit_test *t)
 {
-	j1_trigger = j2_trigger = j3_trigger = false;
-	bg_processes_init();
 }
 
 static void teardown(struct unit_test *t)
 {
-	bg_processes_exit();
-	assert(j1_trigger);
-	assert(j2_trigger);
-	assert(j3_trigger);
 }
 
-static void test_bg(void)
+static void sleep_test(void)
 {
-	bg_process_create("job1", &job1_handler, NULL);
-	bg_process_create("job3", &job3_handler, NULL);
-	bg_process_create("job2", &job2_handler, NULL);
+	long ns = 1.5 * 1000000000;
+	time_t start;
 
-	bg_process_signal("job1");
-	bg_process_signal("job3");
-	bg_process_signal("job2");
+	start = time(NULL);
+	xfiredb_sleep_ns(ns);
+	printf("time: %.2f\n", (double)(time(NULL) - start));
 }
 
-static test_func_t test_func_array[] = {test_bg, NULL};
-struct unit_test bg_test = {
-	.name = "os:bg",
+static test_func_t test_func_array[] = {sleep_test, NULL};
+struct unit_test core_sleep_test = {
+	.name = "core:sleep",
 	.setup = setup,
 	.teardown = teardown,
 	.tests = test_func_array,

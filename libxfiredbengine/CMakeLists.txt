@@ -28,6 +28,7 @@ add_library(xfiredbengine SHARED
 
 	# os files
 	${XFIRE_OS_FILES}
+	os/sleep.c
 
 	# core files
 	bitops-atomic.c

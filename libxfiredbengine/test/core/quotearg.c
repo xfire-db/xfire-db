@@ -24,15 +24,15 @@
 #include <xfiredb/types.h>
 #include <xfiredb/quotearg.h>
 
-void setup(void)
+static void setup(struct unit_test *t)
 {
 }
 
-void teardown(void)
+static void teardown(struct unit_test *t)
 {
 }
 
-void test_quotearg(void)
+static void test_quotearg(void)
 {
 	char *esc1, *esc2, *uesc1, *uesc2;
 	char *str1 = "Hey I'm \"Julie Edwards\"";
@@ -56,6 +56,11 @@ void test_quotearg(void)
 	xfiredb_escape_free(uesc2);
 }
 
-test_func_t test_func_array[] = {test_quotearg, NULL};
-const char *test_name = "Quotearg unit test";
+static test_func_t test_func_array[] = {test_quotearg, NULL};
+struct unit_test core_quotearg_test = {
+	.name = "core:quotearg",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

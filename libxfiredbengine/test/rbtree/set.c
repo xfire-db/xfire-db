@@ -44,10 +44,9 @@ static void test_set_insert(struct set *set)
 }
 
 static int iterate_count, free_count;
-
 static struct set set;
 
-void setup(void)
+static void setup(struct unit_test *t)
 {
 	set_init(&set);
 	test_set_insert(&set);
@@ -56,7 +55,7 @@ void setup(void)
 	xfiredb_set_loadstate(true);
 }
 
-void teardown(void)
+static void teardown(struct unit_test *t)
 {
 	struct set_key *k;
 	struct set_iterator *it;
@@ -79,5 +78,10 @@ void test_set(void)
 	assert(set_contains(&set, "key4"));
 }
 
-test_func_t test_func_array[] = {test_set, NULL};
-const char *test_name = "Set test";
+static test_func_t test_func_array[] = {test_set, NULL};
+struct unit_test rb_set_test = {
+	.name = "storage:red-black:set",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};

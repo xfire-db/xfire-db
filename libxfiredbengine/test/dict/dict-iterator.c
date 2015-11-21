@@ -47,19 +47,19 @@ static void dbg_setup_dict(struct dict *d)
 
 static struct dict *strings;
 
-void setup(void)
+static void setup(struct unit_test *test)
 {
 	strings = dict_alloc();
 	dbg_setup_dict(strings);
 }
 
-void teardown(void)
+static void teardown(struct unit_test *test)
 {
 	dict_clear(strings);
 	dict_free(strings);
 }
 
-void test_iterator_forward(void)
+static void test_iterator_forward(void)
 {
 	struct dict_iterator *it;
 	struct dict_entry *e;
@@ -80,7 +80,7 @@ void test_iterator_forward(void)
 	dict_iterator_free(it);
 }
 
-void test_iterator_backward(void)
+static void test_iterator_backward(void)
 {
 	struct dict_iterator *it;
 	struct dict_entry *e;
@@ -100,6 +100,11 @@ void test_iterator_backward(void)
 	dict_iterator_free(it);
 }
 
-test_func_t test_func_array[] = {test_iterator_forward, test_iterator_backward, NULL};
-const char *test_name = "Iterator test";
+static test_func_t test_func_array[] = {test_iterator_forward, test_iterator_backward, NULL};
+struct unit_test dict_iterator_test = {
+	.name = "storage:dict:iterator",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

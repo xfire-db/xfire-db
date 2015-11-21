@@ -52,7 +52,7 @@ static int iterate_count, free_count;
 
 static struct hashmap map;
 
-void setup(void)
+static void setup(struct unit_test *t)
 {
 	hashmap_init(&map);
 	test_hm_insert(&map);
@@ -60,7 +60,7 @@ void setup(void)
 	free_count = 0;
 }
 
-void teardown(void)
+static void teardown(struct unit_test *t)
 {
 	struct hashmap_node *hnode;
 	struct string *s;
@@ -76,7 +76,7 @@ void teardown(void)
 	assert(free_count == 4);
 }
 
-void test_hashmap(void)
+static void test_hashmap(void)
 {
 	struct hashmap_node *node;
 	struct string *s;
@@ -94,6 +94,11 @@ void test_hashmap(void)
 	assert(iterate_count == 4);
 }
 
-test_func_t test_func_array[] = {test_hashmap, NULL};
-const char *test_name = "Hashmap test";
+static test_func_t test_func_array[] = {test_hashmap, NULL};
+struct unit_test rb_hashmap_test = {
+	.name = "storage:red-black:hashmap",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

@@ -1,5 +1,5 @@
 /*
- *  XFireDB unit testing frame work
+ *  Thread sleeping
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,31 +16,38 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __UNIT_TEST_H__
-#define __UNIT_TEST_H__
-
 #include <stdlib.h>
-#include <assert.h>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <xfiredb/xfiredb.h>
-#include <xfiredb/types.h>
+#include <xfiredb/time.h>
 
-typedef void (*test_func_t)(void);
+#ifdef HAVE_POSIX
+void xfiredb_sleep(int secs)
+{
+	sleep(secs);
+}
 
-struct unit_test {
-	const char *name;
+void xfiredb_sleep_ms(int ms)
+{
+	xfiredb_sleep_ns((long)ms * 1000000);
+}
 
-	void (*setup)(struct unit_test *t);
-	void (*teardown)(struct unit_test *t);
-	test_func_t *tests;
-};
+void xfiredb_sleep_ns(long ns)
+{
+	long secs;
+	struct timespec tspec;
 
-#define TEST_SETUP(__x) \
-	extern test_func_t su; \
-	su == __x;
-#define TEST_TEARDOWN(__x) \
-	extern test_func_t td; \
-	td == __x;
+	secs = ns / 1000000000L;
 
+	if(secs)
+		ns -= secs * 1000000000L;
+
+	tspec.tv_sec = secs;
+	tspec.tv_nsec = ns;
+	nanosleep(&tspec, NULL);
+}
 #endif
 

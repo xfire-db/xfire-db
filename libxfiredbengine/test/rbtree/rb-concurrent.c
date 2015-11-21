@@ -152,7 +152,7 @@ static void test_find_node(u64 key, const void *data)
 	}
 }
 
-void setup(void)
+static void setup(struct unit_test *t)
 {
 	memset(&root, 0, sizeof(root));
 	rb_init_root(&root);
@@ -160,7 +160,7 @@ void setup(void)
 	rb_setup_tree();
 }
 
-void test_rb_concurrent(void)
+static void test_rb_concurrent(void)
 {
 	struct thread *a, *b, *c, *d;
 
@@ -183,11 +183,16 @@ void test_rb_concurrent(void)
 	test_find_node(18, node_data3);
 }
 
-void teardown(void)
+static void teardown(struct unit_test *t)
 {
 	rb_destroy_root(&root);
 }
 
-test_func_t test_func_array[] = {test_rb_concurrent, NULL};
-const char *test_name = "Concurrent red-black test";
+static test_func_t test_func_array[] = {test_rb_concurrent, NULL};
+struct unit_test rb_concurrent_test = {
+	.name = "storage:red-black:concurrent",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

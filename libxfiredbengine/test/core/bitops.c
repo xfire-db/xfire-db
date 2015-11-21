@@ -18,10 +18,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+#include <unittest.h>
+
+#include <asm/bitsperlong.h>
 
 #include <xfiredb/types.h>
 #include <xfiredb/bitops.h>
-#include <asm/bitsperlong.h>
 
 #define RESULT_OK "OK"
 #define RESULT_ERROR "ERROR"
@@ -41,10 +44,7 @@ static void set_bit_test(int *bits, unsigned long *flags, int bit_num)
 	for(i = 0; i < bit_num; i++)
 		__set_bit(bits[i], flags);
 
-	if(flags[0] == flags1 && flags[1] == flags2)
-		printf("[OK] set_bit\n");
-	else
-		printf("[ERROR] set_bit %lu::%lu\n", flags[0], flags[1]);
+	assert(flags[0] == flags1 && flags[1] == flags2);
 }
 
 static void test_and_clear_bit_test(int *bits, unsigned long *flags, int num)
@@ -55,12 +55,7 @@ static void test_and_clear_bit_test(int *bits, unsigned long *flags, int num)
 	for(i = 0; i < num; i++)
 		result &= __test_and_clear_bit(bits[i], flags);
 
-	if(result && (flags[0] == 0UL && flags[1] == 0UL))
-		printf("[OK] test_and_clear_bit\n");
-	else
-		printf("[ERROR] test_and_clear_bit %lu::%lu\n", 
-				flags[0], flags[1]);
-
+	assert(result && (flags[0] == 0UL && flags[1] == 0UL));
 }
 
 static void test_and_set_bit_test(int *bits, unsigned long *flags, int num)
@@ -71,11 +66,7 @@ static void test_and_set_bit_test(int *bits, unsigned long *flags, int num)
 	for(i = 0; i < num; i++)
 		result &= !__test_and_set_bit(bits[i], flags);
 
-	if(result && (flags[0] == flags1 && flags[1] == flags2))
-		printf("[OK] test_and_set_bit\n");
-	else
-		printf("[ERROR] test_and_set_bit %lu::%lu\n", 
-				flags[0], flags[1]);
+	assert(result && (flags[0] == flags1 && flags[1] == flags2));
 }
 
 static void clear_bit_test(int *bits, unsigned long *flags, int num)
@@ -85,11 +76,7 @@ static void clear_bit_test(int *bits, unsigned long *flags, int num)
 	for(i = 0; i < num; i++)
 		__clear_bit(bits[i], flags);
 
-	if(flags[0] == 0UL && flags[1] == 0UL)
-		printf("[OK] set_bit\n");
-	else
-		printf("[ERROR] set_bit %lu::%lu\n", 
-				flags[0], flags[1]);
+	assert(flags[0] == 0UL && flags[1] == 0UL);
 }
 
 static void test_bit_test(int *bits, unsigned long *flags, int bit_num)
@@ -100,7 +87,7 @@ static void test_bit_test(int *bits, unsigned long *flags, int bit_num)
 	for(i = 0; i < bit_num; i++)
 		result &= __test_bit(bits[i], flags);
 
-	printf("[%s] test_bit\n", result ? RESULT_OK : RESULT_ERROR);
+	assert(result);
 }
 
 static unsigned long x1 = 9UL,
@@ -127,46 +114,33 @@ static unsigned long x1 = 9UL,
 
 static void swap_bit_test(void)
 {
-	bool result = true;
-
 	__swap_bit(SWAP_BIT_BIT, &x1, &y1);
 	__swap_bit(SWAP_BIT_BIT, &x2, &y2);
 	__swap_bit(SWAP_BIT_BIT, &x3, &y3);
 	__swap_bit(SWAP_BIT_BIT, &x4, &y4);
 
-	if(x1 != X1_RESULT || y1 != Y1_RESULT) {
-		printf("[ERROR]: x1 %lu ?= %lu :: y1 %lu ?= %lu\n",
-				x1, X1_RESULT,
-				y1, Y1_RESULT);
-		result = false;
-	}
+	assert(x1 == X1_RESULT);
+	assert(y1 == Y1_RESULT);
 
-	if(x2 != X2_RESULT || y2 != Y2_RESULT) {
-		printf("[ERROR]swap_bit: x2 %lu ?= %lu :: y2 %lu ?= %lu\n",
-				x2, X2_RESULT,
-				y2, Y2_RESULT);
-		result = false;
-	}
+	assert(x2 == X2_RESULT);
+	assert(y2 == Y2_RESULT);
 
-	if(x3 != X3_RESULT || y3 != Y3_RESULT) {
-		printf("[ERROR]swap_bit: x3 %lu ?= %lu :: y3 %lu ?= %lu\n",
-				x3, X3_RESULT,
-				y3, Y3_RESULT);
-		result = false;
-	}
+	assert(x3 == X3_RESULT);
+	assert(y3 == Y3_RESULT);
 
-	if(x4 != X4_RESULT || y4 != Y4_RESULT) {
-		printf("[ERROR]swap_bit: x4 %lu ?= %lu :: y4 %lu ?= %lu\n",
-				x4, X4_RESULT,
-				y4, Y4_RESULT);
-		result = false;
-	}
-
-	if(result)
-		printf("[OK] swap_bit\n");
+	assert(x4 == X4_RESULT);
+	assert(y4 == Y4_RESULT);
 }
 
-int main(int argc, char **argv)
+static void setup(struct unit_test *t)
+{
+}
+
+static void teardown(struct unit_test *t)
+{
+}
+
+static void bitops_test(void)
 {
 	unsigned long flags[2] = {0UL, 0UL};
 	int num = sizeof(bits) / sizeof(*bits);
@@ -177,9 +151,13 @@ int main(int argc, char **argv)
 	test_and_set_bit_test(bits, flags, num);
 	clear_bit_test(bits, flags, num);
 	swap_bit_test();
-
-	putc('\n', stdout);
-	printf("All tests executed!\n");
-	return -EXIT_SUCCESS;
 }
+
+static test_func_t test_func_array[] = {bitops_test, NULL};
+struct unit_test core_bitops_test = {
+	.name = "core:bitops",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

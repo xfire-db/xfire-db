@@ -1,5 +1,5 @@
 /*
- *  XFireDB unit testing frame work
+ *  Thread sleeping
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,34 +16,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __SLEEP_H__
+#define __SLEEP_H__
+
 #include <stdlib.h>
-#include <stdio.h>
-#include <unittest.h>
+#include <time.h>
+#include <unistd.h>
 
-extern test_func_t test_func_array[];
-extern const char *test_name;
-extern void setup();
-extern void teardown();
+#include <xfiredb/xfiredb.h>
 
-int main(int argc, char **argv)
-{
-	test_func_t hook;
-	int i;
+CDECL
+extern void xfiredb_sleep(int s);
+extern void xfiredb_sleep_ms(int ms);
+extern void xfiredb_sleep_ns(long ns);
+CDECL_END
 
-	printf("Starting unit test: %s\n", test_name);
-	for(i = 0;; i++) {
-		hook = test_func_array[i];
-		printf("[case %i]: starting\n",i+1);
-		setup();
-		hook();
-		teardown();
-		printf("[case %i]: ended\n",i+1);
-
-		if(test_func_array[i+1] == NULL)
-			break;
-	}
-
-	printf("Unit test ended sucessfully!\n");
-	return -EXIT_SUCCESS;
-}
+#endif
 

@@ -67,8 +67,11 @@
 		(type *)( ( char *)__mptr - offsetof(type,member) );})
 #endif
 
+struct disk;
 struct database;
 struct container;
+
+extern struct disk *disk_db;
 CDECL
 extern struct config *xfiredb_get_config(void);
 extern void xfiredb_se_init(struct config *conf);
