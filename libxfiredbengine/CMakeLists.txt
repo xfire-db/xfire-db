@@ -47,6 +47,7 @@ install (TARGETS xfiredbengine
 	)
 
 if(XFIRE_DEBUG)
+	add_subdirectory(tests)
 	include (tests/rbtree/rb-test.cmake)
 	include (tests/dict/dict-test.cmake)
 	include (tests/disk/disk.cmake)

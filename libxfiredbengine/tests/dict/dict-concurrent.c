@@ -39,7 +39,7 @@ static const char *dbg_values[] = {"val1","val2","val3","val4","val5","val6","va
 				"preval5","preval6","preval7","preval8","preval9","preval10",
 				};
 
-void *test_thread_a(void *arg)
+static void *test_thread_a(void *arg)
 {
 	int i = 0;
 	int rc;
@@ -52,7 +52,7 @@ void *test_thread_a(void *arg)
 	return NULL;
 }
 
-void *test_thread_b(void *arg)
+static void *test_thread_b(void *arg)
 {
 	int i = 5;
 
@@ -63,7 +63,7 @@ void *test_thread_b(void *arg)
 	return NULL;
 }
 
-void *test_thread_c(void *arg)
+static void *test_thread_c(void *arg)
 {
 	int i = 10;
 
@@ -74,7 +74,7 @@ void *test_thread_c(void *arg)
 	return NULL;
 }
 
-void *test_thread_e(void *arg)
+static void *test_thread_e(void *arg)
 {
 	int i = 20;
 	union entry_data val;
@@ -85,7 +85,7 @@ void *test_thread_e(void *arg)
 	return NULL;
 }
 
-void *test_thread_d(void *arg)
+static void *test_thread_d(void *arg)
 {
 	int i = 15;
 	union entry_data val;
@@ -98,7 +98,7 @@ void *test_thread_d(void *arg)
 
 static struct dict *strings;
 
-void setup(void)
+static void setup(struct unit_test *test)
 {
 	struct thread *a, *b, *c, *d, *e;
 	int i = 0;
@@ -128,12 +128,12 @@ void setup(void)
 	xfire_thread_destroy(e);
 }
 
-void teardown(void)
+static void teardown(struct unit_test *test)
 {
 	dict_free(strings);
 }
 
-void test_dict_conncurrent(void)
+static void test_dict_conncurrent(void)
 {
 	int rv;
 	int i;
@@ -152,7 +152,11 @@ void test_dict_conncurrent(void)
 	assert(dict_delete(strings, dbg_keys[11], &val, false) == -XFIRE_OK);
 }
 
-test_func_t test_func_array[] = {test_dict_conncurrent, NULL};
-const char *test_name = "Concurrent dictionary test";
-
+static test_func_t test_func_array[] = {test_dict_conncurrent, NULL};
+struct unit_test dict_concurrent_test = {
+	.name = "storage:dict:concurrent",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

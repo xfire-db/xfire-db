@@ -74,22 +74,27 @@ static void dbg_empty_dict(struct dict *d)
 }
 
 static struct dict *strings;
-void setup(void)
+static void setup(struct unit_test *test)
 {
 	strings = dict_alloc();
 }
 
-void test_dict(void)
+static void test_dict(void)
 {
 	dbg_setup_dict(strings);
 	dbg_empty_dict(strings);
 }
 
-void teardown(void)
+static void teardown(struct unit_test *test)
 {
 	dict_free(strings);
 }
 
-test_func_t test_func_array[] = {test_dict, NULL};
-const char *test_name = "Dictionary test";
+static test_func_t test_func_array[] = {test_dict, NULL};
+struct unit_test dict_single_test = {
+	.name = "storage:dict:single",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

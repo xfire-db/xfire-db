@@ -27,6 +27,14 @@
 
 typedef void (*test_func_t)(void);
 
+struct unit_test {
+	const char *name;
+
+	void (*setup)(struct unit_test *t);
+	void (*teardown)(struct unit_test *t);
+	test_func_t *tests;
+};
+
 #define TEST_SETUP(__x) \
 	extern test_func_t su; \
 	su == __x;
