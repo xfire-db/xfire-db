@@ -13,6 +13,7 @@ add_executable (xfiredb-unittest
 
 		disk/disk-single.c
 
+		core/sleep.c
 		core/bitops.c
 		core/xfiredb.c
 		core/quotearg.c

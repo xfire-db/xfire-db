@@ -35,6 +35,7 @@ extern struct unit_test dict_database_test;
 extern struct unit_test core_bitops_test;
 extern struct unit_test core_xfiredb_test;
 extern struct unit_test core_quotearg_test;
+extern struct unit_test core_sleep_test;
 
 extern struct unit_test rb_single_test;
 extern struct unit_test rb_concurrent_test;
@@ -55,6 +56,7 @@ static struct unit_test *tests[] = {
 	&core_bitops_test,
 	&core_xfiredb_test,
 	&core_quotearg_test,
+	&core_sleep_test,
 
 	&disk_single_test,
 
@@ -129,6 +131,7 @@ static void help(const char *prog)
 		"\n" \
 		"  core:quotearg\n" \
 		"  core:xfiredb\n" \
+		"  core:sleep\n"   \
 		"  core:bitops\n");
 }
 
