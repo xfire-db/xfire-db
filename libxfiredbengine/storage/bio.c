@@ -34,6 +34,7 @@
 #include <xfiredb/os.h>
 #include <xfiredb/error.h>
 #include <xfiredb/disk.h>
+#include <xfiredb/time.h>
 
 extern struct disk *dbg_disk;
 #ifndef HAVE_DEBUG
@@ -177,14 +178,10 @@ static inline long bio_size(void)
  */
 void bio_sync(void)
 {
-	struct timespec spec;
-
 	bg_process_signal(BIO_WORKER_NAME);
 
-	spec.tv_sec = 0;
-	spec.tv_nsec = 100000;
 	while(bio_size())
-		nanosleep(&spec, NULL);
+		xfiredb_sleep_ns(100000);
 }
 
 /**

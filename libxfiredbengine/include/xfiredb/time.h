@@ -20,6 +20,8 @@
 #define __SLEEP_H__
 
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <xfiredb/xfiredb.h>
 
