@@ -129,37 +129,42 @@ static void dbg_tree_random(void)
 	assert(!strcmp(data->data, node_data2));
 }
 
-void setup(void)
+static void setup(struct unit_test *t)
 {
 	memset(&root, 0, sizeof(root));
 	root.cmp = &compare_node;
 	rb_init_root(&root);
 }
 
-void test_rb_remove(void)
+static void test_rb_remove(void)
 {
 	dbg_setup_tree();
 	dbg_remove_tree();
 }
 
-void test_rb_insert(void)
+static void test_rb_insert(void)
 {
 	dbg_tree_incremental();
 	dbg_tree_random();
 }
 
-void test_rb_iterate(void)
+static void test_rb_iterate(void)
 {
 	dbg_setup_tree();
 	dbg_iterate_tree(&root);
 }
 
-void teardown(void)
+static void teardown(struct unit_test *t)
 {
 	rb_destroy_root(&root);
 }
 
-test_func_t test_func_array[] = {test_rb_iterate, 
+static test_func_t test_func_array[] = {test_rb_iterate, 
 	test_rb_insert, test_rb_remove, NULL};
-const char *test_name = "Red-black test";
+struct unit_test rb_single_test = {
+	.name = "storage:red-black:single",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

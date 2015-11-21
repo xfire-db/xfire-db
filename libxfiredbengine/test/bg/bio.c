@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <unittest.h>
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
@@ -28,19 +29,30 @@
 #include <xfiredb/error.h>
 #include <xfiredb/disk.h>
 
-extern struct disk *dbg_disk;
-
-int main(int argc, char **argv)
+static void setup(struct unit_test *test)
 {
 	xfiredb_init();
+}
+
+static void teardown(struct unit_test *test)
+{
+	xfiredb_exit();
+}
+
+static void test_bio(void)
+{
 	dbg_bio_queue();
 	sleep(1);
 	bg_process_signal("bio-worker");
 	sleep(1);
-	disk_dump(dbg_disk, stdout);
-	
-	xfiredb_exit();
-
-	return -EXIT_SUCCESS;
+	disk_dump(disk_db, stdout);
 }
+
+static test_func_t test_func_array[] = {test_bio, NULL};
+struct unit_test bio_test = {
+	.name = "storage:bio",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <unittest.h>
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
@@ -26,36 +27,53 @@
 #include <xfiredb/mem.h>
 #include <xfiredb/error.h>
 
+static bool j1_trigger, j2_trigger, j3_trigger;
+
 static void job1_handler(void *arg)
 {
-	printf("Job 1 handler fired\n");
+	j1_trigger = true;
 }
 
 static void job2_handler(void *arg)
 {
-	printf("Job 2 handler fired\n");
+	j2_trigger = true;
 }
 
 static void job3_handler(void *arg)
 {
-	printf("Job 3 handler fired\n");
+	j3_trigger = true;
 }
 
-int main(int argc, char **argv)
+static void setup(struct unit_test *t)
 {
+	j1_trigger = j2_trigger = j3_trigger = false;
 	bg_processes_init();
+}
+
+static void teardown(struct unit_test *t)
+{
+	bg_processes_exit();
+	assert(j1_trigger);
+	assert(j2_trigger);
+	assert(j3_trigger);
+}
+
+static void test_bg(void)
+{
 	bg_process_create("job1", &job1_handler, NULL);
 	bg_process_create("job3", &job3_handler, NULL);
 	bg_process_create("job2", &job2_handler, NULL);
 
-	sleep(2);
-
 	bg_process_signal("job1");
 	bg_process_signal("job3");
 	bg_process_signal("job2");
-	sleep(2);
-
-	bg_processes_exit();
-	return -EXIT_SUCCESS;
 }
+
+static test_func_t test_func_array[] = {test_bg, NULL};
+struct unit_test bg_test = {
+	.name = "os:bg",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

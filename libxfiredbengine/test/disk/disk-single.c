@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unittest.h>
 
 #include <sys/time.h>
 
@@ -119,16 +120,24 @@ static void dbg_list_store(struct disk *d)
 	xfire_free(s4);
 }
 
-int main(int argc, char **argv)
+static void setup(struct unit_test *t)
+{
+	xfire_log_init(NULL, NULL);
+}
+
+static void teardown(struct unit_test *t)
+{
+	xfire_log_exit();
+}
+
+static void disk_test(void)
 {
 	struct disk *d;
 	struct string *s;
 
-	xfire_log_init(NULL, NULL);
 	d = disk_create(SQLITE_DB);
 	s = dbg_get_string("test-data");
-	if(!disk_store_string(d, "test-key", s->str))
-		fprintf(stdout, "Key store succesfull!\n");
+	assert(!disk_store_string(d, "test-key", s->str));
 
 	disk_update_string(d, "test-key", "String update success!");
 
@@ -139,7 +148,13 @@ int main(int argc, char **argv)
 	dbg_hm_store(d);
 	disk_dump(d, stdout);
 	disk_destroy(d);
-	xfire_log_exit();
-	return -EXIT_SUCCESS;
 }
+
+static test_func_t test_func_array[] = {disk_test, NULL};
+struct unit_test disk_single_test = {
+	.name = "storage:disk",
+	.setup = setup,
+	.teardown = teardown,
+	.tests = test_func_array,
+};
 

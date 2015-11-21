@@ -34,14 +34,37 @@ extern struct unit_test dict_database_test;
 
 extern struct unit_test core_bitops_test;
 extern struct unit_test core_xfiredb_test;
+extern struct unit_test core_quotearg_test;
+
+extern struct unit_test rb_single_test;
+extern struct unit_test rb_concurrent_test;
+extern struct unit_test rb_set_test;
+extern struct unit_test rb_hashmap_test;
+
+extern struct unit_test disk_single_test;
+
+extern struct unit_test bg_test;
+extern struct unit_test bio_test;
 
 static struct unit_test *tests[] = {
 	&dict_single_test,
 	&dict_concurrent_test,
 	&dict_database_test,
 	&dict_iterator_test,
+
 	&core_bitops_test,
 	&core_xfiredb_test,
+	&core_quotearg_test,
+
+	&disk_single_test,
+
+	&bio_test,
+	&bg_test,
+
+	&rb_single_test,
+	&rb_concurrent_test,
+	&rb_hashmap_test,
+	&rb_set_test,
 	NULL,
 };
 
