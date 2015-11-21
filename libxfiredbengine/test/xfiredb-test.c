@@ -88,9 +88,11 @@ static inline void test_exec(struct unit_test *t)
 
 	hook = t->tests[0];
 	for(; hook; i++, hook = t->tests[i]) {
+		t->setup(t);
 		printf("Executing test %i\n", i+1);
 		hook();
 		printf("Finished test %i\n", i+1);
+		t->teardown(t);
 	}
 }
 
@@ -183,9 +185,7 @@ int main(int argc, char **argv)
 
 	utest = data.ptr;
 	printf("Starting test '%s'\n", utest->name);
-	utest->setup(utest);
 	test_exec(utest);
-	utest->teardown(utest);
 
 	dict_clear(tests);
 	dict_free(tests);
