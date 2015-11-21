@@ -3,7 +3,11 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
 option (XFIRE_SERVER
-	"Set to to true if the XFire server should be build"
+	"Set to to true if the XFire server should be build and installed"
+	true)
+
+option (XFIRE_CLIENT
+	"Set to true if the XFire client library's should be built and installed"
 	true)
 
 option (XFIRE_DEBUG

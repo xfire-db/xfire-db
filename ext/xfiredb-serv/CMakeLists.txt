@@ -1,4 +1,4 @@
-include_directories(${XFIRE_SERVER_INCLUDE_DIR})
+include_directories(${XFIRE_INCLUDE_DIR})
 
 ADD_RUBY_EXTENSION(storage_engine
 	database.c

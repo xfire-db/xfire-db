@@ -221,7 +221,14 @@ extern void xfire_mutex_unlock(xfire_mutex_t *m);
 extern struct thread *xfire_create_thread(const char *name,
 				      void* (*fn)(void*),
 				      void* arg);
-struct thread *__xfire_create_thread(const char *name,
+/**
+ * @brief Create a new thread.
+ * @param name Thread name.
+ * @param stack Stack pointer.
+ * @param fn Thread function pointer.
+ * @param arg Argument to \p fn.
+ */
+extern struct thread *__xfire_create_thread(const char *name,
 				size_t *stack,
 				void *(*fn)(void*),
 				void *arg);
@@ -319,22 +326,6 @@ static inline void atomic64_init(atomic64_t *atom)
 {
 	atom->val = 0LL;
 	xfire_spinlock_init(&atom->lock);
-}
-
-static inline void *mzalloc(size_t size)
-{
-	void *rv;
-
-	if(!size)
-		return NULL;
-
-	rv = malloc(size);
-	
-	if(!rv)
-		return NULL;
-
-	memset(rv, 0x0, size);
-	return rv;
 }
 CDECL_END
 

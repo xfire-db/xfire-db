@@ -48,6 +48,7 @@ static void test_setup(struct dict *utests)
 	t = tests[i];
 	while(t) {
 		check = dict_add(utests, t->name, t, DICT_PTR);
+		printf("err: %i\n", check);
 		assert(check == -XFIRE_OK);
 		t = tests[++i];
 	}

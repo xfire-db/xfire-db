@@ -1,3 +1,5 @@
+include_directories(${XFIRE_INCLUDE_DIR})
+
 add_executable (xfiredb-dump
 	dump.c)
 

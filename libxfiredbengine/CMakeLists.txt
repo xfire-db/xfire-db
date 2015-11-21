@@ -1,12 +1,10 @@
-include_directories(${XFIRE_SERVER_INCLUDE_DIR})
-
-# standard functions
-
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIRE_OS_FILES
 		os/linux.c
 	)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+
+include_directories(${XFIRE_INCLUDE_DIR})
 
 set(XFIRE_OS_FILES
 	${XFIRE_OS_FILES}
@@ -47,11 +45,6 @@ install (TARGETS xfiredbengine
 	)
 
 if(XFIRE_DEBUG)
-	add_subdirectory(tests)
-	include (tests/rbtree/rb-test.cmake)
-	include (tests/dict/dict-test.cmake)
-	include (tests/disk/disk.cmake)
-	include (tests/bg/bg.cmake)
-	include (tests/core/core.cmake)
+	add_subdirectory(test)
 endif(XFIRE_DEBUG)
 
