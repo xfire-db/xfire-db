@@ -26,3 +26,11 @@ if(XFIRE_SERVER)
 	add_subdirectory(scripts)
 endif(XFIRE_SERVER)
 
+# install ruby files
+INSTALL(FILES lib/xfiredb-serv.rb
+	DESTINATION ${RUBY_LIBRARY_INSTALL_DIR})
+INSTALL(DIRECTORY lib/xfiredb-serv
+	DESTINATION ${RUBY_LIBRARY_INSTALL_DIR})
+INSTALL(FILES bin/xfiredb
+	DESTINATION bin)
+
