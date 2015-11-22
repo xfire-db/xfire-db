@@ -121,7 +121,7 @@ module XFireDB
 
       opts.on("-h", "--help", "Display this help message") do
         puts opts
-        exit
+        return
       end
     end
 
@@ -137,12 +137,12 @@ module XFireDB
       if not missing.empty? and @options[:shell] == false
         puts "Mandatory arguments: #{missing.join(', ')}"
         puts opt_parser
-        exit
+        return
       end
       rescue OptionParser::InvalidOption, OptionParser::MissingArgument
         puts $!.to_s
         puts opt_parser
-        exit
+        return
       end
 
     @@config = XFireDB::Config.new(@options[:config])
@@ -162,7 +162,7 @@ module XFireDB
       XFireDB::Shell.start(XFireDB.engine) if @options[:shell]
       unless missing.empty?
         XFireDB.save
-        exit
+        return
       end
       XFireDB.create_users
       server = XFireDB::Cluster.new(@@config.addr, @@config.port)
