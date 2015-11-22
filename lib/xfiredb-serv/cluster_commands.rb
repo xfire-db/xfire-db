@@ -42,6 +42,8 @@ module XFireDB
       rv = case @subcmd.upcase
            when "USERPOISON"
              cluster_userpoison
+           when "USERMOD"
+             cluster_usermod
            when "USERADD"
              cluster_useradd
            when "USERDEL"
@@ -79,6 +81,58 @@ module XFireDB
       return "Syntax error: CLUSTER USERPOISON <user>" unless user
       users.delete user
       "OK"
+    end
+
+    def cluster_usermod
+      uname = @argv[0]
+      action = @argv[1]
+      query = "CLUSTER USERMOD #{uname} #{action}"
+      synerr = "Syntax error: CLUSTER USERMOD <username> <action>=arg"
+
+      return synerr unless uname and action
+      return forward('xfiredb-users', query) unless @cluster.local_node.shard.include? 'xfiredb-users'
+      db = XFireDB.db
+
+      user = db['xfiredb-users'][uname]
+      return "User not known" if user.nil?
+
+      action = action.split('=').map {|s| s.strip}
+      arg = action[1]
+      action = action[0]
+
+      return synerr unless arg
+      rv = case action.upcase
+           when "LEVEL"
+             return "CLUSTER USERMOD: argument to LEVEL should be numeric" unless arg.is_i?
+             level = arg.to_i
+             user = user.split ' '
+             user[1] = level
+             user = user.join ' '
+             db['xfiredb-users'][uname] = user
+             @cluster.poison_user uname
+             "OK"
+           when "PASS"
+            hash = BCrypt::Password.create arg
+            user = user.split ' '
+            user[0] = hash
+            user = user.join ' '
+            db['xfiredb-users'][uname] = user
+            @cluster.poison_user uname
+            "OK"
+           when "USERNAME"
+             if db['xfiredb-users'][arg].nil?
+               db['xfiredb-users'][arg] = user
+               db['xfiredb-users'].delete uname
+               @cluster.poison_user uname
+               @cluster.poison_user arg
+               "OK"
+             else
+               "User #{arg} already exists"
+             end
+           else
+             synerr
+           end
+      return rv
     end
 
     def cluster_useradd
