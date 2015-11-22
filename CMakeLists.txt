@@ -12,8 +12,8 @@ include(scripts/options.cmake)
 
 # configure file
 configure_file(
-	"${XFIRE_INCLUDE_DIR}/config.h.in"
-	"${XFIRE_INCLUDE_DIR}/config.h"
+	"${XFIRE_SERV_INCLUDE_DIR}/config.h.in"
+	"${XFIRE_SERV_INCLUDE_DIR}/config.h"
 	)
 
 include(scripts/flags.cmake)
@@ -25,4 +25,8 @@ if(XFIRE_SERVER)
 	add_subdirectory(${XFIRE_EXTENSION_PATH})
 	add_subdirectory(scripts)
 endif(XFIRE_SERVER)
+
+if(XFIRE_CLIENT)
+	add_subdirectory(${XFIRE_CLIENT_PATH})
+endif(XFIRE_CLIENT)
 

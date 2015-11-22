@@ -4,7 +4,7 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
-include_directories(${XFIRE_INCLUDE_DIR})
+include_directories(${XFIRE_SERV_INCLUDE_DIR})
 
 set(XFIRE_OS_FILES
 	${XFIRE_OS_FILES}
