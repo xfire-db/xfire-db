@@ -150,9 +150,14 @@ module XFireDB
       ontop = @config.debug
       opts = {:ARGV => [@options.action], :ontop => ontop, :dir_mode => :normal,
               :dir => @config.pid_file, :log_output => true}
+
+      # Exit the engine before we fork
+      XFireDB.exit
       Daemons.run_proc('xfiredb', opts) do
+        XFireDB.create
+        XFireDB.engine.start
+
         self.start_clusterbus
-        #XFireDB.create
         @engine = XFireDB.engine
         @pool = XFireDB::WorkerPool.new(XFireDB.worker_num, @cluster)
         XFireDB::Log.write(XFireDB::Log::LOG_INIT + "Configuration file loaded " \

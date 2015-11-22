@@ -74,11 +74,13 @@ struct container;
 extern struct disk *disk_db;
 CDECL
 extern struct config *xfiredb_get_config(void);
+extern void xfiredb_se_init_silent(struct config *conf);
 extern void xfiredb_se_init(struct config *conf);
 extern void xfiredb_set_loadstate(bool v);
 extern bool xfiredb_loadstate(void);
 extern long xfiredb_disk_size(void);
 extern void xfiredb_raw_load(void (*hook)(int argc, char **rows, char **cols));
+extern void xfiredb_load_key(char *key, void (*hook)(int argc, char **rows, char **cols));
 extern void xfiredb_se_exit(void);
 extern void xfiredb_se_save(void);
 extern void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int op);

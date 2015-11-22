@@ -72,10 +72,24 @@ void xfiredb_set_loadstate(bool state)
 }
 
 /**
+ * @brief Initialise the storage engine without logging.
+ * @param conf XFireDB configuration.
+ */
+void xfiredb_se_init_silent(struct config *conf)
+{
+	load_state = false;
+	memcpy(&config, conf, sizeof(*conf));
+	xfire_log_init(config.log_file, config.err_log_file);
+	bg_processes_init();
+	bio_init();
+}
+
+/**
  * @brief Initialise the XFireDB storage engine.
  */
 void xfiredb_se_init(struct config *conf)
 {
+	load_state = false;
 	memcpy(&config, conf, sizeof(*conf));
 	xfire_log_init(config.log_file, config.err_log_file);
 	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
@@ -102,6 +116,16 @@ void xfiredb_raw_load(void (*hook)(int argc, char **rows, char **cols))
 {
 	xfire_log_console(LOG_INIT, "Loading data from disk\n");
 	disk_load(disk_db, hook);
+}
+
+/**
+ * @brief Load a single key from disk.
+ * @param key Key to load.
+ * @param hook Load hook.
+ */
+void xfiredb_load_key(char *key, void (*hook)(int argc, char **rows, char **cols))
+{
+	disk_load_key(disk_db, key, hook);
 }
 
 /**
