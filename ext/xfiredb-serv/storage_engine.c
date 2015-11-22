@@ -36,7 +36,8 @@ VALUE rb_se_init(VALUE self,
 		VALUE log_file,
 		VALUE err_log,
 		VALUE db_file,
-		VALUE pers_lvl)
+		VALUE pers_lvl,
+		VALUE silent)
 {
 	struct config conf;
 
@@ -45,7 +46,11 @@ VALUE rb_se_init(VALUE self,
 	xfire_sprintf(&conf.db_file, "%s", StringValueCStr(db_file));
 	conf.persist_level = NUM2INT(pers_lvl);
 
-	xfiredb_se_init(&conf);
+	if(silent == Qtrue)
+		xfiredb_se_init_silent(&conf);
+	else
+		xfiredb_se_init(&conf);
+
 	return self;
 }
 
@@ -65,6 +70,33 @@ VALUE rb_se_get_loadstate(VALUE self)
 		return Qtrue;
 	else
 		return Qfalse;
+}
+
+VALUE rb_se_load_key(VALUE self, VALUE _key)
+{
+	char *k = StringValueCStr(_key);
+	VALUE ary;
+	auto void load_hook(int argc, char **rows, char **cols);
+
+	ary = rb_ary_new();
+	xfiredb_load_key(k, &load_hook);
+	return ary;
+
+	void load_hook(int argc, char **rows, char **cols)
+	{
+		VALUE key, hash, type, data, tmp;
+		int i;
+
+		for(i = 0; i < argc; i += 4) {
+			key = rb_str_new2(rows[i + TABLE_KEY_IDX]);
+			hash = rb_str_new2(rows[i + TABLE_SCND_KEY_IDX]);
+			type = rb_str_new2(rows[i + TABLE_TYPE_IDX]);
+			data = rb_str_new2(rows[i + TABLE_DATA_IDX]);
+
+			tmp = rb_ary_new_from_args(4, key, hash, type, data);
+			rb_ary_push(ary, tmp);
+		}
+	}
 }
 
 VALUE rb_se_load(VALUE self)
@@ -113,10 +145,11 @@ void Init_storage_engine(void)
 	rb_cStorageEngine = rb_define_class_under(c_xfiredb_mod,
 			"Engine", rb_cObject);
 
-	rb_define_method(rb_cStorageEngine, "init", rb_se_init, 4);
+	rb_define_method(rb_cStorageEngine, "init", rb_se_init, 5);
 	rb_define_method(rb_cStorageEngine, "stop", rb_se_exit, 1);
 	rb_define_method(rb_cStorageEngine, "save", rb_se_save, 0);
 	rb_define_method(rb_cStorageEngine, "load", rb_se_load, 0);
+	rb_define_method(rb_cStorageEngine, "load_key", rb_se_load_key, 1);
 	rb_define_method(rb_cStorageEngine, "set_loadstate", rb_se_set_loadstate, 1);
 	rb_define_method(rb_cStorageEngine, "get_loadstate", rb_se_get_loadstate, 0);
 

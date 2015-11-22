@@ -22,24 +22,28 @@ module XFireDB
 
     def initialize
       @db = XFireDB::Database.new
-      self.start
+    end
+
+    def pre_init
+      config = XFireDB.config
+      self.init(config.log_file, config.err_log_file, config.db_file, config.persist_level, false)
+
+      XFireDB.preinit_keys.each do |key|
+        self.load_key(key).each do |key,hash,type,data|
+          load_entry key, hash, type, data
+        end
+      end
+
+      set_loadstate(true)
     end
 
     def start
+      set_loadstate(false)
       config = XFireDB.config
-      self.init(config.log_file, config.err_log_file, config.db_file, config.persist_level)
+      self.init(config.log_file, config.err_log_file, config.db_file, config.persist_level, true)
 
       self.load.each.each do |key, hash, type, data|
-        case type
-        when "string"
-          self.load_string(key, data)
-        when "list"
-          self.load_list_entry(key, data)
-        when "hashmap"
-          self.load_map_entry(key, hash, data)
-        when "set"
-          self.load_set_entry(key, hash)
-        end
+        load_entry(key, hash, type, data)
       end
 
       self.set_loadstate(true)
@@ -51,6 +55,20 @@ module XFireDB
         @db.delete(key)
       end
       self.stop(@db)
+    end
+
+    private
+    def load_entry(key, hash, type, data)
+        case type
+        when "string"
+          load_string(key, data)
+        when "list"
+          load_list_entry(key, data)
+        when "hashmap"
+          load_map_entry(key, hash, data)
+        when "set"
+          load_set_entry(key, hash)
+        end
     end
 
     def load_string(key, data)

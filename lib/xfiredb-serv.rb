@@ -85,6 +85,11 @@ module XFireDB
   @@illegals = ["xfiredb", "xfiredb-nodes"]
   @@private_keys = ["xfiredb-users"]
 
+  def XFireDB.preinit_keys
+    tmp = @@illegals + @@private_keys
+    tmp.to_set
+  end
+
   def XFireDB.start(cmdargs)
     @options = OpenStruct.new
     @options.config = nil
@@ -153,6 +158,7 @@ module XFireDB
     else
       @@options = @options
       XFireDB.create
+      XFireDB.engine.pre_init
       XFireDB::Shell.start(XFireDB.engine) if @options[:shell]
       unless missing.empty?
         XFireDB.save

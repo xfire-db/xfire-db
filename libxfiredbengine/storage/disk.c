@@ -98,8 +98,6 @@ struct disk *disk_create(const char *path)
 		fprintf(stderr, "Cannot create disk file %s: %s\n",
 				path, sqlite3_errmsg(db));
 		exit(-EXIT_FAILURE);
-	} else {
-		xfire_log_console(LOG_INIT, "Database opened: %s\n", path);
 	}
 
 	disk = xfire_zalloc(sizeof(*disk));
@@ -573,6 +571,30 @@ long disk_size(struct disk *d)
 
 	sqlite3_free(msg);
 	return size;
+}
+
+#define DISK_LOAD_QUERY "SELECT * FROM xfiredb_data WHERE db_key='%s'"
+
+int disk_load_key(struct disk *d, char *key, void (*hook)(int argc, char **rows, char **colnames))
+{
+	int rc;
+	char *msg, *query;
+
+	xfire_sprintf(&query, DISK_LOAD_QUERY, key);
+	rc = sqlite3_exec(d->handle, query, &disk_load_hook, hook, &msg);
+
+	switch(rc) {
+	case SQLITE_OK:
+		break;
+
+	default:
+		fprintf(stderr, "Disk load failed: %s\n", msg);
+		sqlite3_free(msg);
+		return -XFIRE_ERR;
+	}
+
+	sqlite3_free(msg);
+	return -XFIRE_ERR;
 }
 
 /**

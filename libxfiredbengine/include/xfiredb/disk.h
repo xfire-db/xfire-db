@@ -61,6 +61,8 @@ extern void disk_clear(struct disk *d);
 extern struct disk *disk_create(const char *path);
 extern void disk_destroy(struct disk *disk);
 extern void disk_dump(struct disk *d, FILE *out);
+extern int disk_load_key(struct disk *d, char *key,
+		void (*hook)(int argc, char **rows, char **colnames));
 extern int disk_load(struct disk *disk,
 		void (*hook)(int argc, char **rows, char **colnames));
 
