@@ -20,10 +20,9 @@ include(scripts/flags.cmake)
 include(scripts/link.cmake)
 include(scripts/ruby.cmake)
 
-add_subdirectory(scripts)
-
 if(XFIRE_SERVER)
 	add_subdirectory(${XFIRE_ENG_PATH})
 	add_subdirectory(${XFIRE_EXTENSION_PATH})
+	add_subdirectory(scripts)
 endif(XFIRE_SERVER)
 
