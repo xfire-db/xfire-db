@@ -86,7 +86,7 @@ module XFireDB
       pass = @argv[1]
       query = "CLUSTER USERADD #{uname} #{pass}"
 
-      return "Syntax error: USERADD username pass" unless uname and pass
+      return "Syntax error: CLUSTER USERADD username pass" unless uname and pass
       return forward('xfiredb-users', query) unless @cluster.local_node.shard.include? 'xfiredb-users'
       hash = BCrypt::Password.create pass
 
