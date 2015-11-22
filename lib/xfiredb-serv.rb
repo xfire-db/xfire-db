@@ -147,6 +147,9 @@ module XFireDB
       Daemons.run_proc('xfiredb', opts) do
       end
     when "status"
+      opts = {:ARGV => [@options.action], :dir_mode => :normal, :dir => @@config.pid_file, :log_output => true }
+      Daemons.run_proc('xfiredb', opts) do
+      end
     else
       @@options = @options
       XFireDB.create
