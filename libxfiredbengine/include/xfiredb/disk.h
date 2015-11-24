@@ -52,7 +52,7 @@ struct disk {
 	u64 records; //!< Number of saved records.
 	bool initialised; //!< Initialisation status.
 
-	xfire_mutex_t lock; //!< Disk lock.
+	xfiredb_mutex_t lock; //!< Disk lock.
 };
 
 CDECL

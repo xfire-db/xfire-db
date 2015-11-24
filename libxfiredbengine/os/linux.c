@@ -26,41 +26,41 @@
 #include <xfiredb/os.h>
 #include <xfiredb/mem.h>
 
-void xfire_mutex_init(xfire_mutex_t *m)
+void xfiredb_mutex_init(xfiredb_mutex_t *m)
 {
 	pthread_mutexattr_init(&m->attr);
 	pthread_mutexattr_settype(&m->attr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&m->mtx, &m->attr);
 }
 
-void xfire_mutex_destroy(xfire_mutex_t *m)
+void xfiredb_mutex_destroy(xfiredb_mutex_t *m)
 {
 	pthread_mutex_destroy(&m->mtx);
 	pthread_mutexattr_destroy(&m->attr);
 }
 
-void xfire_mutex_lock(xfire_mutex_t *m)
+void xfiredb_mutex_lock(xfiredb_mutex_t *m)
 {
 	pthread_mutex_lock(&m->mtx);
 }
 
-void xfire_mutex_unlock(xfire_mutex_t *m)
+void xfiredb_mutex_unlock(xfiredb_mutex_t *m)
 {
 	pthread_mutex_unlock(&m->mtx);
 }
 
-struct thread *__xfire_create_thread(const char *name,
+struct thread *__xfiredb_create_thread(const char *name,
 				size_t *stack,
 				void *(*fn)(void*),
 				void *arg)
 {
 	struct thread *tp;
 
-	tp = xfire_zalloc(sizeof(*tp));
+	tp = xfiredb_zalloc(sizeof(*tp));
 	pthread_attr_init(&tp->attr);
 
 	if(stack)
-		xfire_set_stack_size(&tp->attr, stack);
+		xfiredb_set_stack_size(&tp->attr, stack);
 
 	pthread_attr_setdetachstate(&tp->attr, PTHREAD_CREATE_JOINABLE);
 	
@@ -69,25 +69,25 @@ struct thread *__xfire_create_thread(const char *name,
 		return NULL;
 	}
 
-	tp->name = xfire_zalloc(strlen(name) + 1);
+	tp->name = xfiredb_zalloc(strlen(name) + 1);
 	memcpy(tp->name, name, strlen(name));
 
 	return tp;
 }
 
-struct thread *xfire_create_thread(const char *name,
+struct thread *xfiredb_create_thread(const char *name,
 				void* (*fn)(void*),
 				void* arg)
 {
-	return __xfire_create_thread(name, NULL, fn, arg);
+	return __xfiredb_create_thread(name, NULL, fn, arg);
 }
 
-int xfire_thread_cancel(struct thread *tp)
+int xfiredb_thread_cancel(struct thread *tp)
 {
 	return pthread_cancel(tp->thread);
 }
 
-int xfire_destroy_thread(struct thread *tp)
+int xfiredb_destroy_thread(struct thread *tp)
 {
 	/*
 	 * free the allocated memory inside `tp'
@@ -98,7 +98,7 @@ int xfire_destroy_thread(struct thread *tp)
 	return -XFIRE_OK;
 }
 
-void *xfire_thread_join(struct thread *tp)
+void *xfiredb_thread_join(struct thread *tp)
 {
 	void *rv;
 

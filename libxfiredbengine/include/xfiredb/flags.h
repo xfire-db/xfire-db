@@ -32,7 +32,7 @@
  */
 typedef struct {
 	unsigned long flags; //!< Flags register.
-	xfire_spinlock_t lock; //!< Flags lock.
+	xfiredb_spinlock_t lock; //!< Flags lock.
 } atomic_flags_t;
 
 CDECL

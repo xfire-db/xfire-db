@@ -24,7 +24,7 @@
 #include <xfiredb/mem.h>
 #include <xfiredb/error.h>
 
-static int xfire_vsprintf(char **str, const char *fmt, va_list args)
+static int xfiredb_vsprintf(char **str, const char *fmt, va_list args)
 {
 	int size = 0;
 	va_list tmpa;
@@ -36,19 +36,19 @@ static int xfire_vsprintf(char **str, const char *fmt, va_list args)
 	if(size < 0)
 		return -XFIRE_ERR;
 
-	*str = xfire_zalloc(size + 1);
+	*str = xfiredb_zalloc(size + 1);
 	size = vsprintf(*str, fmt, args);
 
 	return size;
 }
 
-int xfire_sprintf(char **buf, const char *format, ...)
+int xfiredb_sprintf(char **buf, const char *format, ...)
 {
 	int size;
 	va_list args;
 
 	va_start(args, format);
-	size = xfire_vsprintf(buf, format, args);
+	size = xfiredb_vsprintf(buf, format, args);
 	va_end(args);
 
 	return size;

@@ -41,8 +41,8 @@ struct job {
 
 	void (*handle)(void *arg); //!< Job handler.
 	void *arg; //!< Argument passed to handle.
-	xfire_mutex_t lock; //!< Job lock.
-	xfire_cond_t condi; //!< Job condition.
+	xfiredb_mutex_t lock; //!< Job lock.
+	xfiredb_cond_t condi; //!< Job condition.
 	struct thread *tp; //!< Backend thread structure.
 };
 

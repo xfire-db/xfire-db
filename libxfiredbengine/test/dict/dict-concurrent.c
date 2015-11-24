@@ -109,23 +109,23 @@ static void setup(struct unit_test *test)
 		dict_add(strings, (const char*)dbg_keys[i],
 			(void*)dbg_values[i], DICT_PTR);
 
-	a = xfire_create_thread("thread a", &test_thread_a, strings);
-	b = xfire_create_thread("thread b", &test_thread_b, strings);
-	c = xfire_create_thread("thread c", &test_thread_c, strings);
-	d = xfire_create_thread("thread d", &test_thread_d, strings);
-	e = xfire_create_thread("thread e", &test_thread_e, strings);
+	a = xfiredb_create_thread("thread a", &test_thread_a, strings);
+	b = xfiredb_create_thread("thread b", &test_thread_b, strings);
+	c = xfiredb_create_thread("thread c", &test_thread_c, strings);
+	d = xfiredb_create_thread("thread d", &test_thread_d, strings);
+	e = xfiredb_create_thread("thread e", &test_thread_e, strings);
 
-	xfire_thread_join(a);
-	xfire_thread_join(b);
-	xfire_thread_join(c);
-	xfire_thread_join(d);
-	xfire_thread_join(e);
+	xfiredb_thread_join(a);
+	xfiredb_thread_join(b);
+	xfiredb_thread_join(c);
+	xfiredb_thread_join(d);
+	xfiredb_thread_join(e);
 
-	xfire_thread_destroy(a);
-	xfire_thread_destroy(b);
-	xfire_thread_destroy(c);
-	xfire_thread_destroy(d);
-	xfire_thread_destroy(e);
+	xfiredb_thread_destroy(a);
+	xfiredb_thread_destroy(b);
+	xfiredb_thread_destroy(c);
+	xfiredb_thread_destroy(d);
+	xfiredb_thread_destroy(e);
 }
 
 static void teardown(struct unit_test *test)

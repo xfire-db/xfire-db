@@ -62,7 +62,7 @@ void set_key_init(struct set_key *key, const char *k)
 {
 	int len = strlen(k);
 
-	key->key = xfire_zalloc(len + 1);
+	key->key = xfiredb_zalloc(len + 1);
 	memcpy((char*)key->key, k, len);
 
 	rb_init_node(&key->node);
@@ -75,7 +75,7 @@ void set_key_init(struct set_key *key, const char *k)
  */
 struct set_key *set_key_alloc(const char *k)
 {
-	struct set_key *key = xfire_zalloc(sizeof(*k));
+	struct set_key *key = xfiredb_zalloc(sizeof(*k));
 
 	set_key_init(key, k);
 	return key;
@@ -97,7 +97,7 @@ void set_destroy(struct set *s)
  */
 void set_key_destroy(struct set_key *k)
 {
-	xfire_free(k->key);
+	xfiredb_free(k->key);
 	rb_node_destroy(&k->node);
 }
 
@@ -108,7 +108,7 @@ void set_key_destroy(struct set_key *k)
  */
 struct set_iterator *set_iterator_new(struct set *s)
 {
-	struct set_iterator *si = xfire_zalloc(sizeof(*si));
+	struct set_iterator *si = xfiredb_zalloc(sizeof(*si));
 
 	si->it = rb_new_iterator(&s->root);
 	return si;
@@ -121,7 +121,7 @@ struct set_iterator *set_iterator_new(struct set *s)
 void set_iterator_free(struct set_iterator *si)
 {
 	rb_free_iterator(si->it);
-	xfire_free(si);
+	xfiredb_free(si);
 }
 
 /**
@@ -224,7 +224,7 @@ int set_add(struct set *s, char *key, struct set_key *k)
 		return -XFIRE_ERR;
 
 	rb_init_node(&k->node);
-	xfire_sprintf(&k->key, "%s", key);
+	xfiredb_sprintf(&k->key, "%s", key);
 	hash = set_hash_key(k->key, SET_SEED);
 	k->node.key = hash;
 
@@ -294,8 +294,8 @@ int set_clear(struct set *set)
 	struct set_key *k;
 
 	while((k = set_clear_next(set))) {
-		xfire_free(k->key);
-		xfire_free(k);
+		xfiredb_free(k->key);
+		xfiredb_free(k);
 	}
 
 	return -XFIRE_OK;

@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 		ofile = fopen(output, "w+");
 	}
 
-	xfire_log_init(NULL, NULL);
+	xfiredb_log_init(NULL, NULL);
 	dbfile = path_helper(dbfile);
 	db = disk_create_helper(dbfile);
 
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 	if(output)
 		fclose(ofile);
 	disk_destroy_helper(db);
-	xfire_log_exit();
+	xfiredb_log_exit();
 	return -EXIT_SUCCESS;
 }
 

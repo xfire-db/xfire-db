@@ -41,9 +41,9 @@ VALUE rb_se_init(VALUE self,
 {
 	struct config conf;
 
-	xfire_sprintf(&conf.log_file, "%s", StringValueCStr(log_file));
-	xfire_sprintf(&conf.err_log_file, "%s", StringValueCStr(err_log));
-	xfire_sprintf(&conf.db_file, "%s", StringValueCStr(db_file));
+	xfiredb_sprintf(&conf.log_file, "%s", StringValueCStr(log_file));
+	xfiredb_sprintf(&conf.err_log_file, "%s", StringValueCStr(err_log));
+	xfiredb_sprintf(&conf.db_file, "%s", StringValueCStr(db_file));
 	conf.persist_level = NUM2INT(pers_lvl);
 
 	if(silent == Qtrue)

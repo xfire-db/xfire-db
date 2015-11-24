@@ -41,7 +41,7 @@ typedef struct list {
 typedef struct list_head {
 	struct list head; //!< List head.
 
-	xfire_spinlock_t lock; //!< List lock.
+	xfiredb_spinlock_t lock; //!< List lock.
 	atomic_t num; //!< Number of elements in the list.
 } LIST_HEAD;
 
@@ -93,7 +93,7 @@ static inline void list_node_init(struct list *node)
  */
 static inline void list_head_init(struct list_head *head)
 {
-	xfire_spinlock_init(&head->lock);
+	xfiredb_spinlock_init(&head->lock);
 	list_node_init(&head->head);
 
 	atomic_init(&head->num);
@@ -106,7 +106,7 @@ static inline void list_head_init(struct list_head *head)
 static inline void list_head_destroy(struct list_head *head)
 {
 	atomic_destroy(&head->num);
-	xfire_spinlock_destroy(&head->lock);
+	xfiredb_spinlock_destroy(&head->lock);
 }
 
 /**
@@ -126,7 +126,7 @@ static inline int list_length(struct list_head *head)
  */
 static inline void list_lock(struct list_head *lh)
 {
-	xfire_spin_lock(&lh->lock);
+	xfiredb_spin_lock(&lh->lock);
 }
 
 /**
@@ -136,7 +136,7 @@ static inline void list_lock(struct list_head *lh)
  */
 static inline void list_unlock(struct list_head *lh)
 {
-	xfire_spin_unlock(&lh->lock);
+	xfiredb_spin_unlock(&lh->lock);
 }
 CDECL_END
 

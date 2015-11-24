@@ -67,7 +67,7 @@ struct container *container_alloc(container_type_t type)
 {
 	struct container *c;
 
-	c = xfire_zalloc(sizeof(*c));
+	c = xfiredb_zalloc(sizeof(*c));
 	container_init(c, type);
 
 	return c;

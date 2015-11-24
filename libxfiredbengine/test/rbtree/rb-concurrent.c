@@ -54,7 +54,7 @@ static void test_rb_insert(struct rb_root *root, int key)
 	struct data_node *node;
 	struct rb_node *tmp;
 
-	node = xfire_zalloc(sizeof(*node));
+	node = xfiredb_zalloc(sizeof(*node));
 	if(!node)
 		return;
 
@@ -72,7 +72,7 @@ static void test_insert_duplicate(struct rb_root *root, int key,
 	struct data_node *node;
 	struct rb_node *tmp;
 
-	node = xfire_zalloc(sizeof(*node));
+	node = xfiredb_zalloc(sizeof(*node));
 	if(!node)
 		return;
 
@@ -91,7 +91,7 @@ static void *test_thread_b(void *arg)
 	for(idx = 31; idx <= 40; idx++)
 		test_rb_insert(&root, idx);
 
-	xfire_thread_exit(NULL);
+	xfiredb_thread_exit(NULL);
 }
 
 static void *test_thread_a(void *arg)
@@ -102,7 +102,7 @@ static void *test_thread_a(void *arg)
 		test_rb_insert(&root, idx);
 
 	test_insert_duplicate(&root, 24, node_data3);
-	xfire_thread_exit(NULL);
+	xfiredb_thread_exit(NULL);
 }
 
 static void *test_thread_c(void *arg)
@@ -113,7 +113,7 @@ static void *test_thread_c(void *arg)
 	for(idx = 11; idx <= 20; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
 
-	xfire_thread_exit(NULL);
+	xfiredb_thread_exit(NULL);
 }
 
 static void *test_thread_d(void *arg)
@@ -124,7 +124,7 @@ static void *test_thread_d(void *arg)
 	for(idx = 1; idx <= 10; idx++)
 		rb_remove(&root, idx, (char*)node_data1);
 
-	xfire_thread_exit(NULL);
+	xfiredb_thread_exit(NULL);
 }
 
 static void rb_setup_tree(void)
@@ -164,20 +164,20 @@ static void test_rb_concurrent(void)
 {
 	struct thread *a, *b, *c, *d;
 
-	a = xfire_create_thread("thread a", &test_thread_a, NULL);
-	b = xfire_create_thread("thread b", &test_thread_b, NULL);
-	c = xfire_create_thread("thread c", &test_thread_c, NULL);
-	d = xfire_create_thread("thread d", &test_thread_d, NULL);
+	a = xfiredb_create_thread("thread a", &test_thread_a, NULL);
+	b = xfiredb_create_thread("thread b", &test_thread_b, NULL);
+	c = xfiredb_create_thread("thread c", &test_thread_c, NULL);
+	d = xfiredb_create_thread("thread d", &test_thread_d, NULL);
 
-	xfire_thread_join(a);
-	xfire_thread_join(b);
-	xfire_thread_join(c);
-	xfire_thread_join(d);
+	xfiredb_thread_join(a);
+	xfiredb_thread_join(b);
+	xfiredb_thread_join(c);
+	xfiredb_thread_join(d);
 
-	xfire_destroy_thread(a);
-	xfire_destroy_thread(b);
-	xfire_destroy_thread(c);
-	xfire_destroy_thread(d);
+	xfiredb_destroy_thread(a);
+	xfiredb_destroy_thread(b);
+	xfiredb_destroy_thread(c);
+	xfiredb_destroy_thread(d);
 
 	test_find_node(24, node_data3);
 	test_find_node(18, node_data3);

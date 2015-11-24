@@ -44,8 +44,8 @@ static inline struct rb_node *rb_grandparent(struct rb_node *node);
  */
 void rb_init_node(struct rb_node *node)
 {
-	xfire_mutex_init(&node->lock);
-	xfire_cond_init(&node->condi);
+	xfiredb_mutex_init(&node->lock);
+	xfiredb_cond_init(&node->condi);
 	atomic_flags_init(&node->flags);
 	atomic_init(&node->ldepth);
 
@@ -59,8 +59,8 @@ void rb_init_node(struct rb_node *node)
  */
 void rb_node_destroy(struct rb_node *node)
 {
-	xfire_mutex_destroy(&node->lock);
-	xfire_cond_destroy(&node->condi);
+	xfiredb_mutex_destroy(&node->lock);
+	xfiredb_cond_destroy(&node->condi);
 	atomic_flags_destroy(&node->flags);
 	atomic_destroy(&node->ldepth);
 }
@@ -71,7 +71,7 @@ void rb_node_destroy(struct rb_node *node)
  */
 void rb_destroy_root(struct rb_root *root)
 {
-	xfire_spinlock_destroy(&root->lock);
+	xfiredb_spinlock_destroy(&root->lock);
 	atomic64_destroy(&root->num);
 }
 
@@ -81,7 +81,7 @@ void rb_destroy_root(struct rb_root *root)
  */
 void rb_init_root(struct rb_root *root)
 {
-	xfire_spinlock_init(&root->lock);
+	xfiredb_spinlock_init(&root->lock);
 	atomic64_init(&root->num);
 	root->tree = NULL;
 }
@@ -149,12 +149,12 @@ static inline bool rb_dblk(struct rb_node *n)
 
 static inline void rb_lock_root(struct rb_root *root)
 {
-	xfire_spin_lock(&root->lock);
+	xfiredb_spin_lock(&root->lock);
 }
 
 static inline void rb_unlock_root(struct rb_root *root)
 {
-	xfire_spin_unlock(&root->lock);
+	xfiredb_spin_unlock(&root->lock);
 }
 
 static inline void rb_lock_node(struct rb_node *node)
@@ -162,13 +162,13 @@ static inline void rb_lock_node(struct rb_node *node)
 	if(!node)
 		return;
 
-	xfire_mutex_lock(&node->lock);
+	xfiredb_mutex_lock(&node->lock);
 	atomic_inc(node->ldepth);	
 }
 
 static inline void rb_unlock_node(struct rb_node *node)
 {
-	xfire_mutex_unlock(&node->lock);
+	xfiredb_mutex_unlock(&node->lock);
 	atomic_dec(node->ldepth);
 }
 
@@ -295,7 +295,7 @@ struct rb_node *__rb_get_node(struct rb_node *node)
 
 	rb_lock_node(node);
 	while(test_bit(RB_NODE_ACQUIRED_FLAG, &node->flags))
-		xfire_cond_wait(&node->condi, &node->lock);
+		xfiredb_cond_wait(&node->condi, &node->lock);
 	rb_unlock_node(node);
 
 	return node;
@@ -331,7 +331,7 @@ void rb_put_node(struct rb_node *node)
 
 	rb_lock_node(node);
 	clear_bit(RB_NODE_ACQUIRED_FLAG, &node->flags);
-	xfire_cond_signal(&node->condi);
+	xfiredb_cond_signal(&node->condi);
 	rb_unlock_node(node);
 }
 
@@ -758,7 +758,7 @@ static void rb_replace_node(struct rb_root *root,
 
 struct rb_iterator *rb_new_iterator(struct rb_root *root)
 {
-	struct rb_iterator *it = xfire_zalloc(sizeof(*it));
+	struct rb_iterator *it = xfiredb_zalloc(sizeof(*it));
 
 	it->next = rb_get_root(root);
 	it->root = root;
@@ -767,7 +767,7 @@ struct rb_iterator *rb_new_iterator(struct rb_root *root)
 
 void rb_free_iterator(struct rb_iterator *it)
 {
-	xfire_free(it);
+	xfiredb_free(it);
 }
 
 struct rb_node *rb_iterator_next(struct rb_iterator *it)

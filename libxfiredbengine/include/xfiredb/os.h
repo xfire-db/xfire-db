@@ -37,18 +37,18 @@
 #define PTR_SIZE (sizeof(void*))
 
 #if defined(HAVE_LINUX) || defined(__DOXYGEN__)
-#define xfire_cond_t pthread_cond_t //!< XFire condition variable.
-#define xfire_mutex_t mutex_t //!< XFire mutex.
-#define xfire_spinlock_t pthread_spinlock_t //!< XFire spinlock.
-#define xfire_attr_t pthread_attr_t //!< Thread attributes
-#define xfire_attr_init(_atr) pthread_attr_init(_atr) //!< Init thread attributes
+#define xfiredb_cond_t pthread_cond_t //!< XFire condition variable.
+#define xfiredb_mutex_t mutex_t //!< XFire mutex.
+#define xfiredb_spinlock_t pthread_spinlock_t //!< XFire spinlock.
+#define xfiredb_attr_t pthread_attr_t //!< Thread attributes
+#define xfiredb_attr_init(_atr) pthread_attr_init(_atr) //!< Init thread attributes
 
 /**
  * @brief Get the stack size.
  * @param attr Thread attributes.
  * @param stack Pointer to store the stack size in.
  */
-static inline void xfire_get_stack_size(xfire_attr_t *attr, size_t *stack)
+static inline void xfiredb_get_stack_size(xfiredb_attr_t *attr, size_t *stack)
 {
 	pthread_attr_getstacksize(attr, stack);
 }
@@ -58,7 +58,7 @@ static inline void xfire_get_stack_size(xfire_attr_t *attr, size_t *stack)
  * @param attr Attributes to set the stack size for.
  * @param stack Stack size to set.
  */
-static inline void xfire_set_stack_size(xfire_attr_t *attr, size_t *stack)
+static inline void xfiredb_set_stack_size(xfiredb_attr_t *attr, size_t *stack)
 {
 	pthread_attr_setstacksize(attr, *stack);
 }
@@ -67,17 +67,17 @@ static inline void xfire_set_stack_size(xfire_attr_t *attr, size_t *stack)
  * @brief Initialise a spinlock.
  * @param __s Spinlock to initialise.
  */
-#define xfire_spinlock_init(__s) pthread_spin_init(__s, PTHREAD_PROCESS_PRIVATE)
+#define xfiredb_spinlock_init(__s) pthread_spin_init(__s, PTHREAD_PROCESS_PRIVATE)
 /**
  * @brief Destroy a spinlock.
  * @param __s Spin lock to destroy.
  */
-#define xfire_spinlock_destroy(__s) pthread_spin_destroy(__s)
+#define xfiredb_spinlock_destroy(__s) pthread_spin_destroy(__s)
 /**
  * @brief Lock a spinlock.
  * @param __s Spinlock to lock.
  */
-#define xfire_spin_lock(__s) pthread_spin_lock(__s)
+#define xfiredb_spin_lock(__s) pthread_spin_lock(__s)
 /**
  * @brief Attempt locking a spinlock.
  * @param __s Spinlock to try locking.
@@ -85,47 +85,47 @@ static inline void xfire_set_stack_size(xfire_attr_t *attr, size_t *stack)
  * If this function is unable to lock \p __s, it will return control
  * to the caller.
  */
-#define xfire_spin_trylock(__s) pthread_spin_trylock(__s)
+#define xfiredb_spin_trylock(__s) pthread_spin_trylock(__s)
 
 /**
  * @brief Unlock a spinlock.
  * @param __s Spinlock to unlock.
  */
-#define xfire_spin_unlock(__s) pthread_spin_unlock(__s)
+#define xfiredb_spin_unlock(__s) pthread_spin_unlock(__s)
 
 /**
  * @brief Initialise a condition variable.
  * @param __c Condition variable to init.
  */
-#define xfire_cond_init(__c) pthread_cond_init(__c, NULL)
+#define xfiredb_cond_init(__c) pthread_cond_init(__c, NULL)
 /**
  * @brief Destroy a condition variable.
  * @param __c Variable to destroy.
  */
-#define xfire_cond_destroy(__c) pthread_cond_destroy(__c)
+#define xfiredb_cond_destroy(__c) pthread_cond_destroy(__c)
 /**
  * @brief Wait for a condition to come true.
  * @param __c Condition to wait for.
  * @param __m Mutex to use for the waiting process.
  */
-#define xfire_cond_wait(__c, __m) pthread_cond_wait(__c, &(__m)->mtx)
+#define xfiredb_cond_wait(__c, __m) pthread_cond_wait(__c, &(__m)->mtx)
 /**
  * @brief Signal a condition.
  * @param __c Condition to signal.
  */
-#define xfire_cond_signal(__c) pthread_cond_signal(__c)
+#define xfiredb_cond_signal(__c) pthread_cond_signal(__c)
 /**
  * @brief Exit a thread.
  * @param __a Thread to exit.
  */
-#define xfire_thread_exit(__a) pthread_exit(__a)
+#define xfiredb_thread_exit(__a) pthread_exit(__a)
 #endif
 
 /**
  * @brief Kill a thread.
  * @param __tp Thread to kill.
  */
-#define xfire_thread_destroy(__tp) xfire_destroy_thread(__tp)
+#define xfiredb_thread_destroy(__tp) xfiredb_destroy_thread(__tp)
 
 /**
  * @brief Custom thread structure.
@@ -154,7 +154,7 @@ typedef struct mutex {
  */
 typedef struct atomic {
 	s32 val; //!< Atomic value.
-	xfire_spinlock_t lock; //!< Protection lock.
+	xfiredb_spinlock_t lock; //!< Protection lock.
 } atomic_t;
 
 /**
@@ -162,7 +162,7 @@ typedef struct atomic {
  */
 typedef struct atomic64 {
 	s64 val; //!< 64-bit atomic type.
-	xfire_spinlock_t lock; //!< Protection lock.
+	xfiredb_spinlock_t lock; //!< Protection lock.
 } atomic64_t;
 
 /**
@@ -200,17 +200,17 @@ CDECL
  * @brief Destroy a mutex.
  * @param m Mutex to destroy.
  */
-extern void xfire_mutex_destroy(xfire_mutex_t *m);
+extern void xfiredb_mutex_destroy(xfiredb_mutex_t *m);
 /**
  * @brief Lock a mutex.
  * @param m Mutex to lock.
  */
-extern void xfire_mutex_lock(xfire_mutex_t *m);
+extern void xfiredb_mutex_lock(xfiredb_mutex_t *m);
 /**
  * @brief Unlock a mutex.
  * @param m Mutex to unlock.
  */
-extern void xfire_mutex_unlock(xfire_mutex_t *m);
+extern void xfiredb_mutex_unlock(xfiredb_mutex_t *m);
 /**
  * @brief Create a new thread.
  * @param name Thread name.
@@ -218,7 +218,7 @@ extern void xfire_mutex_unlock(xfire_mutex_t *m);
  * @param arg Argument to be passed to the thread.
  * @return Created thread data structure.
  */
-extern struct thread *xfire_create_thread(const char *name,
+extern struct thread *xfiredb_create_thread(const char *name,
 				      void* (*fn)(void*),
 				      void* arg);
 /**
@@ -228,7 +228,7 @@ extern struct thread *xfire_create_thread(const char *name,
  * @param fn Thread function pointer.
  * @param arg Argument to \p fn.
  */
-extern struct thread *__xfire_create_thread(const char *name,
+extern struct thread *__xfiredb_create_thread(const char *name,
 				size_t *stack,
 				void *(*fn)(void*),
 				void *arg);
@@ -236,19 +236,19 @@ extern struct thread *__xfire_create_thread(const char *name,
  * @brief Join two threads.
  * @param tp Thread to join.
  */
-extern void *xfire_thread_join(struct thread *tp);
+extern void *xfiredb_thread_join(struct thread *tp);
 /**
  * @brief Destroy a thread structure.
  * @param tp Thread structure to destroy.
  * @return An error code.
  */
-extern int xfire_destroy_thread(struct thread *tp);
+extern int xfiredb_destroy_thread(struct thread *tp);
 /**
  * @brief Stop a thread.
  * @param tp Thread to stop.
  * @return An error code.
  */
-extern int xfire_thread_cancel(struct thread *tp);
+extern int xfiredb_thread_cancel(struct thread *tp);
 
 /**
  * @brief Add a number atomically.
@@ -294,7 +294,7 @@ extern s64 atomic64_get(atomic64_t *atom);
  * @brief Initialise a mutex variable.
  * @param m Mutex variable.
  */
-extern void xfire_mutex_init(xfire_mutex_t *m);
+extern void xfiredb_mutex_init(xfiredb_mutex_t *m);
 
 /**
  * @brief Destroy a 32-bit atomic.
@@ -315,7 +315,7 @@ extern void atomic64_destroy(atomic64_t *atom);
 static inline void atomic_init(atomic_t *atom)
 {
 	atom->val = 0;
-	xfire_spinlock_init(&atom->lock);
+	xfiredb_spinlock_init(&atom->lock);
 }
 
 /**
@@ -325,7 +325,7 @@ static inline void atomic_init(atomic_t *atom)
 static inline void atomic64_init(atomic64_t *atom)
 {
 	atom->val = 0LL;
-	xfire_spinlock_init(&atom->lock);
+	xfiredb_spinlock_init(&atom->lock);
 }
 CDECL_END
 

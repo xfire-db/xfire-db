@@ -79,7 +79,7 @@ void xfiredb_se_init_silent(struct config *conf)
 {
 	load_state = false;
 	memcpy(&config, conf, sizeof(*conf));
-	xfire_log_init(config.log_file, config.err_log_file);
+	xfiredb_log_init(config.log_file, config.err_log_file);
 	bg_processes_init();
 	bio_init();
 }
@@ -91,11 +91,11 @@ void xfiredb_se_init(struct config *conf)
 {
 	load_state = false;
 	memcpy(&config, conf, sizeof(*conf));
-	xfire_log_init(config.log_file, config.err_log_file);
-	xfire_log_console(LOG_INIT, "Initialising storage engine\n");
-	xfire_log_console(LOG_INIT, "Initialising background processes\n");
+	xfiredb_log_init(config.log_file, config.err_log_file);
+	xfiredb_log_console(LOG_INIT, "Initialising storage engine\n");
+	xfiredb_log_console(LOG_INIT, "Initialising background processes\n");
 	bg_processes_init();
-	xfire_log_console(LOG_INIT, "Initialising background I/O\n");
+	xfiredb_log_console(LOG_INIT, "Initialising background I/O\n");
 	bio_init();
 }
 
@@ -114,7 +114,7 @@ long xfiredb_disk_size(void)
  */
 void xfiredb_raw_load(void (*hook)(int argc, char **rows, char **cols))
 {
-	xfire_log_console(LOG_INIT, "Loading data from disk\n");
+	xfiredb_log_console(LOG_INIT, "Loading data from disk\n");
 	disk_load(disk_db, hook);
 }
 
@@ -136,11 +136,11 @@ void xfiredb_se_exit(void)
 	bio_sync();
 	bio_exit();
 	bg_processes_exit();
-	xfire_log_exit();
+	xfiredb_log_exit();
 	xfiredb_set_loadstate(false);
-	xfire_free(config.log_file);
-	xfire_free(config.err_log_file);
-	xfire_free(config.db_file);
+	xfiredb_free(config.log_file);
+	xfiredb_free(config.err_log_file);
+	xfiredb_free(config.db_file);
 }
 
 /**
@@ -169,11 +169,11 @@ void xfiredb_notice_disk(char *_key, char *_arg, char *_data, int _op)
 	key = arg = data = NULL;
 
 	if(_key)
-		xfire_sprintf(&key, "%s", _key);
+		xfiredb_sprintf(&key, "%s", _key);
 	if(_arg)
-		xfire_sprintf(&arg, "%s", _arg);
+		xfiredb_sprintf(&arg, "%s", _arg);
 	if(_data)
-		xfire_sprintf(&data, "%s", _data);
+		xfiredb_sprintf(&data, "%s", _data);
 
 	bio_queue_add(key, arg, data, op);
 }
@@ -201,7 +201,7 @@ void xfiredb_store_container(char *_key, struct container *c)
 
 	switch(c->type) {
 	case CONTAINER_STRING:
-		xfire_sprintf(&key, "%s", _key);
+		xfiredb_sprintf(&key, "%s", _key);
 		s = container_get_data(c);
 		string_get(s, &value);
 		bio_queue_add(key, NULL, value, STRING_ADD);
@@ -210,7 +210,7 @@ void xfiredb_store_container(char *_key, struct container *c)
 	case CONTAINER_LIST:
 		lh = container_get_data(c);
 		list_for_each(lh, l) {
-			xfire_sprintf(&key, "%s", _key);
+			xfiredb_sprintf(&key, "%s", _key);
 			s = container_of(l, struct string, entry);
 			string_get(s, &value);
 			bio_queue_add(key, NULL, value, LIST_ADD);
@@ -222,10 +222,10 @@ void xfiredb_store_container(char *_key, struct container *c)
 		it = hashmap_new_iterator(map);
 		for(node = hashmap_iterator_next(it); node;
 				node = hashmap_iterator_next(it)) {
-			xfire_sprintf(&key, "%s", _key);
+			xfiredb_sprintf(&key, "%s", _key);
 			s = container_of(node, struct string, node);
 			string_get(s, &value);
-			xfire_sprintf(&arg, "%s", node->key);
+			xfiredb_sprintf(&arg, "%s", node->key);
 			bio_queue_add(key, arg, value, HM_ADD);
 		}
 		break;
@@ -234,8 +234,8 @@ void xfiredb_store_container(char *_key, struct container *c)
 		set = container_get_data(c);
 		set_it = set_iterator_new(set);
 		for_each_set(set, k, set_it) {
-			xfire_sprintf(&key, "%s", _key);
-			xfire_sprintf(&arg, "%s", k->key);
+			xfiredb_sprintf(&key, "%s", _key);
+			xfiredb_sprintf(&arg, "%s", k->key);
 			bio_queue_add(key, arg, NULL, SET_ADD);
 		}
 
@@ -328,7 +328,7 @@ static void xfiredb_load(struct database *db,
 				c = container_alloc(CONTAINER_SET);
 
 			set = container_get_data(c);
-			k = xfire_zalloc(sizeof(*k));
+			k = xfiredb_zalloc(sizeof(*k));
 			set_add(set, skey, k);
 
 			if(!available)
@@ -370,7 +370,7 @@ void xfiredb_exit(void)
 	bio_exit();
 	bg_processes_exit();
 	db_free(xfiredb);
-	xfire_log_exit();
+	xfiredb_log_exit();
 }
 
 /**
@@ -413,13 +413,13 @@ int xfiredb_string_set(char *key, char *str)
 	int rv = -XFIRE_OK;
 	bio_operation_t op;
 
-	xfire_sprintf(&bio_key, "%s", key);
-	xfire_sprintf(&bio_str, "%s", str);
+	xfiredb_sprintf(&bio_key, "%s", key);
+	xfiredb_sprintf(&bio_str, "%s", str);
 	if(!db_lookup(xfiredb, key, &data)) {
 		c = data.ptr;
 		if(!container_check_type(c, CONTAINER_STRING)) {
-			xfire_free(bio_key);
-			xfire_free(bio_str);
+			xfiredb_free(bio_key);
+			xfiredb_free(bio_str);
 			return -XFIRE_ERR;
 		}
 
@@ -496,11 +496,11 @@ int xfiredb_list_pop(char *key, int *idx, int num)
 		if(idx[counter] == i) {
 			list_del(lh, c);
 			s = container_of(c, struct string, entry);
-			xfire_sprintf(&bio_key, "%s", key);
+			xfiredb_sprintf(&bio_key, "%s", key);
 			string_get(s, &bio_data);
 			bio_queue_add(bio_key, bio_data, NULL, LIST_DEL);
 			string_destroy(s);
-			xfire_free(s);
+			xfiredb_free(s);
 			counter++;
 		}
 
@@ -514,7 +514,7 @@ int xfiredb_list_pop(char *key, int *idx, int num)
 			return counter;
 
 		container_destroy(container);
-		xfire_free(container);
+		xfiredb_free(container);
 	}
 
 	return counter;
@@ -595,8 +595,8 @@ int xfiredb_list_set(char *key, int idx, char *data)
 	h = container_get_data(container);
 	i = 0;
 
-	xfire_sprintf(&bio_key, "%s", key);
-	xfire_sprintf(&bio_newdata, "%s", data);
+	xfiredb_sprintf(&bio_key, "%s", key);
+	xfiredb_sprintf(&bio_newdata, "%s", data);
 	if(list_length(h) == 0) {
 		s = string_alloc(data);
 		list_rpush(h, &s->entry);
@@ -654,8 +654,8 @@ int xfiredb_list_push(char *key, char *data, bool left)
 
 	h = container_get_data(c);
 	s = string_alloc(data);
-	xfire_sprintf(&bio_data, "%s", data);
-	xfire_sprintf(&bio_key, "%s", key);
+	xfiredb_sprintf(&bio_data, "%s", data);
+	xfiredb_sprintf(&bio_key, "%s", key);
 	bio_queue_add(bio_key, NULL, bio_data, LIST_ADD);
 
 	if(left)
@@ -739,13 +739,13 @@ int xfiredb_hashmap_remove(char *key, char **skeys, int num)
 		if(!node)
 			continue;
 		rmnum++;
-		xfire_sprintf(&bio_key, "%s", key);
-		xfire_sprintf(&bio_skey, "%s", skeys[i]);
+		xfiredb_sprintf(&bio_key, "%s", key);
+		xfiredb_sprintf(&bio_skey, "%s", skeys[i]);
 		bio_queue_add(bio_key, bio_skey, NULL, HM_DEL);
 		s = container_of(node, struct string, node);
 		hashmap_node_destroy(node);
 		string_destroy(s);
-		xfire_free(s);
+		xfiredb_free(s);
 	}
 
 	if(!hashmap_size(hm)) {
@@ -753,7 +753,7 @@ int xfiredb_hashmap_remove(char *key, char **skeys, int num)
 			return rmnum;
 
 		container_destroy(c);
-		xfire_free(c);
+		xfiredb_free(c);
 	}
 
 	return rmnum;
@@ -788,9 +788,9 @@ int xfiredb_hashmap_set(char *key, char *skey, char *data)
 
 	hm = container_get_data(c);
 	node = hashmap_find(hm, skey);
-	xfire_sprintf(&bio_key, "%s", key);
-	xfire_sprintf(&bio_skey, "%s", skey);
-	xfire_sprintf(&bio_data, "%s", data);
+	xfiredb_sprintf(&bio_key, "%s", key);
+	xfiredb_sprintf(&bio_skey, "%s", skey);
+	xfiredb_sprintf(&bio_data, "%s", data);
 
 	if(!node) {
 		s = string_alloc(data);
@@ -831,15 +831,15 @@ int xfiredb_key_delete(char *key)
 	c = data.ptr;
 	switch(c->type) {
 	case CONTAINER_STRING:
-		xfire_sprintf(&bio_key, "%s", key);
+		xfiredb_sprintf(&bio_key, "%s", key);
 		bio_queue_add(bio_key, NULL, NULL, STRING_DEL);
 		container_destroy(c);
-		xfire_free(c);
+		xfiredb_free(c);
 		rv++;
 		break;
 
 	case CONTAINER_LIST:
-		xfire_sprintf(&bio_key, "%s", key);
+		xfiredb_sprintf(&bio_key, "%s", key);
 		lh = container_get_data(c);
 		list_for_each_safe(lh, carriage, tmp) {
 			s = container_of(carriage, struct string, entry);
@@ -847,12 +847,12 @@ int xfiredb_key_delete(char *key)
 			bio_queue_add(bio_key, bio_data, NULL, LIST_DEL);
 			list_del(lh, carriage);
 			string_destroy(s);
-			xfire_free(s);
+			xfiredb_free(s);
 			rv++;
 		}
 
 		container_destroy(c);
-		xfire_free(c);
+		xfiredb_free(c);
 		break;
 
 	case CONTAINER_HASHMAP:
@@ -861,15 +861,15 @@ int xfiredb_key_delete(char *key)
 		for(hnode = hashmap_clear_next(hm); hnode;
 				hnode = hashmap_clear_next(hm)) {
 			s = container_of(hnode, struct string, node);
-			xfire_sprintf(&bio_key, "%s", key);
-			xfire_sprintf(&bio_skey, "%s", hnode->key);
+			xfiredb_sprintf(&bio_key, "%s", key);
+			xfiredb_sprintf(&bio_skey, "%s", hnode->key);
 			bio_queue_add(bio_key, bio_skey, NULL, HM_DEL);
 			hashmap_node_destroy(hnode);
 			string_destroy(s);
-			xfire_free(s);
+			xfiredb_free(s);
 		}
 		container_destroy(c);
-		xfire_free(c);
+		xfiredb_free(c);
 		break;
 
 	default:
@@ -909,17 +909,17 @@ int xfiredb_list_clear(char *key, void (*hook)(char *key, char *data))
 	list_for_each_safe(lh, carriage, tmp) {
 		list_del(lh, carriage);
 		s = container_of(carriage, struct string, entry);
-		xfire_sprintf(&bio_key, "%s", key);
+		xfiredb_sprintf(&bio_key, "%s", key);
 		string_get(s, &bio_data);
 		bio_queue_add(bio_key, bio_data, NULL, LIST_DEL);
 		string_get(s, &data);
 		hook(key, data);
 		string_destroy(s);
-		xfire_free(s);
+		xfiredb_free(s);
 	}
 
 	container_destroy(c);
-	xfire_free(c);
+	xfiredb_free(c);
 
 	return -XFIRE_OK;
 }
@@ -953,19 +953,19 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 		s = container_of(n, struct string, node);
 		string_get(s, &data);
 		hook(n->key, data);
-		xfire_free(data);
+		xfiredb_free(data);
 
-		xfire_sprintf(&bio_key, "%s", key);
-		xfire_sprintf(&bio_skey, "%s", n->key);
+		xfiredb_sprintf(&bio_key, "%s", key);
+		xfiredb_sprintf(&bio_skey, "%s", n->key);
 		bio_queue_add(bio_key, bio_skey, NULL, HM_DEL);
 
 		hashmap_node_destroy(n);
 		string_destroy(s);
-		xfire_free(s);
+		xfiredb_free(s);
 	}
 
 	container_destroy(c);
-	xfire_free(c);
+	xfiredb_free(c);
 	return -XFIRE_OK;
 }
 
