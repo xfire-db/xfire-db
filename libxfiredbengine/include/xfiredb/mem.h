@@ -22,11 +22,11 @@
 #include <xfiredb/xfiredb.h>
 
 CDECL
-extern void *xfire_alloc(size_t len);
-extern void *xfire_zalloc(size_t len);
-extern void *xfire_calloc(size_t num, size_t size);
-extern void xfire_free(void *region);
-extern void *xfire_realloc(void *region, size_t size);
+extern void *xfiredb_alloc(size_t len);
+extern void *xfiredb_zalloc(size_t len);
+extern void *xfiredb_calloc(size_t num, size_t size);
+extern void xfiredb_free(void *region);
+extern void *xfiredb_realloc(void *region, size_t size);
 CDECL_END
 
 #endif

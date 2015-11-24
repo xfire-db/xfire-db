@@ -32,10 +32,10 @@ static void test_set_insert(struct set *set)
 {
 	struct set_key *k1, *k2, *k3, *k4;
 
-	k1 = xfire_zalloc(sizeof(*k1));
-	k2 = xfire_zalloc(sizeof(*k2));
-	k3 = xfire_zalloc(sizeof(*k3));
-	k4 = xfire_zalloc(sizeof(*k4));
+	k1 = xfiredb_zalloc(sizeof(*k1));
+	k2 = xfiredb_zalloc(sizeof(*k2));
+	k3 = xfiredb_zalloc(sizeof(*k3));
+	k4 = xfiredb_zalloc(sizeof(*k4));
 
 	assert(set_add(set, "key1", k1) == -XFIRE_OK);
 	assert(set_add(set, "key2", k2) == -XFIRE_OK);

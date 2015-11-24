@@ -96,8 +96,8 @@ struct dict {
 	bool rehashing; //!< Rehashing boolean.
 	int iterators; //!< Number of safe iterators.
 
-	xfire_mutex_t lock; //!< Dictionary lock.
-	xfire_cond_t rehash_condi; //!< Rehashing condition.
+	xfiredb_mutex_t lock; //!< Dictionary lock.
+	xfiredb_cond_t rehash_condi; //!< Rehashing condition.
 	struct thread *worker; //!< Rehashing worker.
 };
 

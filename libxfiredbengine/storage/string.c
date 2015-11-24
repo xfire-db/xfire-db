@@ -36,7 +36,7 @@ void string_init(struct string *str)
 {
 	str->str = NULL;
 	str->len = 0UL;
-	xfire_spinlock_init(&str->lock);
+	xfiredb_spinlock_init(&str->lock);
 	list_node_init(&str->entry);
 }
 
@@ -51,11 +51,11 @@ struct string *string_alloc(const char *data)
 	int len;
 
 	len = strlen(data);
-	string = xfire_zalloc(sizeof(*string));
+	string = xfiredb_zalloc(sizeof(*string));
 	string_init(string);
 
 	/* allocate the length of data + 1 (for the terminator) */
-	string->str = xfire_zalloc(len + 1);
+	string->str = xfiredb_zalloc(len + 1);
 	string->len = len;
 	memcpy(string->str, data, len);
 
@@ -72,12 +72,12 @@ void string_set(struct string *string, const char *str)
 	int len;
 
 	len = strlen(str) + 1;
-	xfire_spin_lock(&string->lock);
-	string->str = xfire_realloc(string->str, len);
+	xfiredb_spin_lock(&string->lock);
+	string->str = xfiredb_realloc(string->str, len);
 
 	memcpy(string->str, str, len);
 	string->len = len;
-	xfire_spin_unlock(&string->lock);
+	xfiredb_spin_unlock(&string->lock);
 }
 
 /**
@@ -86,13 +86,13 @@ void string_set(struct string *string, const char *str)
  * @param buff Pointer pointer to a buffer to store the string in.
  * @return Error code. 0 on success, -1 otherwise.
  * @note The string is copied into \p buffer. The caller is responsible for
- * freeing up the memory again using xfire_free.
+ * freeing up the memory again using xfiredb_free.
  */
 int string_get(struct string *str, char **buff)
 {
-	xfire_spin_lock(&str->lock);
-	xfire_sprintf(buff, "%s", str->str);
-	xfire_spin_unlock(&str->lock);
+	xfiredb_spin_lock(&str->lock);
+	xfiredb_sprintf(buff, "%s", str->str);
+	xfiredb_spin_unlock(&str->lock);
 
 	return 0;
 }
@@ -106,9 +106,9 @@ size_t string_length(struct string *str)
 {
 	size_t len;
 
-	xfire_spin_lock(&str->lock);
+	xfiredb_spin_lock(&str->lock);
 	len = str->len;
-	xfire_spin_unlock(&str->lock);
+	xfiredb_spin_unlock(&str->lock);
 
 	return len;
 }
@@ -120,9 +120,9 @@ size_t string_length(struct string *str)
 void string_destroy(struct string *str)
 {
 	if(str->str)
-		xfire_free(str->str);
+		xfiredb_free(str->str);
 
-	xfire_spinlock_destroy(&str->lock);
+	xfiredb_spinlock_destroy(&str->lock);
 }
 
 /**
@@ -132,7 +132,7 @@ void string_destroy(struct string *str)
 void string_free(struct string *string)
 {
 	string_destroy(string);
-	xfire_free(string);
+	xfiredb_free(string);
 }
 
 /** @} */

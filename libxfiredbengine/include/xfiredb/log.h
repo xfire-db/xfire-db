@@ -28,14 +28,14 @@
 #define LOG_DISK "disk"
 
 CDECL
-extern void xfire_log_init(const char *out, const char *err);
-extern void xfire_log_exit(void);
-extern void raw_xfire_log(const char *msg);
-extern void raw_xfire_log_err(const char *msg);
-extern void raw_xfire_log_console(const char *msg);
-extern void xfire_log(const char *src, const char *msg, ...);
-extern void xfire_log_err(const char *src, const char *msg, ...);
-extern void xfire_log_console(const char *src, const char *fmt, ...);
+extern void xfiredb_log_init(const char *out, const char *err);
+extern void xfiredb_log_exit(void);
+extern void raw_xfiredb_log(const char *msg);
+extern void raw_xfiredb_log_err(const char *msg);
+extern void raw_xfiredb_log_console(const char *msg);
+extern void xfiredb_log(const char *src, const char *msg, ...);
+extern void xfiredb_log_err(const char *src, const char *msg, ...);
+extern void xfiredb_log_console(const char *src, const char *fmt, ...);
 CDECL_END
 
 #endif

@@ -89,9 +89,9 @@ static inline int dict_is_rehashing(struct dict *d)
 {
 	int rval;
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	rval = d->rehashing != 0;
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 
 	return rval;
 }
@@ -118,9 +118,9 @@ static inline int dict_has_iterators(struct dict *d)
 {
 	int rval;
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	rval = d->iterators != 0;
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 
 	return rval;
 }
@@ -161,10 +161,10 @@ long dict_get_size(struct dict *d)
 {
 	long rv = 0L;
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	rv += d->map[PRIMARY_MAP].length;
 	rv += d->map[REHASH_MAP].length;
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 
 	return rv;
 }
@@ -176,14 +176,14 @@ long dict_get_size(struct dict *d)
 static void dict_init(struct dict *d)
 {
 	d->status = DICT_STATUS_NONE;
-	d->map[PRIMARY_MAP].array = xfire_zalloc(DICT_MINIMAL_SIZE * sizeof(size_t));
+	d->map[PRIMARY_MAP].array = xfiredb_zalloc(DICT_MINIMAL_SIZE * sizeof(size_t));
 	d->map[PRIMARY_MAP].size = DICT_MINIMAL_SIZE;
 	d->map[PRIMARY_MAP].sizemask = DICT_MINIMAL_SIZE - 1;
 	d->map[PRIMARY_MAP].length = 0;
 
-	xfire_mutex_init(&d->lock);
-	xfire_cond_init(&d->rehash_condi);
-	d->worker = xfire_create_thread("rehash-worker", &dict_rehash_worker, d);
+	xfiredb_mutex_init(&d->lock);
+	xfiredb_cond_init(&d->rehash_condi);
+	d->worker = xfiredb_create_thread("rehash-worker", &dict_rehash_worker, d);
 
 	d->iterators = 0;
 }
@@ -196,7 +196,7 @@ struct dict *dict_alloc(void)
 {
 	struct dict *d;
 
-	d = xfire_zalloc(sizeof(*d));
+	d = xfiredb_zalloc(sizeof(*d));
 
 	if(!d)
 		return NULL;
@@ -217,21 +217,21 @@ void dict_free(struct dict *d)
 		return;
 
 	if(d->map[REHASH_MAP].array)
-		xfire_free(d->map[REHASH_MAP].array);
+		xfiredb_free(d->map[REHASH_MAP].array);
 	if(d->map[PRIMARY_MAP].array)
-		xfire_free(d->map[PRIMARY_MAP].array);
+		xfiredb_free(d->map[PRIMARY_MAP].array);
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	d->status = DICT_STATUS_FREE;
-	xfire_cond_signal(&d->rehash_condi);
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_cond_signal(&d->rehash_condi);
+	xfiredb_mutex_unlock(&d->lock);
 
-	xfire_thread_join(d->worker);
-	xfire_thread_destroy(d->worker);
+	xfiredb_thread_join(d->worker);
+	xfiredb_thread_destroy(d->worker);
 
-	xfire_cond_destroy(&d->rehash_condi);
-	xfire_mutex_destroy(&d->lock);
-	xfire_free(d);
+	xfiredb_cond_destroy(&d->rehash_condi);
+	xfiredb_mutex_destroy(&d->lock);
+	xfiredb_free(d);
 }
 
 /**
@@ -396,9 +396,9 @@ static int dict_rehash(struct dict *d, int num)
 	int visits;
 	struct dict_entry *de, *next;
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	if(unlikely(!__dict_is_rehashing(d))) {
-		xfire_mutex_unlock(&d->lock);
+		xfiredb_mutex_unlock(&d->lock);
 		return 0;
 	}
 
@@ -410,7 +410,7 @@ static int dict_rehash(struct dict *d, int num)
 			d->rehashidx++;
 
 			if(--visits == 0) {
-				xfire_mutex_unlock(&d->lock);
+				xfiredb_mutex_unlock(&d->lock);
 				return 1;
 			}
 		}
@@ -434,18 +434,18 @@ static int dict_rehash(struct dict *d, int num)
 		d->rehashidx++;
 
 		if(d->map[PRIMARY_MAP].length == 0L) {
-			xfire_free(d->map[PRIMARY_MAP].array);
+			xfiredb_free(d->map[PRIMARY_MAP].array);
 			d->map[PRIMARY_MAP] = d->map[REHASH_MAP];
 			dict_reset(&d->map[REHASH_MAP]);
 
 			d->rehashidx = -1;
 			d->rehashing = false;
-			xfire_mutex_unlock(&d->lock);
+			xfiredb_mutex_unlock(&d->lock);
 			return 0;
 		}
 	}
 
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 	return 1;
 }
 
@@ -498,7 +498,7 @@ static int dict_expand(struct dict *d, unsigned long size)
 	map.size = _size;
 	map.sizemask = _size - 1;
 	map.length = 0;
-	map.array = xfire_zalloc(_size * PTR_SIZE);
+	map.array = xfiredb_zalloc(_size * PTR_SIZE);
 
 	if(d->map[PRIMARY_MAP].array == NULL) {
 		d->map[PRIMARY_MAP] = map;
@@ -509,7 +509,7 @@ static int dict_expand(struct dict *d, unsigned long size)
 	d->rehashidx = 0;
 	d->rehashing = true;
 
-	xfire_cond_signal(&d->rehash_condi);
+	xfiredb_cond_signal(&d->rehash_condi);
 	return -XFIRE_OK;
 }
 
@@ -545,10 +545,10 @@ static void *dict_rehash_worker(void *arg)
 {
 	struct dict *d = arg;
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	while(true) {
 		if(!__dict_is_rehashing(d) && d->status != DICT_STATUS_FREE)
-			xfire_cond_wait(&d->rehash_condi, &d->lock);
+			xfiredb_cond_wait(&d->rehash_condi, &d->lock);
 
 		if(d->status == DICT_STATUS_FREE)
 			break;
@@ -556,8 +556,8 @@ static void *dict_rehash_worker(void *arg)
 		dict_rehash_ms(d, 2);
 	}
 
-	xfire_mutex_unlock(&d->lock);
-	xfire_thread_exit(NULL);
+	xfiredb_mutex_unlock(&d->lock);
+	xfiredb_thread_exit(NULL);
 }
 
 /**
@@ -662,7 +662,7 @@ static inline void dict_set_key(struct dict_entry *e, const char *key)
 	char *_key;
 
 	length = strlen(key);
-	_key = xfire_zalloc(length+1);
+	_key = xfiredb_zalloc(length+1);
 
 	memcpy(_key, key, length);
 	e->key = _key;
@@ -676,9 +676,9 @@ static inline void dict_set_key(struct dict_entry *e, const char *key)
 static inline void dict_free_entry(struct dict_entry *e)
 {
 	if(e->key)
-		xfire_free(e->key);
+		xfiredb_free(e->key);
 
-	xfire_free(e);
+	xfiredb_free(e);
 }
 
 /**
@@ -701,21 +701,21 @@ static struct dict_entry *__dict_add(struct dict *d, const char *key,
 	if(dict_is_rehashing(d))
 		dict_rehash_step(d);
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	index = dict_calc_index(d, key);
 	if(index == -XFIRE_ERR) {
-		xfire_mutex_unlock(&d->lock);
+		xfiredb_mutex_unlock(&d->lock);
 		return NULL;
 	}
 
 	map = dict_is_rehashing(d) ? &d->map[REHASH_MAP] : &d->map[PRIMARY_MAP];
-	entry = xfire_zalloc(sizeof(*entry));
+	entry = xfiredb_zalloc(sizeof(*entry));
 	entry->next = map->array[index];
 	map->array[index] = entry;
 	map->length++;
 
 	dict_set_key(entry, key);
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 	return entry;
 }
 
@@ -808,9 +808,9 @@ static struct dict_entry *__dict_delete(struct dict *d, const char *key)
 	if(dict_is_rehashing(d))
 		dict_rehash_step(d);
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	if(d->map[PRIMARY_MAP].size == 0L) {
-		xfire_mutex_unlock(&d->lock);
+		xfiredb_mutex_unlock(&d->lock);
 		return NULL;
 	}
 
@@ -830,7 +830,7 @@ static struct dict_entry *__dict_delete(struct dict *d, const char *key)
 					d->map[table].array[idx] = e->next;
 
 				d->map[table].length--;
-				xfire_mutex_unlock(&d->lock);
+				xfiredb_mutex_unlock(&d->lock);
 				return e;
 			}
 
@@ -842,7 +842,7 @@ static struct dict_entry *__dict_delete(struct dict *d, const char *key)
 			break;
 	}
 
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 	return NULL;
 }
 
@@ -867,7 +867,7 @@ int dict_delete(struct dict *d, const char *key, union entry_data *data, int fre
 
 	if(e) {
 		if(free)
-			xfire_free(e->value.ptr);
+			xfiredb_free(e->value.ptr);
 		else
 			*data = e->value;
 		dict_free_entry(e);
@@ -894,9 +894,9 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 	if(dict_is_rehashing(d))
 		dict_rehash_step(d);
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	if(d->map[PRIMARY_MAP].size == 0) {
-		xfire_mutex_unlock(&d->lock);
+		xfiredb_mutex_unlock(&d->lock);
 		return NULL;
 	}
 
@@ -907,7 +907,7 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 
 		while(e) {
 			if(dict_cmp_keys(key, e->key)) {
-				xfire_mutex_unlock(&d->lock);
+				xfiredb_mutex_unlock(&d->lock);
 				return e;
 			}
 
@@ -918,7 +918,7 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
 			break;
 	}
 
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 	return NULL;
 }
 
@@ -1002,7 +1002,7 @@ static struct dict_iterator *dict_create_iterator(struct dict *d)
 {
 	struct dict_iterator *i;
 
-	i = xfire_zalloc(sizeof(*i));
+	i = xfiredb_zalloc(sizeof(*i));
 	i->dict = d;
 	i->table = 0;
 	i->idx = -1L;
@@ -1021,9 +1021,9 @@ struct dict_iterator *dict_get_safe_iterator(struct dict *d)
 {
 	struct dict_iterator *it;
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	d->iterators++;
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 
 	it = dict_create_iterator(d);
 	it->safe = true;
@@ -1089,7 +1089,7 @@ struct dict_entry *dict_iterator_prev(struct dict_iterator *it)
 
 	d = dict_iterator_to_dict(it);
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	do {
 		map = &d->map[it->table];
 		if(!it->e) {
@@ -1125,12 +1125,12 @@ struct dict_entry *dict_iterator_prev(struct dict_iterator *it)
 		}
 
 		if(it->e) {
-			xfire_mutex_unlock(&d->lock);
+			xfiredb_mutex_unlock(&d->lock);
 			return it->e;
 		}
 	} while(1);
 
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 	return NULL;
 }
 
@@ -1148,7 +1148,7 @@ struct dict_entry *dict_iterator_next(struct dict_iterator *it)
 
 	d = dict_iterator_to_dict(it);
 
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	do {
 		if(!it->e) {
 			map = &d->map[it->table];
@@ -1171,12 +1171,12 @@ struct dict_entry *dict_iterator_next(struct dict_iterator *it)
 
 		if(it->e) {
 			it->e_next = it->e->next;
-			xfire_mutex_unlock(&d->lock);
+			xfiredb_mutex_unlock(&d->lock);
 			return it->e;
 		}
 	} while(true);
 
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 	return NULL;
 }
 
@@ -1192,12 +1192,12 @@ void dict_iterator_free(struct dict_iterator *it)
 		return;
 
 	if(it->safe) {
-		xfire_mutex_lock(&d->lock);
+		xfiredb_mutex_lock(&d->lock);
 		d->iterators--;
-		xfire_mutex_unlock(&d->lock);
+		xfiredb_mutex_unlock(&d->lock);
 	}
 
-	xfire_free(it);
+	xfiredb_free(it);
 }
 
 /**
@@ -1224,7 +1224,7 @@ static void __dict_clear(struct dict_map *map)
 		}
 	}
 
-	xfire_free(map->array);
+	xfiredb_free(map->array);
 	dict_reset(map);
 }
 
@@ -1235,13 +1235,13 @@ static void __dict_clear(struct dict_map *map)
  */
 int dict_clear(struct dict *d)
 {
-	xfire_mutex_lock(&d->lock);
+	xfiredb_mutex_lock(&d->lock);
 	__dict_clear(&d->map[PRIMARY_MAP]);
 	__dict_clear(&d->map[REHASH_MAP]);
 
 	d->rehashidx = -1;
 	d->rehashing = false;
-	xfire_mutex_unlock(&d->lock);
+	xfiredb_mutex_unlock(&d->lock);
 
 	return -XFIRE_OK;
 }
