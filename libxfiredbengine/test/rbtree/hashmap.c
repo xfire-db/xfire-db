@@ -42,10 +42,10 @@ static void test_hm_insert(struct hashmap *map)
 	string_set(&s3, "test-val-3");
 	string_set(&s4, "test-val-4");
 
-	assert(hashmap_add(map, "key1", &s1.node) == -XFIRE_OK);
-	assert(hashmap_add(map, "key2", &s2.node) == -XFIRE_OK);
-	assert(hashmap_add(map, "key3", &s3.node) == -XFIRE_OK);
-	assert(hashmap_add(map, "key4", &s4.node) == -XFIRE_OK);
+	assert(hashmap_add(map, "key1", &s1.node) == -XFIREDB_OK);
+	assert(hashmap_add(map, "key2", &s2.node) == -XFIREDB_OK);
+	assert(hashmap_add(map, "key3", &s3.node) == -XFIREDB_OK);
+	assert(hashmap_add(map, "key4", &s4.node) == -XFIREDB_OK);
 }
 
 static int iterate_count, free_count;

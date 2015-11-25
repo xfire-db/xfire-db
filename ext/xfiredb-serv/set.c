@@ -104,7 +104,7 @@ static VALUE rb_set_add(VALUE self, VALUE _key)
 
 	Data_Get_Struct(self, struct db_entry_container, e);
 	set = obj_to_set(self);
-	if(set_add(set, key, k) == -XFIRE_OK) {
+	if(set_add(set, key, k) == -XFIREDB_OK) {
 		if(e->key)
 			xfiredb_notice_disk(e->key, k->key, NULL, SET_ADD);
 

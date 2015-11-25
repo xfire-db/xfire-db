@@ -221,7 +221,7 @@ int set_add(struct set *s, char *key, struct set_key *k)
 	u32 hash;
 
 	if(set_contains(s, key))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	rb_init_node(&k->node);
 	xfiredb_sprintf(&k->key, "%s", key);
@@ -230,10 +230,10 @@ int set_add(struct set *s, char *key, struct set_key *k)
 
 	if(rb_insert(&s->root, &k->node, true)) {
 		atomic_inc(s->num);
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 	}
 
-	return -XFIRE_ERR;
+	return -XFIREDB_ERR;
 }
 
 /**
@@ -298,7 +298,7 @@ int set_clear(struct set *set)
 		xfiredb_free(k);
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /** @} */

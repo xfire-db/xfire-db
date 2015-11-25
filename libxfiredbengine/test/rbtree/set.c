@@ -37,10 +37,10 @@ static void test_set_insert(struct set *set)
 	k3 = xfiredb_zalloc(sizeof(*k3));
 	k4 = xfiredb_zalloc(sizeof(*k4));
 
-	assert(set_add(set, "key1", k1) == -XFIRE_OK);
-	assert(set_add(set, "key2", k2) == -XFIRE_OK);
-	assert(set_add(set, "key3", k3) == -XFIRE_OK);
-	assert(set_add(set, "key4", k4) == -XFIRE_OK);
+	assert(set_add(set, "key1", k1) == -XFIREDB_OK);
+	assert(set_add(set, "key2", k2) == -XFIREDB_OK);
+	assert(set_add(set, "key3", k3) == -XFIREDB_OK);
+	assert(set_add(set, "key4", k4) == -XFIREDB_OK);
 }
 
 static int iterate_count, free_count;

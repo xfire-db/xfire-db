@@ -63,7 +63,7 @@ static VALUE rb_db_ref(VALUE self, VALUE key)
 	db_data_t dbdata;
 
 	Data_Get_Struct(self, struct database, db);
-	if(db_lookup(db, StringValueCStr(key), &dbdata) != -XFIRE_OK)
+	if(db_lookup(db, StringValueCStr(key), &dbdata) != -XFIREDB_OK)
 		return Qnil;
 
 	c = dbdata.ptr;
@@ -123,7 +123,7 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 	db_data_t dbdata;
 
 	Data_Get_Struct(self, struct database, db);
-	if(db_delete(db, tmp, &dbdata) == -XFIRE_OK) {
+	if(db_delete(db, tmp, &dbdata) == -XFIREDB_OK) {
 		c = dbdata.ptr;
 		rb_c = container_of(c, struct db_entry_container, c);
 		if(rb_c->obj != data) {
@@ -132,7 +132,7 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 				s = container_get_data(c);
 				string_set(s, StringValueCStr(data));
 				xfiredb_notice_disk((char*)tmp, NULL, StringValueCStr(data), STRING_UPDATE);
-				return db_store(db, tmp, c) == -XFIRE_OK ? data : Qnil;
+				return db_store(db, tmp, c) == -XFIREDB_OK ? data : Qnil;
 			}
 
 			raw_rb_db_delete(rb_c);
@@ -154,7 +154,7 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 
 	xfiredb_sprintf(&rb_c->key, "%s", tmp);
 
-	if(db_store(db, tmp, &rb_c->c) != -XFIRE_OK) {
+	if(db_store(db, tmp, &rb_c->c) != -XFIREDB_OK) {
 		rb_c->intree = false;
 		return Qnil;
 	}
@@ -171,7 +171,7 @@ static VALUE rb_db_delete(VALUE self, VALUE key)
 	db_data_t dbdata;
 
 	Data_Get_Struct(self, struct database, db);
-	if(db_delete(db, StringValueCStr(key), &dbdata) != -XFIRE_OK)
+	if(db_delete(db, StringValueCStr(key), &dbdata) != -XFIREDB_OK)
 		return Qnil;
 
 	c = dbdata.ptr;

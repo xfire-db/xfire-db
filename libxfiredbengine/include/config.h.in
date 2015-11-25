@@ -28,7 +28,7 @@ ${HAVE_LINUX}
 
 #define SQLITE_DB "${DATA_PATH}/xfire-dbg.db"
 
-#define XFIRE_STACK_SIZE ${STACK_SIZE}
+#define XFIREDB_STACK_SIZE ${STACK_SIZE}
 
 #define DEBUG_DB_NAME "dbg-db"
 #ifdef HAVE_DBG

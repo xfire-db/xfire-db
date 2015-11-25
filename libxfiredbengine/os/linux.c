@@ -95,7 +95,7 @@ int xfiredb_destroy_thread(struct thread *tp)
 	free(tp->name);
 	free(tp);
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 void *xfiredb_thread_join(struct thread *tp)

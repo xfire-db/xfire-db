@@ -50,7 +50,7 @@ void bg_processes_init(void)
 	if(!stack) /* solaris is stupid and sets this to 0 */
 		stack = 1UL;
 
-	while(stack < XFIRE_STACK_SIZE)
+	while(stack < XFIREDB_STACK_SIZE)
 		stack *= 2;
 	
 	bg_proc_stack = stack;
@@ -122,23 +122,23 @@ int bg_process_signal(const char *name)
 	struct job *job;
 
 	if(dict_lookup(job_db, name, &data, &tmp))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	job = data.ptr;
 	if(!job)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	xfiredb_mutex_lock(&job->lock);
 	xfiredb_cond_signal(&job->condi);
 	xfiredb_mutex_unlock(&job->lock);
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 static int __bg_process_stop(struct job *job)
 {
 	if(!job)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	xfiredb_mutex_lock(&job->lock);
 	job->done = true;
@@ -153,7 +153,7 @@ static int __bg_process_stop(struct job *job)
 	xfiredb_free(job->name);
 	xfiredb_free(job);
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -166,7 +166,7 @@ int bg_process_stop(const char *name)
 	struct job *job;
 
 	if(dict_delete(job_db, name, &data, false))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	job = data.ptr;
 	return __bg_process_stop(job);

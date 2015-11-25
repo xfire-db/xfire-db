@@ -46,7 +46,7 @@ static void *test_thread_a(void *arg)
 
 	for(; i < 5; i++) {
 		assert(db_store(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 	}
 	return NULL;
 }
@@ -57,7 +57,7 @@ static void *test_thread_b(void *arg)
 
 	for(; i < 10; i++) {
 		assert(db_store(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 	}
 	return NULL;
 }
@@ -68,7 +68,7 @@ static void *test_thread_c(void *arg)
 
 	for(; i < 15; i++) {
 		assert(db_store(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 	}
 	return NULL;
 }
@@ -79,7 +79,7 @@ static void *test_thread_e(void *arg)
 	db_data_t data;
 
 	for(; i < 25; i++)
-		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIRE_OK);
+		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIREDB_OK);
 	return NULL;
 }
 
@@ -89,7 +89,7 @@ static void *test_thread_d(void *arg)
 	db_data_t data;
 
 	for(; i < 20; i++)
-		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIRE_OK);
+		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIREDB_OK);
 	return NULL;
 }
 
@@ -114,7 +114,7 @@ static void test_database(void)
 
 	for(i = 15; i < 25; i++)
 		assert(db_store(strings, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 
 	a = xfiredb_create_thread("thread a", &test_thread_a, strings);
 	b = xfiredb_create_thread("thread b", &test_thread_b, strings);
@@ -137,12 +137,12 @@ static void test_database(void)
 	for(i = 0; i < 15; i++) {
 		if(i == 11)
 			continue;
-		assert(db_delete(strings, dbg_keys[i], &val) == -XFIRE_OK);
+		assert(db_delete(strings, dbg_keys[i], &val) == -XFIREDB_OK);
 	}
 
-	assert(db_lookup(strings, dbg_keys[11], &tmp) == -XFIRE_OK);
+	assert(db_lookup(strings, dbg_keys[11], &tmp) == -XFIREDB_OK);
 	assert(!strcmp(dbg_values[11], tmp.ptr));
-	assert(db_delete(strings, dbg_keys[11], &val) == -XFIRE_OK);
+	assert(db_delete(strings, dbg_keys[11], &val) == -XFIREDB_OK);
 }
 
 static test_func_t test_func_array[] = {test_database, NULL};

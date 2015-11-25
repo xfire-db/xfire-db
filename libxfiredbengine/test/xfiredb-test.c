@@ -78,7 +78,7 @@ static void test_setup(struct dict *utests)
 	t = tests[i];
 	while(t) {
 		check = dict_add(utests, t->name, t, DICT_PTR);
-		assert(check == -XFIRE_OK);
+		assert(check == -XFIREDB_OK);
 		t = tests[++i];
 	}
 }
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 	tests = dict_alloc();
 	test_setup(tests);
 
-	if(dict_lookup(tests, torun, &data, &tmp) != -XFIRE_OK) {
+	if(dict_lookup(tests, torun, &data, &tmp) != -XFIREDB_OK) {
 		fprintf(stderr, "Test '%s' not found, aborting.\n", torun);
 		exit(EXIT_FAILURE);
 	}

@@ -280,7 +280,7 @@ static void xfiredb_load(struct database *db,
 		key = rows[i + TABLE_KEY_IDX];
 		skey = rows[i + TABLE_SCND_KEY_IDX];
 		data = rows[i + TABLE_DATA_IDX];
-		available = db_lookup(db, key, &dbdata) == -XFIRE_OK ? true : false;
+		available = db_lookup(db, key, &dbdata) == -XFIREDB_OK ? true : false;
 
 		switch(type) {
 		case CONTAINER_STRING:
@@ -384,18 +384,18 @@ int xfiredb_string_get(char *key, char **data)
 	struct container *c;
 	db_data_t dbdata;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK) {
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK) {
 		*data = NULL;
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 	}
 
 	c = dbdata.ptr;
 	if(!container_check_type(c, CONTAINER_STRING))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	s = container_get_data(c);
 	string_get(s, data);
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -410,7 +410,7 @@ int xfiredb_string_set(char *key, char *str)
 	struct container *c;
 	db_data_t data;
 	char *bio_key, *bio_str;
-	int rv = -XFIRE_OK;
+	int rv = -XFIREDB_OK;
 	bio_operation_t op;
 
 	xfiredb_sprintf(&bio_key, "%s", key);
@@ -420,7 +420,7 @@ int xfiredb_string_set(char *key, char *str)
 		if(!container_check_type(c, CONTAINER_STRING)) {
 			xfiredb_free(bio_key);
 			xfiredb_free(bio_str);
-			return -XFIRE_ERR;
+			return -XFIREDB_ERR;
 		}
 
 		s = container_get_data(c);
@@ -453,12 +453,12 @@ int xfiredb_list_length(char *key)
 	struct list_head *h;
 	db_data_t dbdata;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK)
-		return -XFIRE_ERR;
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK)
+		return -XFIREDB_ERR;
 
 	c = dbdata.ptr;
 	if(!container_check_type(c, CONTAINER_LIST))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	h = container_get_data(c);
 	return list_length(h);
@@ -481,12 +481,12 @@ int xfiredb_list_pop(char *key, int *idx, int num)
 	db_data_t dbdata;
 	int i = 0, counter = 0;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK)
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK)
 		return counter;
 
 	container = dbdata.ptr;
 	if(!container_check_type(container, CONTAINER_LIST))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	lh = container_get_data(container);
 	list_for_each_safe(lh, c, tmp) {
@@ -539,12 +539,12 @@ int xfiredb_list_get(char *key, char **data, int *idx, int num)
 	db_data_t dbdata;
 	int i = 0, counter = 0;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK)
-		return -XFIRE_ERR;
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK)
+		return -XFIREDB_ERR;
 
 	container = dbdata.ptr;
 	if(!container_check_type(container, CONTAINER_LIST))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	lh = container_get_data(container);
 	list_for_each(lh, c) {
@@ -563,7 +563,7 @@ int xfiredb_list_get(char *key, char **data, int *idx, int num)
 		i++;
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -582,15 +582,15 @@ int xfiredb_list_set(char *key, int idx, char *data)
 	struct list *c;
 	char *bio_key, *bio_data, *bio_newdata;
 	db_data_t dbdata;
-	int i, rv = -XFIRE_ERR;
+	int i, rv = -XFIREDB_ERR;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK) {
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK) {
 		return xfiredb_list_push(key, data, false);
 	}
 
 	container = dbdata.ptr;
 	if(!container_check_type(container, CONTAINER_LIST))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	h = container_get_data(container);
 	i = 0;
@@ -601,7 +601,7 @@ int xfiredb_list_set(char *key, int idx, char *data)
 		s = string_alloc(data);
 		list_rpush(h, &s->entry);
 		bio_queue_add(bio_key, NULL, bio_newdata, LIST_ADD);
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 	}
 
 	list_for_each(h, c) {
@@ -610,7 +610,7 @@ int xfiredb_list_set(char *key, int idx, char *data)
 			string_get(s, &bio_data);
 			bio_queue_add(bio_key, bio_data, bio_newdata, LIST_UPDATE);
 			string_set(s, data);
-			rv = -XFIRE_OK;
+			rv = -XFIREDB_OK;
 			break;
 		}
 		i++;
@@ -618,7 +618,7 @@ int xfiredb_list_set(char *key, int idx, char *data)
 		if(i >= list_length(h)) {
 			s = string_alloc(data);
 			list_rpush(h, &s->entry);
-			rv = -XFIRE_OK;
+			rv = -XFIREDB_OK;
 			break;
 		}
 	}
@@ -643,13 +643,13 @@ int xfiredb_list_push(char *key, char *data, bool left)
 	db_data_t dbdata;
 	bool new = false;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK) {
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK) {
 		c = container_alloc(CONTAINER_LIST);
 		new = true;
 	} else {
 		c = dbdata.ptr;
 		if(!container_check_type(c, CONTAINER_LIST))
-			return -XFIRE_ERR;
+			return -XFIREDB_ERR;
 	}
 
 	h = container_get_data(c);
@@ -666,7 +666,7 @@ int xfiredb_list_push(char *key, char *data, bool left)
 	if(new)
 		db_store(xfiredb, key, c);
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -686,12 +686,12 @@ int xfiredb_hashmap_get(char *key, char **skey, char **data, int num)
 	db_data_t dbdata;
 	int i = 0;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK)
-		return -XFIRE_ERR;
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK)
+		return -XFIREDB_ERR;
 
 	c = dbdata.ptr;
 	if(!container_check_type(c, CONTAINER_HASHMAP))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	hm = container_get_data(c);
 
@@ -705,7 +705,7 @@ int xfiredb_hashmap_get(char *key, char **skey, char **data, int num)
 		data[i] = tmp;
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -725,7 +725,7 @@ int xfiredb_hashmap_remove(char *key, char **skeys, int num)
 	db_data_t dbdata;
 	int i = 0, rmnum = 0;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK)
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK)
 		return rmnum;
 
 	c = dbdata.ptr;
@@ -777,13 +777,13 @@ int xfiredb_hashmap_set(char *key, char *skey, char *data)
 	bool new = false;
 	db_data_t dbdata;
 
-	if(db_lookup(xfiredb, key, &dbdata) != -XFIRE_OK) {
+	if(db_lookup(xfiredb, key, &dbdata) != -XFIREDB_OK) {
 		c = container_alloc(CONTAINER_HASHMAP);
 		new = true;
 	} else {
 		c = dbdata.ptr;
 		if(!container_check_type(c, CONTAINER_HASHMAP))
-			return -XFIRE_ERR;
+			return -XFIREDB_ERR;
 	}
 
 	hm = container_get_data(c);
@@ -805,7 +805,7 @@ int xfiredb_hashmap_set(char *key, char *skey, char *data)
 	if(new)
 		db_store(xfiredb, key, c);
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -825,7 +825,7 @@ int xfiredb_key_delete(char *key)
 	db_data_t data;
 	int rv = 0;
 
-	if(db_delete(xfiredb, key, &data) != -XFIRE_OK)
+	if(db_delete(xfiredb, key, &data) != -XFIREDB_OK)
 		return rv;
 
 	c = data.ptr;
@@ -873,7 +873,7 @@ int xfiredb_key_delete(char *key)
 		break;
 
 	default:
-		rv = -XFIRE_ERR;
+		rv = -XFIREDB_ERR;
 		break;
 	}
 
@@ -898,12 +898,12 @@ int xfiredb_list_clear(char *key, void (*hook)(char *key, char *data))
 	char *bio_key, *bio_data;
 	db_data_t d;
 
-	if(db_lookup(xfiredb, key, &d) != XFIRE_OK)
-		return -XFIRE_ERR;
+	if(db_lookup(xfiredb, key, &d) != XFIREDB_OK)
+		return -XFIREDB_ERR;
 
 	c = d.ptr;
 	if(!container_check_type(c, CONTAINER_LIST))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	lh = container_get_data(c);
 	list_for_each_safe(lh, carriage, tmp) {
@@ -921,7 +921,7 @@ int xfiredb_list_clear(char *key, void (*hook)(char *key, char *data))
 	container_destroy(c);
 	xfiredb_free(c);
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -941,12 +941,12 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 	char *data, *bio_key, *bio_skey;
 	db_data_t d;
 
-	if(db_lookup(xfiredb, key, &d) != XFIRE_OK)
-		return -XFIRE_ERR;
+	if(db_lookup(xfiredb, key, &d) != XFIREDB_OK)
+		return -XFIREDB_ERR;
 
 	c = d.ptr;
 	if(!container_check_type(c, CONTAINER_HASHMAP))
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	hm = container_get_data(c);
 	hashmap_clear_foreach(hm, n) {
@@ -966,7 +966,7 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 
 	container_destroy(c);
 	xfiredb_free(c);
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /** @} */

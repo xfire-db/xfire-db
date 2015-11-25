@@ -21,8 +21,8 @@
 
 #include <xfiredb/xfiredb.h>
 
-#define XFIRE_ENGINE_LOG "ENGINE"
-#define XFIRE_STORAGE_LOG "STORAGE"
+#define XFIREDB_ENGINE_LOG "ENGINE"
+#define XFIREDB_STORAGE_LOG "STORAGE"
 
 #define LOG_INIT "init"
 #define LOG_DISK "disk"

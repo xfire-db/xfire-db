@@ -247,7 +247,7 @@ bool dict_key_available(struct dict *d, char *key)
 	size_t size;
 
 	found = dict_lookup(d, key, &data, &size);
-	return found == -XFIRE_OK;
+	return found == -XFIREDB_OK;
 }
 
 /**
@@ -490,10 +490,10 @@ static int dict_expand(struct dict *d, unsigned long size)
 	unsigned long _size = dict_real_size(size);
 
 	if(dict_is_rehashing(d) || d->map[PRIMARY_MAP].length > size)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	if(d->map[PRIMARY_MAP].size == _size)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	map.size = _size;
 	map.sizemask = _size - 1;
@@ -502,7 +502,7 @@ static int dict_expand(struct dict *d, unsigned long size)
 
 	if(d->map[PRIMARY_MAP].array == NULL) {
 		d->map[PRIMARY_MAP] = map;
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 	}
 
 	d->map[REHASH_MAP] = map;
@@ -510,7 +510,7 @@ static int dict_expand(struct dict *d, unsigned long size)
 	d->rehashing = true;
 
 	xfiredb_cond_signal(&d->rehash_condi);
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -591,13 +591,13 @@ static inline int dict_should_expand(struct dict *d)
  * @brief Expand only if necessary.
  * @param d Dictionary which needs potential expanding.
  * @return Error code.
- * @retval -XFIRE_OK on success.
- * @retval -XFIRE_ERR on error.
+ * @retval -XFIREDB_OK on success.
+ * @retval -XFIREDB_ERR on error.
  */
 static int dict_expand_if(struct dict *d)
 {
 	if(__dict_is_rehashing(d))
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 
 	if(d->map[PRIMARY_MAP].size == 0)
 		return dict_expand(d, DICT_MINIMAL_SIZE);
@@ -608,7 +608,7 @@ static int dict_expand_if(struct dict *d)
 		return dict_expand(d, d->map[PRIMARY_MAP].length*2);
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -627,7 +627,7 @@ static int dict_calc_index(struct dict *d, const char *key)
 	struct dict_entry *de;
 
 	if(dict_expand_if(d) == -1)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	hash = dict_hash_key(key, DICT_SEED);
 	for(table = 0; table <= 1; table++) {
@@ -637,7 +637,7 @@ static int dict_calc_index(struct dict *d, const char *key)
 		while(de) {
 			if(!strcmp(de->key, key)) {
 				/* key exists already */
-				return -XFIRE_ERR;
+				return -XFIREDB_ERR;
 			}
 
 			de = de->next;
@@ -703,7 +703,7 @@ static struct dict_entry *__dict_add(struct dict *d, const char *key,
 
 	xfiredb_mutex_lock(&d->lock);
 	index = dict_calc_index(d, key);
-	if(index == -XFIRE_ERR) {
+	if(index == -XFIREDB_ERR) {
 		xfiredb_mutex_unlock(&d->lock);
 		return NULL;
 	}
@@ -757,7 +757,7 @@ static size_t dict_get_entry_length(dict_type_t t, void *data)
  * @param key Key to be stored.
  * @param data Data to be stored.
  * @param t Type of data.
- * @return An error code. If no error occured -XFIRE_OK will be returned.
+ * @return An error code. If no error occured -XFIREDB_OK will be returned.
  */
 int dict_add(struct dict *d, const char *key, void *data, dict_type_t t)
 {
@@ -774,7 +774,7 @@ int dict_add(struct dict *d, const char *key, void *data, dict_type_t t)
  * @param data Data to be stored.
  * @param t Type of data.
  * @param size Length (i.e.) size of the \p data parameter.
- * @return An error code. If no error occured -XFIRE_OK will be returned.
+ * @return An error code. If no error occured -XFIREDB_OK will be returned.
  */
 int raw_dict_add(struct dict *d, const char *key, void *data, dict_type_t t, size_t size)
 {
@@ -782,11 +782,11 @@ int raw_dict_add(struct dict *d, const char *key, void *data, dict_type_t t, siz
 
 	e = __dict_add(d, key, data, t);
 	if(!e)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	dict_set_val(e, data, t);
 	e->length = size;
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -861,7 +861,7 @@ int dict_delete(struct dict *d, const char *key, union entry_data *data, int fre
 	struct dict_entry *e;
 
 	if(!d || !key)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	e = __dict_delete(d, key);
 
@@ -871,10 +871,10 @@ int dict_delete(struct dict *d, const char *key, union entry_data *data, int fre
 		else
 			*data = e->value;
 		dict_free_entry(e);
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 	}
 
-	return -XFIRE_ERR;
+	return -XFIREDB_ERR;
 }
 
 /**
@@ -928,7 +928,7 @@ static struct dict_entry *__dict_lookup(struct dict *d, const char *key)
  * @param key Key to update.
  * @param data Data to set.
  * @param type Type of \p data.
- * @return An error code. If the data is updated or set -XFIRE_OK is returned.
+ * @return An error code. If the data is updated or set -XFIREDB_OK is returned.
  *
  * If the given key \p key doesn't exist yet, it will be inserted.
  */
@@ -947,7 +947,7 @@ int dict_update(struct dict *d, const char *key, void *data, dict_type_t type)
  * @param data Data to set.
  * @param type Type of \p data.
  * @param l Length of \p data.
- * @return An error code. If the data is updated or set -XFIRE_OK is returned.
+ * @return An error code. If the data is updated or set -XFIREDB_OK is returned.
  *
  * If the given key \p key doesn't exist yet, it will be inserted.
  */
@@ -961,7 +961,7 @@ int raw_dict_update(struct dict *d, const char *key, void *data, dict_type_t typ
 
 	dict_set_val(e, data, type);
 	e->length = l;
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -982,15 +982,15 @@ int dict_lookup(struct dict *d, const char *key, union entry_data *data, size_t 
 	struct dict_entry *e;
 
 	if(!d || !key || !data)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	e = __dict_lookup(d, key);
 	if(!e)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	*data = e->value;
 	*size = e->length;
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -1243,7 +1243,7 @@ int dict_clear(struct dict *d)
 	d->rehashing = false;
 	xfiredb_mutex_unlock(&d->lock);
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /** @} */

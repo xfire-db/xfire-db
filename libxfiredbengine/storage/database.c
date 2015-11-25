@@ -113,7 +113,7 @@ int db_lookup(struct database *db, const char *key, db_data_t *data)
 	int rv;
 
 	rv = dict_lookup(db->container, key, &val, &tmp);
-	if(rv != -XFIRE_OK)
+	if(rv != -XFIREDB_OK)
 		return rv;
 	else
 		memcpy(data, &val, sizeof(val));

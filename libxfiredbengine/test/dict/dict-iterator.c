@@ -41,7 +41,7 @@ static void dbg_setup_dict(struct dict *d)
 
 	for(i = 0; i < 12; i++) {
 		assert(dict_add(d, dbg_keys[i], dbg_values[i],
-				DICT_PTR) == -XFIRE_OK);
+				DICT_PTR) == -XFIREDB_OK);
 	}
 }
 

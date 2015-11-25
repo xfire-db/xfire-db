@@ -21,8 +21,8 @@
  * @{
  */
 
-#ifndef __XFIRE_OS__
-#define __XFIRE_OS__
+#ifndef __XFIREDB_OS__
+#define __XFIREDB_OS__
 
 #include <stdlib.h>
 #include <string.h>

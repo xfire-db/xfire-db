@@ -164,10 +164,10 @@ int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n)
 	n->key = _key;
 	if(rb_insert(&hm->root, &n->node, true)) {
 		atomic_inc(hm->num);
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 	}
 
-	return -XFIRE_ERR;
+	return -XFIREDB_ERR;
 }
 
 /**

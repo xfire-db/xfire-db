@@ -144,12 +144,12 @@ static void test_dict_conncurrent(void)
 		if(i == 11)
 			continue;
 		rv = dict_delete(strings, dbg_keys[i], &val, false);
-		assert(rv == -XFIRE_OK);
+		assert(rv == -XFIREDB_OK);
 	}
 
 	dict_lookup(strings, dbg_keys[11], &tmp, &size);
 	assert(!strcmp(dbg_values[11], tmp.ptr));
-	assert(dict_delete(strings, dbg_keys[11], &val, false) == -XFIRE_OK);
+	assert(dict_delete(strings, dbg_keys[11], &val, false) == -XFIREDB_OK);
 }
 
 static test_func_t test_func_array[] = {test_dict_conncurrent, NULL};

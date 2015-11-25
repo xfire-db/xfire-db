@@ -12,19 +12,19 @@ include(scripts/options.cmake)
 
 # configure file
 configure_file(
-	"${XFIRE_INCLUDE_DIR}/config.h.in"
-	"${XFIRE_INCLUDE_DIR}/config.h"
+	"${XFIREDB_INCLUDE_DIR}/config.h.in"
+	"${XFIREDB_INCLUDE_DIR}/config.h"
 	)
 
 include(scripts/flags.cmake)
 include(scripts/link.cmake)
 include(scripts/ruby.cmake)
 
-if(XFIRE_SERVER)
-	add_subdirectory(${XFIRE_ENG_PATH})
-	add_subdirectory(${XFIRE_EXTENSION_PATH})
+if(XFIREDB_SERVER)
+	add_subdirectory(${XFIREDB_ENG_PATH})
+	add_subdirectory(${XFIREDB_EXTENSION_PATH})
 	add_subdirectory(scripts)
-endif(XFIRE_SERVER)
+endif(XFIREDB_SERVER)
 
 # install ruby files
 INSTALL(FILES lib/xfiredb-serv.rb

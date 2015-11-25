@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XFIRE_CLIENT_H_
-#define __XFIRE_CLIENT_H_
+#ifndef __XFIREDB_CLIENT_H_
+#define __XFIREDB_CLIENT_H_
 
 #include <config.h>
 #ifndef __cplusplus

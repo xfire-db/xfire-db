@@ -48,15 +48,15 @@ static void dbg_setup_dict(struct dict *d)
 	union entry_data val;
 	size_t size;
 
-	assert(dict_add(d, KEY_1, TEST_1, DICT_PTR) == -XFIRE_OK);
-	assert(dict_add(d, KEY_2, TEST_2, DICT_PTR) == -XFIRE_OK);
-	assert(dict_add(d, KEY_3, TEST_3, DICT_PTR) == -XFIRE_OK);
-	assert(dict_add(d, KEY_4, TEST_4, DICT_PTR) == -XFIRE_OK);
-	assert(dict_add(d, KEY_5, TEST_5, DICT_PTR) == -XFIRE_OK);
+	assert(dict_add(d, KEY_1, TEST_1, DICT_PTR) == -XFIREDB_OK);
+	assert(dict_add(d, KEY_2, TEST_2, DICT_PTR) == -XFIREDB_OK);
+	assert(dict_add(d, KEY_3, TEST_3, DICT_PTR) == -XFIREDB_OK);
+	assert(dict_add(d, KEY_4, TEST_4, DICT_PTR) == -XFIREDB_OK);
+	assert(dict_add(d, KEY_5, TEST_5, DICT_PTR) == -XFIREDB_OK);
 
 	dict_lookup(d, KEY_3, &val, &size);
 	assert(!strcmp(TEST_3, val.ptr));
-	assert(dict_update(d, KEY_3, UPDATE_DATA, DICT_PTR) == -XFIRE_OK);
+	assert(dict_update(d, KEY_3, UPDATE_DATA, DICT_PTR) == -XFIREDB_OK);
 
 	dict_lookup(d, KEY_3, &val, &size);
 	assert(!strcmp(UPDATE_DATA, val.ptr));
@@ -66,11 +66,11 @@ static void dbg_empty_dict(struct dict *d)
 {
 	union entry_data val;
 
-	assert(dict_delete(d, KEY_1, &val, false) == -XFIRE_OK);
-	assert(dict_delete(d, KEY_2, &val, false) == -XFIRE_OK);
-	assert(dict_delete(d, KEY_3, &val, false) == -XFIRE_OK);
-	assert(dict_delete(d, KEY_4, &val, false) == -XFIRE_OK);
-	assert(dict_delete(d, KEY_5, &val, false) == -XFIRE_OK);
+	assert(dict_delete(d, KEY_1, &val, false) == -XFIREDB_OK);
+	assert(dict_delete(d, KEY_2, &val, false) == -XFIREDB_OK);
+	assert(dict_delete(d, KEY_3, &val, false) == -XFIREDB_OK);
+	assert(dict_delete(d, KEY_4, &val, false) == -XFIREDB_OK);
+	assert(dict_delete(d, KEY_5, &val, false) == -XFIREDB_OK);
 }
 
 static struct dict *strings;

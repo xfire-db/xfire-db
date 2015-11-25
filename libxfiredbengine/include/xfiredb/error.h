@@ -16,10 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XFIRE_ERROR_H__
-#define __XFIRE_ERROR_H__
+#ifndef __XFIREDB_ERROR_H__
+#define __XFIREDB_ERROR_H__
 
-#define XFIRE_OK	0 //!< SUCCESS error code
-#define XFIRE_ERR	1 //!< General error code
+#define XFIREDB_OK	0 //!< SUCCESS error code
+#define XFIREDB_ERR	1 //!< General error code
 
 #endif
