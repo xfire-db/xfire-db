@@ -4,7 +4,12 @@ add_library(xfiredb SHARED
 	client.c
 	result.c
 	query.c
-	connect.c)
+	connect.c
+	sprintf.c
+	mem.c)
+
+target_link_libraries(xfiredb LINK_PUBLIC ${OPENSSL_LIB})
+add_subdirectory(test)
 
 install (TARGETS xfiredb
 	LIBRARY DESTINATION lib

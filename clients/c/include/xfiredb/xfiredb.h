@@ -19,5 +19,54 @@
 #ifndef __XFIREDB_H__
 #define __XFIREDB_H__
 
+#include <openssl/ssl.h>
+
+#define XFIRE_OK 0 //!< XFireDB success error code
+#define XFIRE_ERR 1 //!< XFireDB general error code
+#define XFIRE_NOTCONN 2 //!< Not connected error
+#define XFIRE_AUTH 3 //!< Not authorized error
+
+#ifdef __cplusplus
+#define CDECL extern "C" {
+#define CDECL_END }
+#else
+#define CDECL
+#define CDECL_END
+#endif
+
+struct xfiredb_ssl_client {
+	SSL_CTX *ctx;
+	SSL *ssl;
+};
+
+struct xfiredb_client {
+	int socket;
+	struct sockaddr_in *serv;
+	struct xfiredb_ssl_client *ssl;
+
+	long flags;
+};
+
+#define XFIREDB_SOCK_STREAM	0x1
+#define XFIREDB_SOCK_RESOLV	0x2
+#define XFIREDB_SSL		0x4
+#define XFIREDB_AUTH		0x8
+
+CDECL
+extern struct xfiredb_client *xfiredb_connect(char *host, int port, long flags);
+extern void xfiredb_disconnect(struct xfiredb_client *);
+extern int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *password);
+
+extern int xfiredb_query(struct xfiredb_client *client, const char *query);
+
+extern int xfiredb_sprintf(char **buf, const char *format, ...);
+
+extern void *xfire_alloc(size_t len);
+extern void *xfire_zalloc(size_t len);
+extern void *xfire_calloc(size_t num, size_t size);
+extern void xfire_free(void *region);
+extern void *xfire_realloc(void *region, size_t size);
+CDECL_END
+
 #endif
 
