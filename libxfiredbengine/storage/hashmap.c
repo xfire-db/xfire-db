@@ -103,7 +103,7 @@ struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map)
 {
 	struct hashmap_iterator *it;
 
-	it = xfire_zalloc(sizeof(*it));
+	it = xfiredb_zalloc(sizeof(*it));
 	it->it = rb_new_iterator(&map->root);
 	return it;
 }
@@ -111,7 +111,7 @@ struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map)
 void hashmap_free_iterator(struct hashmap_iterator *it)
 {
 	rb_free_iterator(it->it);
-	xfire_free(it);
+	xfiredb_free(it);
 }
 
 static bool hashmap_cmp_node(struct rb_node *node, const void *arg)
@@ -142,7 +142,7 @@ void hashmap_init(struct hashmap *hm)
  */
 void hashmap_node_destroy(struct hashmap_node *n)
 {
-	xfire_free(n->key);
+	xfiredb_free(n->key);
 	rb_node_destroy(&n->node);
 }
 
@@ -159,15 +159,15 @@ int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n)
 
 	hash = hashmap_hash(key, HM_SEED);
 	rb_init_node(&n->node);
-	xfire_sprintf(&_key, "%s", key);
+	xfiredb_sprintf(&_key, "%s", key);
 	n->node.key = hash;
 	n->key = _key;
 	if(rb_insert(&hm->root, &n->node, true)) {
 		atomic_inc(hm->num);
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 	}
 
-	return -XFIRE_ERR;
+	return -XFIREDB_ERR;
 }
 
 /**

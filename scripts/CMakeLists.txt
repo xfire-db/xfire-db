@@ -1,4 +1,4 @@
-include_directories(${XFIRE_SERV_INCLUDE_DIR})
+include_directories(${XFIREDB_INCLUDE_DIR})
 
 add_executable (xfiredb-dump
 	dump.c)

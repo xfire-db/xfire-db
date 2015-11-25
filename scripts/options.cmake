@@ -2,15 +2,15 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(HAVE_LINUX "#define HAVE_LINUX")
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
-option (XFIRE_SERVER
+option (XFIREDB_SERVER
 	"Set to to true if the XFire server should be build and installed"
 	true)
 
-option (XFIRE_CLIENT
+option (XFIREDB_CLIENT
 	"Set to true if the XFire client library's should be built and installed"
 	true)
 
-option (XFIRE_DEBUG
+option (XFIREDB_DEBUG
 	"Set to true if debugging options should be enabled"
 	[false])
 
@@ -24,9 +24,9 @@ set (DATA_PATH "$ENV{HOME}/.xfire" CACHE STRING
 	"Directory to store the debugging disk.")
 
 set(HAVE_DBG "")
-if(XFIRE_DEBUG)
+if(XFIREDB_DEBUG)
 	set(HAVE_DBG "#define HAVE_DBG")
-endif(XFIRE_DEBUG)
+endif(XFIREDB_DEBUG)
 
 set(HAVE_RECURSION "")
 if(RECURSION)

@@ -37,7 +37,7 @@ struct bio_q_head {
 		     *tail;
 	struct job *job;
 
-	xfire_spinlock_t lock;
+	xfiredb_spinlock_t lock;
 	long size;
 };
 

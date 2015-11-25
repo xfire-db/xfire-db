@@ -68,16 +68,16 @@ static int disk_create_main_table(struct disk *disk)
 
 	rc = sqlite3_exec(disk->handle, DISK_CHECK_TABLE, &init_hook, disk, &errmsg);
 	if(rc != SQLITE_OK)
-		xfire_log_console(LOG_DISK, "Error occured while creating tables: %s\n", errmsg);
+		xfiredb_log_console(LOG_DISK, "Error occured while creating tables: %s\n", errmsg);
 
 	if(!disk->initialised) {
 		/* table's non existent, creating them */
 		rc = sqlite3_exec(disk->handle, DISK_CREATE_TABLE, &init_hook, disk, &errmsg);
 		if(rc != SQLITE_OK)
-			xfire_log_console(LOG_DISK, "Error occured while creating tables: %s\n", errmsg);
+			xfiredb_log_console(LOG_DISK, "Error occured while creating tables: %s\n", errmsg);
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -100,16 +100,16 @@ struct disk *disk_create(const char *path)
 		exit(-EXIT_FAILURE);
 	}
 
-	disk = xfire_zalloc(sizeof(*disk));
+	disk = xfiredb_zalloc(sizeof(*disk));
 	len = strlen(path);
 
-	disk->dbpath = xfire_zalloc(len + 1);
+	disk->dbpath = xfiredb_zalloc(len + 1);
 	memcpy(disk->dbpath, path, len);
 	disk->handle = db;
 	disk->records = 0ULL;
-	xfire_mutex_init(&disk->lock);
+	xfiredb_mutex_init(&disk->lock);
 
-	if(disk_create_main_table(disk) != -XFIRE_OK)
+	if(disk_create_main_table(disk) != -XFIREDB_OK)
 		fprintf(stderr, "Could not create tables, exiting.\n");
 
 	return disk;
@@ -129,14 +129,14 @@ void disk_clear(struct disk *d)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_CLEAR_QUERY);
+	xfiredb_sprintf(&query, DISK_CLEAR_QUERY);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
 
 	if(rc != SQLITE_OK)
-		xfire_log_err(LOG_DISK, "Disk clear failed: %s\n", msg);
+		xfiredb_log_err(LOG_DISK, "Disk clear failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
+	xfiredb_free(query);
 }
 
 struct hm_store_data {
@@ -157,16 +157,16 @@ int disk_store_hm_node(struct disk *d, char *key, char *nodekey, char *data)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_STORE_QUERY, key, nodekey, "hashmap", data);
+	xfiredb_sprintf(&query, DISK_STORE_QUERY, key, nodekey, "hashmap", data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk store failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
+	xfiredb_free(query);
 	
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 /**
@@ -189,18 +189,18 @@ int disk_store_hm(struct disk *d, char *key, struct hashmap *map)
 			node = hashmap_iterator_next(it)) {
 		s = container_of(node, struct string, node);
 		string_get(s, &data);
-		xfire_sprintf(&query, DISK_STORE_QUERY, key, node->key, "hashmap", data);
+		xfiredb_sprintf(&query, DISK_STORE_QUERY, key, node->key, "hashmap", data);
 		rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 		if(rc != SQLITE_OK)
 			fprintf(stderr, "Disk store failed: %s\n", msg);
 
 		sqlite3_free(msg);
-		xfire_free(query);
-		xfire_free(data);
+		xfiredb_free(query);
+		xfiredb_free(data);
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -215,16 +215,16 @@ int disk_store_set_key(struct disk *d, char *key, char *skey)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_STORE_QUERY, key, skey, "set", "null");
+	xfiredb_sprintf(&query, DISK_STORE_QUERY, key, skey, "set", "null");
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk store failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
+	xfiredb_free(query);
 	
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 /**
@@ -239,16 +239,16 @@ int disk_store_list_entry(struct disk *d, char *key, char *data)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "list", data);
+	xfiredb_sprintf(&query, DISK_STORE_QUERY, key, "null", "list", data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk store failed: %s\n", msg);
 
-	xfire_free(query);
+	xfiredb_free(query);
 	sqlite3_free(msg);
 
-	return (rc == SQLITE_OK) ? -XFIRE_OK : -XFIRE_ERR;
+	return (rc == SQLITE_OK) ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 /**
@@ -268,14 +268,14 @@ int disk_store_list(struct disk *d, char *key, struct list_head *lh)
 		s = container_of(c, struct string, entry);
 		string_get(s, &data);
 		if(disk_store_list_entry(d, key, data)) {
-			xfire_free(data);
-			return -XFIRE_ERR;
+			xfiredb_free(data);
+			return -XFIREDB_ERR;
 		}
 
-		xfire_free(data);
+		xfiredb_free(data);
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 /**
@@ -290,18 +290,18 @@ int disk_store_string(struct disk *d, char *key, char *data)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_STORE_QUERY, key, "null", "string", data);
+	xfiredb_sprintf(&query, DISK_STORE_QUERY, key, "null", "string", data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK) {
 		fprintf(stderr, "Disk store failed: %s\n", msg);
 		sqlite3_free(msg);
-		xfire_free(query);
-		return -XFIRE_ERR;
+		xfiredb_free(query);
+		return -XFIREDB_ERR;
 	}
 
 	sqlite3_free(msg);
-	xfire_free(query);
+	xfiredb_free(query);
 	return rc;
 }
 
@@ -315,7 +315,7 @@ static int dump_hook(void *arg, int argc, char **row, char **colname)
 				colname[i+1], row[i+1], colname[i+2], row[i+2], colname[i+3], row[i+3]);
 
 	//len = strlen(row[1]);
-	//*data = xfire_zalloc(len + 1);
+	//*data = xfiredb_zalloc(len + 1);
 	//memcpy(*data, row[1], len);
 
 	return 0;
@@ -365,16 +365,16 @@ int disk_update_hm(struct disk *d, char *key, char *nodekey, char *data)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_UPDATE_HM_QUERY, data, key, nodekey);
+	xfiredb_sprintf(&query, DISK_UPDATE_HM_QUERY, data, key, nodekey);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, NULL, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk update failed: %s\n", msg); 
 
-	xfire_free(query);
+	xfiredb_free(query);
 	sqlite3_free(msg);
 
-	return (rc == SQLITE_OK) ? -XFIRE_OK : -XFIRE_ERR;
+	return (rc == SQLITE_OK) ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 #define DISK_UPDATE_LIST_QUERY \
@@ -395,15 +395,15 @@ int disk_update_list(struct disk *d, char *key, char *data, char *newdata)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_UPDATE_LIST_QUERY, newdata, key, data);
+	xfiredb_sprintf(&query, DISK_UPDATE_LIST_QUERY, newdata, key, data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk update failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	xfiredb_free(query);
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 #define DISK_UPDATE_STRING_QUERY \
@@ -422,15 +422,15 @@ int disk_update_string(struct disk *d, char *key, void *data)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_UPDATE_STRING_QUERY, data, key);
+	xfiredb_sprintf(&query, DISK_UPDATE_STRING_QUERY, data, key);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk update failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	xfiredb_free(query);
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 #define DISK_DELETE_STRING_QUERY \
@@ -459,15 +459,15 @@ int disk_delete_hashmapnode(struct disk *d, char *key, char *nodekey)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_DELETE_HM_QUERY, key, nodekey);
+	xfiredb_sprintf(&query, DISK_DELETE_HM_QUERY, key, nodekey);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk delete failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	xfiredb_free(query);
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 /**
@@ -481,15 +481,15 @@ int disk_delete_set_key(struct disk *d, char *key, char *skey)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_DELETE_SET_QUERY, key, skey);
+	xfiredb_sprintf(&query, DISK_DELETE_SET_QUERY, key, skey);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk delete failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	xfiredb_free(query);
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 /**
@@ -503,15 +503,15 @@ int disk_delete_list(struct disk *d, char *key, char *data)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_DELETE_LIST_QUERY, key, data);
+	xfiredb_sprintf(&query, DISK_DELETE_LIST_QUERY, key, data);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk delete failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	xfiredb_free(query);
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 /**
@@ -524,15 +524,15 @@ int disk_delete_string(struct disk *d, char *key)
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_DELETE_STRING_QUERY, key);
+	xfiredb_sprintf(&query, DISK_DELETE_STRING_QUERY, key);
 	rc = sqlite3_exec(d->handle, query, &dummy_hook, d, &msg);
 
 	if(rc != SQLITE_OK)
 		fprintf(stderr, "Disk delete failed: %s\n", msg);
 
 	sqlite3_free(msg);
-	xfire_free(query);
-	return rc == SQLITE_OK ? -XFIRE_OK : -XFIRE_ERR;
+	xfiredb_free(query);
+	return rc == SQLITE_OK ? -XFIREDB_OK : -XFIREDB_ERR;
 }
 
 static int disk_load_hook(void *arg, int argc, char **rows, char **colname)
@@ -566,7 +566,7 @@ long disk_size(struct disk *d)
 	default:
 		fprintf(stderr, "Disk load failed: %s\n", msg);
 		sqlite3_free(msg);
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 	}
 
 	sqlite3_free(msg);
@@ -580,7 +580,7 @@ int disk_load_key(struct disk *d, char *key, void (*hook)(int argc, char **rows,
 	int rc;
 	char *msg, *query;
 
-	xfire_sprintf(&query, DISK_LOAD_QUERY, key);
+	xfiredb_sprintf(&query, DISK_LOAD_QUERY, key);
 	rc = sqlite3_exec(d->handle, query, &disk_load_hook, hook, &msg);
 
 	switch(rc) {
@@ -590,11 +590,11 @@ int disk_load_key(struct disk *d, char *key, void (*hook)(int argc, char **rows,
 	default:
 		fprintf(stderr, "Disk load failed: %s\n", msg);
 		sqlite3_free(msg);
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 	}
 
 	sqlite3_free(msg);
-	return -XFIRE_ERR;
+	return -XFIREDB_ERR;
 }
 
 /**
@@ -617,11 +617,11 @@ int disk_load(struct disk *d, void (*hook)(int argc, char **rows, char **colname
 	default:
 		fprintf(stderr, "Disk load failed: %s\n", msg);
 		sqlite3_free(msg);
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 	}
 
 	sqlite3_free(msg);
-	return -XFIRE_ERR;
+	return -XFIREDB_ERR;
 }
 
 /**
@@ -638,9 +638,9 @@ void disk_destroy(struct disk *disk)
 	db = disk->handle;
 	sqlite3_close(db);
 
-	xfire_mutex_destroy(&disk->lock);
-	xfire_free(disk->dbpath);
-	xfire_free(disk);
+	xfiredb_mutex_destroy(&disk->lock);
+	xfiredb_free(disk->dbpath);
+	xfiredb_free(disk);
 }
 
 /** @} */

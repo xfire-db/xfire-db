@@ -30,7 +30,7 @@ VALUE rb_log_msg(VALUE klass, VALUE msg)
 {
 	const char *log = StringValueCStr(msg);
 
-	raw_xfire_log(log);
+	raw_xfiredb_log(log);
 	return klass;
 }
 
@@ -56,11 +56,11 @@ VALUE rb_log_msg2(int argc, VALUE *args, VALUE self)
 		console = args[2] == Qtrue;
 
 	if(error)
-		raw_xfire_log_err(msg);
+		raw_xfiredb_log_err(msg);
 	else if(console)
-		raw_xfire_log_console(msg);
+		raw_xfiredb_log_console(msg);
 	else
-		raw_xfire_log(msg);
+		raw_xfiredb_log(msg);
 
 	return self;
 }

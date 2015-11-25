@@ -1,4 +1,4 @@
-include_directories(${XFIRE_SERV_INCLUDE_DIR})
+include_directories(${XFIREDB_INCLUDE_DIR})
 
 ADD_RUBY_EXTENSION(storage_engine
 	database.c
@@ -17,7 +17,7 @@ ADD_RUBY_EXTENSION(digest
 target_link_libraries(storage_engine LINK_PUBLIC xfiredbengine)
 
 install(TARGETS digest
-	LIBRARY DESTINATION ${RUBY_EXTENSIONS_INSTALL_DIR})
+	LIBRARY DESTINATION ${RUBY_EXTENSIONS_INSTALL_DIR}/xfiredb-serv)
 install(TARGETS storage_engine
-	LIBRARY DESTINATION ${RUBY_EXTENSIONS_INSTALL_DIR})
+	LIBRARY DESTINATION ${RUBY_EXTENSIONS_INSTALL_DIR}/xfiredb-serv)
 

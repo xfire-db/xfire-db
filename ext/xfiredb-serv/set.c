@@ -54,8 +54,8 @@ void rb_set_free(struct db_entry_container *e)
 	rb_set_remove(e);
 	if(!e->intree && e->obj_released) {
 		container_destroy(c);
-		xfire_free(e->key);
-		xfire_free(e);
+		xfiredb_free(e->key);
+		xfiredb_free(e);
 	}
 }
 
@@ -67,14 +67,14 @@ static void rb_set_release(void *p)
 	if(!e->intree) {
 		rb_set_remove(e);
 		container_destroy(&e->c);
-		xfire_free(e->key);
-		xfire_free(e);
+		xfiredb_free(e->key);
+		xfiredb_free(e);
 	}
 }
 
 static VALUE rb_set_alloc(VALUE klass)
 {
-	struct db_entry_container *container = xfire_zalloc(sizeof(*container));
+	struct db_entry_container *container = xfiredb_zalloc(sizeof(*container));
 	VALUE obj;
 
 	container_init(&container->c, CONTAINER_SET);
@@ -100,18 +100,18 @@ static VALUE rb_set_add(VALUE self, VALUE _key)
 	struct set *set;
 	struct db_entry_container *e;
 	char *key = StringValueCStr(_key);
-	struct set_key *k = xfire_zalloc(sizeof(*k));
+	struct set_key *k = xfiredb_zalloc(sizeof(*k));
 
 	Data_Get_Struct(self, struct db_entry_container, e);
 	set = obj_to_set(self);
-	if(set_add(set, key, k) == -XFIRE_OK) {
+	if(set_add(set, key, k) == -XFIREDB_OK) {
 		if(e->key)
 			xfiredb_notice_disk(e->key, k->key, NULL, SET_ADD);
 
 		return _key;
 	}
 
-	xfire_free(k);
+	xfiredb_free(k);
 	return Qnil;
 }
 
@@ -132,7 +132,7 @@ static VALUE rb_set_remove_key(VALUE self, VALUE _key)
 	if(e->key)
 		xfiredb_notice_disk(e->key, k->key, NULL, SET_DEL);
 	set_key_destroy(k);
-	xfire_free(k);
+	xfiredb_free(k);
 	return _key;
 }
 

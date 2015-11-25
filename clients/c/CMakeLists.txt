@@ -1,4 +1,4 @@
-include_directories(${XFIRE_CLIENT_INCLUDE})
+include_directories(${XFIREDB_CLIENT_INCLUDE})
 
 add_library(xfiredb SHARED
 	client.c

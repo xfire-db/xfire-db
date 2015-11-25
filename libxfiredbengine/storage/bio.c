@@ -38,7 +38,7 @@
 
 extern struct disk *dbg_disk;
 #ifndef HAVE_DEBUG
-extern struct disk *xfire_disk;
+extern struct disk *xfiredb_disk;
 #endif
 static struct bio_q_head *bio_q;
 
@@ -48,7 +48,7 @@ static inline struct bio_q *bio_queue_pop(void)
 {
 	struct bio_q *tail;
 
-	xfire_spin_lock(&bio_q->lock);
+	xfiredb_spin_lock(&bio_q->lock);
 	tail = bio_q->tail;
 	
 	if(tail) {
@@ -64,7 +64,7 @@ static inline struct bio_q *bio_queue_pop(void)
 
 		bio_q->size--;
 	}
-	xfire_spin_unlock(&bio_q->lock);
+	xfiredb_spin_unlock(&bio_q->lock);
 
 	return tail;
 }
@@ -128,10 +128,10 @@ static void bio_worker(void *arg)
 			break;
 		}
 
-		xfire_free(q->key);
-		xfire_free(q->arg);
-		xfire_free(q->newdata);
-		xfire_free(q);
+		xfiredb_free(q->key);
+		xfiredb_free(q->arg);
+		xfiredb_free(q->newdata);
+		xfiredb_free(q);
 	}
 }
 
@@ -142,9 +142,9 @@ void bio_init(void)
 {
 	struct config *config;
 
-	bio_q = xfire_zalloc(sizeof(*bio_q));
+	bio_q = xfiredb_zalloc(sizeof(*bio_q));
 	bio_q->size = 0L;
-	xfire_spinlock_init(&bio_q->lock);
+	xfiredb_spinlock_init(&bio_q->lock);
 	config = xfiredb_get_config();
 	disk_db = disk_create(config->db_file);
 	bio_q->job = bg_process_create(BIO_WORKER_NAME, &bio_worker, disk_db);
@@ -156,8 +156,8 @@ void bio_init(void)
 void bio_exit(void)
 {
 	bg_process_stop(BIO_WORKER_NAME);
-	xfire_spinlock_destroy(&bio_q->lock);
-	xfire_free(bio_q);
+	xfiredb_spinlock_destroy(&bio_q->lock);
+	xfiredb_free(bio_q);
 
 	disk_destroy(disk_db);
 }
@@ -166,9 +166,9 @@ static inline long bio_size(void)
 {
 	long s;
 
-	xfire_spin_lock(&bio_q->lock);
+	xfiredb_spin_lock(&bio_q->lock);
 	s = bio_q->size;
-	xfire_spin_unlock(&bio_q->lock);
+	xfiredb_spin_unlock(&bio_q->lock);
 
 	return s;
 }
@@ -201,19 +201,19 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 	struct config *conf = xfiredb_get_config();
 
 	if(conf->persist_level >= 3) {
-		xfire_free(key);
-		xfire_free(arg);
-		xfire_free(newdata);
+		xfiredb_free(key);
+		xfiredb_free(arg);
+		xfiredb_free(newdata);
 		return;
 	}
 
-	q = xfire_zalloc(sizeof(*q));
+	q = xfiredb_zalloc(sizeof(*q));
 	q->key = key;
 	q->arg = arg;
 	q->newdata = newdata;
 	q->operation = op;
 
-	xfire_spin_lock(&bio_q->lock);
+	xfiredb_spin_lock(&bio_q->lock);
 	bio_q->size++;
 	if(bio_q->next) {
 		q->next = bio_q->next;
@@ -223,7 +223,7 @@ void bio_queue_add(char *key, char *arg, char *newdata, bio_operation_t op)
 		/* first entry */
 		bio_q->next = bio_q->tail = q;
 	}
-	xfire_spin_unlock(&bio_q->lock);
+	xfiredb_spin_unlock(&bio_q->lock);
 	bio_try_wakeup_worker();
 }
 
@@ -240,8 +240,8 @@ static void dbg_add_strings(void)
 	for(i = 0; i < 3; i++) {
 		key_len = strlen(dbg_keys[i]);
 		data_len = strlen(dbg_data[i]);
-		key = xfire_zalloc(key_len + 1);
-		data = xfire_zalloc(data_len + 1);
+		key = xfiredb_zalloc(key_len + 1);
+		data = xfiredb_zalloc(data_len + 1);
 		memcpy(key, dbg_keys[i], key_len);
 		memcpy(data, dbg_data[i], data_len);
 		bio_queue_add(key, NULL, data, STRING_ADD);
@@ -255,7 +255,7 @@ static void dbg_del_strings(void)
 
 	for(i = 0; i < 2; i++) {
 		key_len = strlen(dbg_keys[i]);
-		key = xfire_zalloc(key_len + 1);
+		key = xfiredb_zalloc(key_len + 1);
 		memcpy(key, dbg_keys[i], key_len);
 		bio_queue_add(key, NULL, NULL, STRING_DEL);
 	}
@@ -269,8 +269,8 @@ static void dbg_update_string(void)
 
 	key_len = strlen("third-test");
 	data_len = strlen("third-data");
-	data = xfire_zalloc(data_len + 1);
-	key = xfire_zalloc(key_len + 1);
+	data = xfiredb_zalloc(data_len + 1);
+	key = xfiredb_zalloc(key_len + 1);
 	memcpy(data, "third-data", data_len);
 	memcpy(key, "third-test", key_len);
 
@@ -288,8 +288,8 @@ static void dbg_add_list(void)
 	for(i = 0; i < 3; i++) {
 		data_len = strlen(dbg_data[i]);
 
-		data = xfire_zalloc(data_len + 1);
-		key = xfire_zalloc(key_len + 1);
+		data = xfiredb_zalloc(data_len + 1);
+		key = xfiredb_zalloc(key_len + 1);
 		memcpy(data, dbg_data[i], data_len);
 		memcpy(key, "list-key", key_len);
 
@@ -305,9 +305,9 @@ static void dbg_update_list(void)
 
 	key_len = strlen("list-key");
 	data_len = strlen("second-data");
-	data = xfire_zalloc(data_len + 1);
-	oldata = xfire_zalloc(data_len +1);
-	key = xfire_zalloc(key_len + 1);
+	data = xfiredb_zalloc(data_len + 1);
+	oldata = xfiredb_zalloc(data_len +1);
+	key = xfiredb_zalloc(key_len + 1);
 	memcpy(oldata, "second-data", data_len);
 	memcpy(data, "SECOND-DATA", data_len);
 	memcpy(key, "list-key", key_len);
@@ -322,8 +322,8 @@ static void dbg_del_list(void)
 
 	key_len = strlen("list-key");
 	data_len = strlen(dbg_data[1]);
-	key = xfire_zalloc(key_len + 1);
-	data = xfire_zalloc(data_len + 1);
+	key = xfiredb_zalloc(key_len + 1);
+	data = xfiredb_zalloc(data_len + 1);
 	memcpy(data, dbg_data[1], data_len);
 	memcpy(key, "list-key", key_len);
 	bio_queue_add(key, data, NULL, LIST_DEL);
@@ -338,12 +338,12 @@ static void dbg_add_hashmap(void)
 	key_len = strlen("hash-key");
 
 	for(i = 0; i < 3; i++) {
-		key = xfire_zalloc(key_len + 1);
+		key = xfiredb_zalloc(key_len + 1);
 		memcpy(key, "hash-key", key_len);
 		data_len = strlen(dbg_data[i]);
 		skey_len = strlen(dbg_snd_keys[i]);
-		subkey = xfire_zalloc(skey_len + 1);
-		data = xfire_zalloc(data_len + 1);
+		subkey = xfiredb_zalloc(skey_len + 1);
+		data = xfiredb_zalloc(data_len + 1);
 		memcpy(subkey, dbg_snd_keys[i], skey_len);
 		memcpy(data, dbg_data[i], data_len);
 		bio_queue_add(key, subkey, data, HM_ADD);
@@ -358,9 +358,9 @@ static void dbg_update_hashmap(void)
 	key_len = strlen("hash-key");
 	skey_len = strlen("key2");
 	ndata_len = strlen("new-data");
-	ndata = xfire_zalloc(ndata_len + 1);
-	key = xfire_zalloc(key_len + 1);
-	skey = xfire_zalloc(skey_len + 1);
+	ndata = xfiredb_zalloc(ndata_len + 1);
+	key = xfiredb_zalloc(key_len + 1);
+	skey = xfiredb_zalloc(skey_len + 1);
 	memcpy(ndata, "new-data", ndata_len);
 	memcpy(key, "hash-key", key_len);
 	memcpy(skey, "key2", skey_len);
@@ -374,8 +374,8 @@ static void dbg_del_hashmap(void)
 
 	key_len = strlen("hash-key");
 	skey_len = strlen("key3");
-	key = xfire_zalloc(key_len + 1);
-	skey = xfire_zalloc(skey_len + 1);
+	key = xfiredb_zalloc(key_len + 1);
+	skey = xfiredb_zalloc(skey_len + 1);
 	memcpy(key, "hash-key", key_len);
 	memcpy(skey, "key3", skey_len);
 	bio_queue_add(key, skey, NULL, HM_DEL);

@@ -45,8 +45,8 @@ typedef struct rb_node {
 	atomic_flags_t flags; //!< Node flags.
 
 	atomic_t ldepth; //!< Depth of the node.
-	xfire_mutex_t lock; //!< Node lock.
-	xfire_cond_t condi; //!< Node condition.
+	xfiredb_mutex_t lock; //!< Node lock.
+	xfiredb_cond_t condi; //!< Node condition.
 } RB_NODE;
 
 /**
@@ -55,7 +55,7 @@ typedef struct rb_node {
 typedef struct rb_root {
 	struct rb_node *tree; //!< Root node.
 	atomic64_t num; //!< Number of nodes in the tree.
-	xfire_spinlock_t lock; //!< Root lock.
+	xfiredb_spinlock_t lock; //!< Root lock.
 
 	/**
 	 * @brief Duplicate compare function pointer.

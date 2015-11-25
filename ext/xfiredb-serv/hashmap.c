@@ -42,8 +42,8 @@ static void rb_hashmap_release(void *p)
 	if(!container->intree) {
 		rb_hashmap_remove(container);
 		container_destroy(&container->c);
-		xfire_free(container->key);
-		xfire_free(container);
+		xfiredb_free(container->key);
+		xfiredb_free(container);
 	}
 
 }
@@ -54,14 +54,14 @@ void rb_hashmap_free(struct db_entry_container *c)
 
 	if(!c->intree && c->obj_released) {
 		container_destroy(&c->c);
-		xfire_free(c->key);
-		xfire_free(c);
+		xfiredb_free(c->key);
+		xfiredb_free(c);
 	}
 }
 
 VALUE rb_hashmap_alloc(VALUE klass)
 {
-	struct db_entry_container *container = xfire_zalloc(sizeof(*container));
+	struct db_entry_container *container = xfiredb_zalloc(sizeof(*container));
 
 	container_init(&container->c, CONTAINER_HASHMAP);
 	container->obj = Data_Wrap_Struct(klass, NULL, rb_hashmap_release, container);
@@ -129,7 +129,7 @@ void rb_hashmap_remove(struct db_entry_container *c)
 		s = container_of(node, struct string, node);
 		hashmap_node_destroy(node);
 		string_destroy(s);
-		xfire_free(s);
+		xfiredb_free(s);
 	}
 }
 
@@ -156,10 +156,10 @@ VALUE rb_hashmap_delete(VALUE self, VALUE key)
 		xfiredb_notice_disk(c->key, node->key, NULL, HM_DEL);
 
 	rv = rb_str_new2(data);
-	xfire_free(data);
+	xfiredb_free(data);
 	hashmap_node_destroy(node);
 	string_destroy(s);
-	xfire_free(s);
+	xfiredb_free(s);
 
 	return rv;
 }
@@ -179,7 +179,7 @@ VALUE rb_hashmap_ref(VALUE self, VALUE key)
 	s = container_of(node, struct string, node);
 	string_get(s, &tmp);
 	rv = rb_str_new2(tmp);
-	xfire_free(tmp);
+	xfiredb_free(tmp);
 
 	return rv;
 }
@@ -242,7 +242,7 @@ VALUE rb_hashmap_each(VALUE hash)
 
 		value = rb_str_new2(tmp);
 		key = rb_str_new2(node->key);
-		xfire_free(tmp);
+		xfiredb_free(tmp);
 
 		rb_yield(rb_assoc_new(key, value));
 	}

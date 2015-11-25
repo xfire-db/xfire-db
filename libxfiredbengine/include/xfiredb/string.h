@@ -40,7 +40,7 @@ struct string {
 
 	char *str; //!< String pointer.
 	size_t len; //!< Length of \p str in bytes.
-	xfire_spinlock_t lock; //!< Lock.
+	xfiredb_spinlock_t lock; //!< Lock.
 };
 
 /**

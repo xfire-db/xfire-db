@@ -39,5 +39,3 @@ Benchmark.bm do |mark|
   puts "Database store's per second: #{40000/result.real}"
 end
 
-engine.exit
-

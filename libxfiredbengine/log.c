@@ -29,43 +29,43 @@
 #include <xfiredb/types.h>
 #include <xfiredb/log.h>
 
-static FILE *xfire_stdout = NULL;
-static FILE *xfire_stderr = NULL;
+static FILE *xfiredb_stdout = NULL;
+static FILE *xfiredb_stderr = NULL;
 
 /**
  * @brief Initialise XFire logging.
  * @param out stdout file name.
  * @param err stderr file name.
  */
-void xfire_log_init(const char *out, const char *err)
+void xfiredb_log_init(const char *out, const char *err)
 {
 	if(out)
-		xfire_stderr = fopen(err, "w+");
+		xfiredb_stderr = fopen(err, "w+");
 	else
-		xfire_stderr = stderr;
+		xfiredb_stderr = stderr;
 
 	if(err)
-		xfire_stdout = fopen(out, "w+");
+		xfiredb_stdout = fopen(out, "w+");
 	else
-		xfire_stdout = stdout;
+		xfiredb_stdout = stdout;
 }
 
 /**
  * @brief Close the logging streams.
  */
-void xfire_log_exit(void)
+void xfiredb_log_exit(void)
 {
-	raw_xfire_log("[exit]: XFIRE logger stopped.\n");
-	fclose(xfire_stderr);
-	fclose(xfire_stdout);
+	raw_xfiredb_log("[exit]: XFIRE logger stopped.\n");
+	fclose(xfiredb_stderr);
+	fclose(xfiredb_stdout);
 
 }
 
-static void vfxfire_log(const char *src, const char *fmt, va_list args)
+static void vfxfiredb_log(const char *src, const char *fmt, va_list args)
 {
-	fprintf(xfire_stdout, "[%s]: ", src);
-	vfprintf(xfire_stdout, fmt, args);
-	fflush(xfire_stdout);
+	fprintf(xfiredb_stdout, "[%s]: ", src);
+	vfprintf(xfiredb_stdout, fmt, args);
+	fflush(xfiredb_stdout);
 }
 
 /**
@@ -74,16 +74,16 @@ static void vfxfire_log(const char *src, const char *fmt, va_list args)
  * @param fmt Log format.
  * @param ... Variable argument list.
  */
-void xfire_log_console(const char *src, const char *fmt, ...)
+void xfiredb_log_console(const char *src, const char *fmt, ...)
 {
 	va_list args, args2;
 
 	va_start(args, fmt);
 	va_copy(args2, args);
-	vfxfire_log(src, fmt, args);
+	vfxfiredb_log(src, fmt, args);
 	va_end(args);
 
-	if(xfire_stdout != stdout) {
+	if(xfiredb_stdout != stdout) {
 		fprintf(stdout, "[%s]: ", src);
 		vfprintf(stdout, fmt, args2);
 	}
@@ -95,27 +95,27 @@ void xfire_log_console(const char *src, const char *fmt, ...)
  * @brief Raw error logger.
  * @param msg Message to log.
  */
-void raw_xfire_log_err(const char *msg)
+void raw_xfiredb_log_err(const char *msg)
 {
-	fprintf(xfire_stderr, msg);
-	fflush(xfire_stderr);
+	fprintf(xfiredb_stderr, msg);
+	fflush(xfiredb_stderr);
 }
 
 /**
  * @brief Raw logger.
  * @param msg Message to log.
  */
-void raw_xfire_log(const char *msg)
+void raw_xfiredb_log(const char *msg)
 {
-	fprintf(xfire_stdout, msg);
-	fflush(xfire_stdout);
+	fprintf(xfiredb_stdout, msg);
+	fflush(xfiredb_stdout);
 }
 
-void raw_xfire_log_console(const char *msg)
+void raw_xfiredb_log_console(const char *msg)
 {
-	if(xfire_stdout != stdout)
+	if(xfiredb_stdout != stdout)
 		fprintf(stdout, msg);
-	raw_xfire_log(msg);
+	raw_xfiredb_log(msg);
 }
 
 /**
@@ -124,12 +124,12 @@ void raw_xfire_log_console(const char *msg)
  * @param msg Format string.
  * @param ... Variable arguments to match \p msg.
  */
-void xfire_log(const char *src, const char *msg, ...)
+void xfiredb_log(const char *src, const char *msg, ...)
 {
 	va_list args;
 
 	va_start(args, msg);
-	vfxfire_log(src, msg, args);
+	vfxfiredb_log(src, msg, args);
 	va_end(args);
 }
 
@@ -139,13 +139,13 @@ void xfire_log(const char *src, const char *msg, ...)
  * @param msg Format string.
  * @param ... Variable arguments to match \p msg.
  */
-void xfire_log_err(const char *src, const char *msg, ...)
+void xfiredb_log_err(const char *src, const char *msg, ...)
 {
 	va_list args;
 
 	va_start(args, msg);
-	fprintf(xfire_stderr, "[%s]: ", src);
-	vfprintf(xfire_stderr, msg, args);
+	fprintf(xfiredb_stderr, "[%s]: ", src);
+	vfprintf(xfiredb_stderr, msg, args);
 	va_end(args);
 }
 

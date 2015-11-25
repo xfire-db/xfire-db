@@ -42,8 +42,8 @@ static void rb_list_release(void *p)
 	if(!container->intree) {
 		raw_rb_list_clear(container);
 		container_destroy(&container->c);
-		xfire_free(container->key);
-		xfire_free(container);
+		xfiredb_free(container->key);
+		xfiredb_free(container);
 	}
 }
 
@@ -53,14 +53,14 @@ void rb_list_free(struct db_entry_container *container)
 
 	if(container->obj_released && !container->intree) {
 		container_destroy(&container->c);
-		xfire_free(container->key);
-		xfire_free(container);
+		xfiredb_free(container->key);
+		xfiredb_free(container);
 	}
 }
 
 VALUE rb_list_alloc(VALUE klass)
 {
-	struct db_entry_container *container = xfire_zalloc(sizeof(*container));
+	struct db_entry_container *container = xfiredb_zalloc(sizeof(*container));
 
 	container_init(&container->c, CONTAINER_LIST);
 	container->obj = Data_Wrap_Struct(klass, NULL, rb_list_release, container);
@@ -108,9 +108,9 @@ static void raw_rb_list_clear(struct db_entry_container *container)
 		string_get(s, &data);
 		if(container->key)
 			xfiredb_notice_disk(container->key, data, NULL, LIST_DEL);
-		xfire_free(data);
+		xfiredb_free(data);
 		string_destroy(s);
-		xfire_free(s);
+		xfiredb_free(s);
 	}
 }
 
@@ -174,7 +174,7 @@ VALUE rb_list_set(VALUE self, VALUE i, VALUE data)
 	string_get(s, &tmp);
 	if(c->key)
 		xfiredb_notice_disk(c->key, tmp, StringValueCStr(data), LIST_UPDATE);
-	xfire_free(tmp);
+	xfiredb_free(tmp);
 	string_set(s, StringValueCStr(data));
 	return data;
 }
@@ -204,9 +204,9 @@ VALUE rb_list_pop(VALUE self, VALUE i)
 	if(c->key)
 		xfiredb_notice_disk(c->key, data, NULL, LIST_DEL);
 
-	xfire_free(data);
+	xfiredb_free(data);
 	string_destroy(s);
-	xfire_free(s);
+	xfiredb_free(s);
 
 	return rv;
 }
@@ -231,7 +231,7 @@ VALUE rb_list_ref(VALUE self, VALUE i)
 	s = container_of(carriage, struct string, entry);
 	string_get(s, &data);
 	rv = rb_str_new2(data);
-	xfire_free(data);
+	xfiredb_free(data);
 	return rv;
 }
 

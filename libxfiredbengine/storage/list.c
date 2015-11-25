@@ -93,7 +93,7 @@ void list_rpush(struct list_head *head, struct list *node)
 {
 	struct list *it;
 
-	xfire_spin_lock(&head->lock);
+	xfiredb_spin_lock(&head->lock);
 	if(!head->head) {
 		head->head = node;
 		node->next = NULL;
@@ -107,14 +107,14 @@ void list_rpush(struct list_head *head, struct list *node)
 		node->prev = it;
 		node->next = NULL;
 	}
-	xfire_spin_unlock(&head->lock);
+	xfiredb_spin_unlock(&head->lock);
 }
 
 void list_lpush(struct list_head *head, struct list *node)
 {
 	struct list *next = head->head;
 
-	xfire_spin_lock(&head->lock);
+	xfiredb_spin_lock(&head->lock);
 	if(next) {
 		next->prev = node;
 		node->next = next;
@@ -123,7 +123,7 @@ void list_lpush(struct list_head *head, struct list *node)
 	node->prev= NULL;
 	head->head = node;
 
-	xfire_spin_unlock(&head->lock);
+	xfiredb_spin_unlock(&head->lock);
 }
 #endif
 

@@ -40,10 +40,10 @@ struct database *db_alloc(const char *name)
 	struct database *db;
 	int l;
 
-	db = xfire_zalloc(sizeof(*db));
+	db = xfiredb_zalloc(sizeof(*db));
 	db->container = dict_alloc();
 	l = strlen(name) + 1;
-	db->name = xfire_zalloc(l);
+	db->name = xfiredb_zalloc(l);
 
 	memcpy(db->name, name, l);
 	return db;
@@ -113,7 +113,7 @@ int db_lookup(struct database *db, const char *key, db_data_t *data)
 	int rv;
 
 	rv = dict_lookup(db->container, key, &val, &tmp);
-	if(rv != -XFIRE_OK)
+	if(rv != -XFIREDB_OK)
 		return rv;
 	else
 		memcpy(data, &val, sizeof(val));
@@ -130,8 +130,8 @@ void db_free(struct database *db)
 	dict_clear(db->container);
 	dict_free(db->container);
 
-	xfire_free(db->name);
-	xfire_free(db);
+	xfiredb_free(db->name);
+	xfiredb_free(db);
 }
 
 /** @} */

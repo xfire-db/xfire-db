@@ -46,7 +46,7 @@ static void *test_thread_a(void *arg)
 
 	for(; i < 5; i++) {
 		assert(db_store(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 	}
 	return NULL;
 }
@@ -57,7 +57,7 @@ static void *test_thread_b(void *arg)
 
 	for(; i < 10; i++) {
 		assert(db_store(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 	}
 	return NULL;
 }
@@ -68,7 +68,7 @@ static void *test_thread_c(void *arg)
 
 	for(; i < 15; i++) {
 		assert(db_store(arg, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 	}
 	return NULL;
 }
@@ -79,7 +79,7 @@ static void *test_thread_e(void *arg)
 	db_data_t data;
 
 	for(; i < 25; i++)
-		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIRE_OK);
+		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIREDB_OK);
 	return NULL;
 }
 
@@ -89,7 +89,7 @@ static void *test_thread_d(void *arg)
 	db_data_t data;
 
 	for(; i < 20; i++)
-		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIRE_OK);
+		assert(db_delete(arg, (const char*)dbg_keys[i], &data) == -XFIREDB_OK);
 	return NULL;
 }
 
@@ -114,35 +114,35 @@ static void test_database(void)
 
 	for(i = 15; i < 25; i++)
 		assert(db_store(strings, (const char*)dbg_keys[i],
-			(void*)dbg_values[i]) == -XFIRE_OK);
+			(void*)dbg_values[i]) == -XFIREDB_OK);
 
-	a = xfire_create_thread("thread a", &test_thread_a, strings);
-	b = xfire_create_thread("thread b", &test_thread_b, strings);
-	c = xfire_create_thread("thread c", &test_thread_c, strings);
-	d = xfire_create_thread("thread d", &test_thread_d, strings);
-	e = xfire_create_thread("thread e", &test_thread_e, strings);
+	a = xfiredb_create_thread("thread a", &test_thread_a, strings);
+	b = xfiredb_create_thread("thread b", &test_thread_b, strings);
+	c = xfiredb_create_thread("thread c", &test_thread_c, strings);
+	d = xfiredb_create_thread("thread d", &test_thread_d, strings);
+	e = xfiredb_create_thread("thread e", &test_thread_e, strings);
 
-	xfire_thread_join(a);
-	xfire_thread_join(b);
-	xfire_thread_join(c);
-	xfire_thread_join(d);
-	xfire_thread_join(e);
+	xfiredb_thread_join(a);
+	xfiredb_thread_join(b);
+	xfiredb_thread_join(c);
+	xfiredb_thread_join(d);
+	xfiredb_thread_join(e);
 
-	xfire_thread_destroy(a);
-	xfire_thread_destroy(b);
-	xfire_thread_destroy(c);
-	xfire_thread_destroy(d);
-	xfire_thread_destroy(e);
+	xfiredb_thread_destroy(a);
+	xfiredb_thread_destroy(b);
+	xfiredb_thread_destroy(c);
+	xfiredb_thread_destroy(d);
+	xfiredb_thread_destroy(e);
 
 	for(i = 0; i < 15; i++) {
 		if(i == 11)
 			continue;
-		assert(db_delete(strings, dbg_keys[i], &val) == -XFIRE_OK);
+		assert(db_delete(strings, dbg_keys[i], &val) == -XFIREDB_OK);
 	}
 
-	assert(db_lookup(strings, dbg_keys[11], &tmp) == -XFIRE_OK);
+	assert(db_lookup(strings, dbg_keys[11], &tmp) == -XFIREDB_OK);
 	assert(!strcmp(dbg_values[11], tmp.ptr));
-	assert(db_delete(strings, dbg_keys[11], &val) == -XFIRE_OK);
+	assert(db_delete(strings, dbg_keys[11], &val) == -XFIREDB_OK);
 }
 
 static test_func_t test_func_array[] = {test_database, NULL};

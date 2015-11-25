@@ -63,7 +63,7 @@ static VALUE rb_db_ref(VALUE self, VALUE key)
 	db_data_t dbdata;
 
 	Data_Get_Struct(self, struct database, db);
-	if(db_lookup(db, StringValueCStr(key), &dbdata) != -XFIRE_OK)
+	if(db_lookup(db, StringValueCStr(key), &dbdata) != -XFIREDB_OK)
 		return Qnil;
 
 	c = dbdata.ptr;
@@ -75,7 +75,7 @@ static VALUE rb_db_ref(VALUE self, VALUE key)
 		s = container_get_data(&entry->c);
 		string_get(s, &tmp);
 		rv = rb_str_new2(tmp);
-		xfire_free(tmp);
+		xfiredb_free(tmp);
 
 		return rv;
 	}
@@ -90,8 +90,8 @@ static void raw_rb_db_delete(struct db_entry_container *entry)
 		/* string type, free it here */
 		xfiredb_notice_disk(entry->key, NULL, NULL, STRING_DEL);
 		container_destroy(c);
-		xfire_free(entry->key);
-		xfire_free(entry);
+		xfiredb_free(entry->key);
+		xfiredb_free(entry);
 		return;
 	} else if(entry->type == c_list) {
 		rb_list_free(entry);
@@ -123,7 +123,7 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 	db_data_t dbdata;
 
 	Data_Get_Struct(self, struct database, db);
-	if(db_delete(db, tmp, &dbdata) == -XFIRE_OK) {
+	if(db_delete(db, tmp, &dbdata) == -XFIREDB_OK) {
 		c = dbdata.ptr;
 		rb_c = container_of(c, struct db_entry_container, c);
 		if(rb_c->obj != data) {
@@ -132,7 +132,7 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 				s = container_get_data(c);
 				string_set(s, StringValueCStr(data));
 				xfiredb_notice_disk((char*)tmp, NULL, StringValueCStr(data), STRING_UPDATE);
-				return db_store(db, tmp, c) == -XFIRE_OK ? data : Qnil;
+				return db_store(db, tmp, c) == -XFIREDB_OK ? data : Qnil;
 			}
 
 			raw_rb_db_delete(rb_c);
@@ -144,7 +144,7 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 		rb_c->obj = data;
 		rb_c->intree = true;
 	} else {
-		rb_c = xfire_zalloc(sizeof(*rb_c));
+		rb_c = xfiredb_zalloc(sizeof(*rb_c));
 		rb_c->obj = Qnil;
 		rb_c->type = rb_cString;
 		container_init(&rb_c->c, CONTAINER_STRING);
@@ -152,9 +152,9 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 		string_set(s, StringValueCStr(data));
 	}
 
-	xfire_sprintf(&rb_c->key, "%s", tmp);
+	xfiredb_sprintf(&rb_c->key, "%s", tmp);
 
-	if(db_store(db, tmp, &rb_c->c) != -XFIRE_OK) {
+	if(db_store(db, tmp, &rb_c->c) != -XFIREDB_OK) {
 		rb_c->intree = false;
 		return Qnil;
 	}
@@ -171,7 +171,7 @@ static VALUE rb_db_delete(VALUE self, VALUE key)
 	db_data_t dbdata;
 
 	Data_Get_Struct(self, struct database, db);
-	if(db_delete(db, StringValueCStr(key), &dbdata) != -XFIRE_OK)
+	if(db_delete(db, StringValueCStr(key), &dbdata) != -XFIREDB_OK)
 		return Qnil;
 
 	c = dbdata.ptr;
@@ -220,7 +220,7 @@ static VALUE rb_db_each_pair(VALUE db)
 			s_val = container_get_data(c);
 			string_get(s_val, &value);
 			v = rb_str_new2(value);
-			xfire_free(value);
+			xfiredb_free(value);
 		}
 
 		rb_yield(rb_assoc_new(k, v));

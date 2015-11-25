@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XFIRE_TYPES_H__
-#define __XFIRE_TYPES_H__
+#ifndef __XFIREDB_TYPES_H__
+#define __XFIREDB_TYPES_H__
 
 #include <stdint.h>
 

@@ -39,7 +39,7 @@
 void atomic_flags_init(atomic_flags_t *atom)
 {
 	atom->flags = 0;
-	xfire_spinlock_init(&atom->lock);
+	xfiredb_spinlock_init(&atom->lock);
 }
 
 /**
@@ -49,7 +49,7 @@ void atomic_flags_init(atomic_flags_t *atom)
 void atomic_flags_destroy(atomic_flags_t *atom)
 {
 	atom->flags = 0;
-	xfire_spinlock_destroy(&atom->lock);
+	xfiredb_spinlock_destroy(&atom->lock);
 }
 
 /**
@@ -61,13 +61,13 @@ void atomic_flags_destroy(atomic_flags_t *atom)
  */
 void atomic_flags_copy(atomic_flags_t *dst, atomic_flags_t *src)
 {
-	xfire_spin_lock(&src->lock);
-	xfire_spin_lock(&dst->lock);
+	xfiredb_spin_lock(&src->lock);
+	xfiredb_spin_lock(&dst->lock);
 
 	dst->flags = src->flags;
 
-	xfire_spin_unlock(&dst->lock);
-	xfire_spin_unlock(&src->lock);
+	xfiredb_spin_unlock(&dst->lock);
+	xfiredb_spin_unlock(&src->lock);
 }
 
 static inline int __raw_test_bit(int bit, volatile unsigned long *addr)
@@ -86,9 +86,9 @@ int test_bit(int nr, atomic_flags_t *atom)
 	p += nr / (BITS_PER_LONG-1);
 	int bit = nr % BITS_PER_LONG, rv;
 
-	xfire_spin_lock(&atom->lock);
+	xfiredb_spin_lock(&atom->lock);
 	rv = __raw_test_bit(bit, p);
-	xfire_spin_unlock(&atom->lock);
+	xfiredb_spin_unlock(&atom->lock);
 
 	return rv;
 }
@@ -117,11 +117,11 @@ void swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 	p1 += nr / (BITS_PER_LONG - 1);
 	p2 += nr / (BITS_PER_LONG - 1);
 
-	xfire_spin_lock(&atom1->lock);
-	xfire_spin_lock(&atom2->lock);
+	xfiredb_spin_lock(&atom1->lock);
+	xfiredb_spin_lock(&atom2->lock);
 	raw_swap_bit(bit, p1, p2);
-	xfire_spin_unlock(&atom2->lock);
-	xfire_spin_unlock(&atom1->lock);
+	xfiredb_spin_unlock(&atom2->lock);
+	xfiredb_spin_unlock(&atom1->lock);
 
 	barrier();
 }
@@ -143,12 +143,12 @@ int test_and_swap_bit(int nr, atomic_flags_t *atom1, atomic_flags_t *atom2)
 	p1 += nr / (BITS_PER_LONG - 1);
 	p2 += nr / (BITS_PER_LONG - 1);
 
-	xfire_spin_lock(&atom1->lock);
-	xfire_spin_lock(&atom2->lock);
+	xfiredb_spin_lock(&atom1->lock);
+	xfiredb_spin_lock(&atom2->lock);
 	old = __raw_test_bit(bit, p1);
 	raw_swap_bit(bit, p1, p2);
-	xfire_spin_unlock(&atom2->lock);
-	xfire_spin_unlock(&atom1->lock);
+	xfiredb_spin_unlock(&atom2->lock);
+	xfiredb_spin_unlock(&atom1->lock);
 
 	barrier();
 	return old != 0;
@@ -165,9 +165,9 @@ void set_bit(int nr, atomic_flags_t *atom)
 	int bit = nr % BITS_PER_LONG;
 
 	p += nr / (BITS_PER_LONG-1);
-	xfire_spin_lock(&atom->lock);
+	xfiredb_spin_lock(&atom->lock);
 	*p |= 1UL << bit;
-	xfire_spin_unlock(&atom->lock);
+	xfiredb_spin_unlock(&atom->lock);
 
 	barrier();
 }
@@ -184,9 +184,9 @@ void clear_bit(int nr, atomic_flags_t *atom)
 
 	p += nr / (BITS_PER_LONG-1);
 
-	xfire_spin_lock(&atom->lock);
+	xfiredb_spin_lock(&atom->lock);
 	*p &= ~(1UL << bit);
-	xfire_spin_unlock(&atom->lock);
+	xfiredb_spin_unlock(&atom->lock);
 
 	barrier();
 }
@@ -204,10 +204,10 @@ int test_and_clear_bit(int nr, atomic_flags_t *atom)
 	int old;
 
 	p += nr / (BITS_PER_LONG-1);
-	xfire_spin_lock(&atom->lock);
+	xfiredb_spin_lock(&atom->lock);
 	old = __raw_test_bit(bit, p);
 	*p &= ~(1UL << bit);
-	xfire_spin_unlock(&atom->lock);
+	xfiredb_spin_unlock(&atom->lock);
 
 	barrier();
 	return old != 0UL;
@@ -226,10 +226,10 @@ int test_and_set_bit(int nr, atomic_flags_t *atom)
 	int old;
 
 	p += nr / (BITS_PER_LONG-1);
-	xfire_spin_lock(&atom->lock);
+	xfiredb_spin_lock(&atom->lock);
 	old = __raw_test_bit(bit, p);
 	*p |= 1UL << bit;
-	xfire_spin_unlock(&atom->lock);
+	xfiredb_spin_unlock(&atom->lock);
 
 	barrier();
 	return old != 0UL;

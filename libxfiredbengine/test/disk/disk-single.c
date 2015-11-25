@@ -51,7 +51,7 @@ static void test_hm_insert(struct hashmap *map)
 
 static struct string *dbg_get_string(const char *c)
 {
-	struct string *s = xfire_zalloc(sizeof(*s));
+	struct string *s = xfiredb_zalloc(sizeof(*s));
 
 	string_init(s);
 	string_set(s, c);
@@ -114,20 +114,20 @@ static void dbg_list_store(struct disk *d)
 	string_destroy(s3);
 	string_destroy(s4);
 
-	xfire_free(s1);
-	xfire_free(s2);
-	xfire_free(s3);
-	xfire_free(s4);
+	xfiredb_free(s1);
+	xfiredb_free(s2);
+	xfiredb_free(s3);
+	xfiredb_free(s4);
 }
 
 static void setup(struct unit_test *t)
 {
-	xfire_log_init(NULL, NULL);
+	xfiredb_log_init(NULL, NULL);
 }
 
 static void teardown(struct unit_test *t)
 {
-	xfire_log_exit();
+	xfiredb_log_exit();
 }
 
 static void disk_test(void)
@@ -142,7 +142,7 @@ static void disk_test(void)
 	disk_update_string(d, "test-key", "String update success!");
 
 	string_destroy(s);
-	xfire_free(s);
+	xfiredb_free(s);
 
 	dbg_list_store(d);
 	dbg_hm_store(d);
