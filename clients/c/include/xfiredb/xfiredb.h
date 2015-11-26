@@ -47,6 +47,19 @@ struct xfiredb_client {
 	long flags;
 };
 
+typedef enum {
+	XFIREDB_STRING,
+	XFIREDB_FIXNUM,
+	XFIREDB_STATUS,
+} xfiredb_result_type_t;
+
+struct xfiredb_result {
+	const char *data;
+	int length;
+
+	xfiredb_result_type_t type;
+};
+
 #define XFIREDB_SOCK_STREAM	0x1
 #define XFIREDB_SOCK_RESOLV	0x2
 #define XFIREDB_SSL		0x4
@@ -57,9 +70,13 @@ extern struct xfiredb_client *xfiredb_connect(char *host, int port, long flags);
 extern void xfiredb_disconnect(struct xfiredb_client *);
 extern int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *password);
 
-extern int xfiredb_query(struct xfiredb_client *client, const char *query);
+extern struct xfiredb_result *xfiredb_query(struct xfiredb_client *client, const char *query);
+
+extern void xfiredb_result_free(void *p);
+extern struct xfiredb_result *xfiredb_result_alloc(size_t num);
 
 extern int xfiredb_sprintf(char **buf, const char *format, ...);
+extern char** str_split(char* a_str, const char a_delim);
 
 extern void *xfire_alloc(size_t len);
 extern void *xfire_zalloc(size_t len);

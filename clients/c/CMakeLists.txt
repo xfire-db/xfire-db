@@ -6,6 +6,7 @@ add_library(xfiredb SHARED
 	query.c
 	connect.c
 	sprintf.c
+	split.c
 	mem.c)
 
 target_link_libraries(xfiredb LINK_PUBLIC ${OPENSSL_LIB})
