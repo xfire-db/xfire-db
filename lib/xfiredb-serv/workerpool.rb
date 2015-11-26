@@ -16,8 +16,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+#
 module XFireDB
+  # Server workpool. Implemented as a queue, the server will push 'work'
+  # onto the workerpool. A configurable amount of threads will be waiting to
+  # take work of the pool and handle it.
   class WorkerPool < Queue
+    # Create a new WorkerPool.
+    #
+    # @param [Fixnum] num Number of threads to create.
+    # @param [Cluster] cluster Cluster object.
     def initialize(num, cluster)
       super()
       db = XFireDB.db
@@ -90,9 +98,6 @@ module XFireDB
           end
         end
       end
-    end
-
-    def handle(client)
     end
   end
 end
