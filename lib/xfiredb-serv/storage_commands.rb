@@ -250,6 +250,7 @@ module XFireDB
       key = @argv[0]
       data = @argv[1]
 
+      return "-Syntax error: LPUSH <key> <data>" unless key and data
       return forward(key, "LPUSH #{key} \"#{data}\"") unless @cluster.local_node.shard.include? key
 
       db = XFireDB.db
@@ -268,6 +269,7 @@ module XFireDB
     def exec
       key = @argv[0]
 
+      return "-Syntax error: LCLEAR <key>" unless key
       return forward key, "LCLEAR #{key}" unless @cluster.local_node.shard.include? key
       list = XFireDB.db[key]
 
@@ -289,6 +291,7 @@ module XFireDB
       key = @argv[0]
       idx = @argv[1]
 
+      return "-Syntax error: LPOP <key> <idx | range>" unless key and idx
       return forward key, "LPOP #{key} #{idx}" unless @cluster.local_node.shard.include? key
       unless idx.is_i?
         range = idx.split('..')
@@ -348,6 +351,7 @@ module XFireDB
       key = @argv[0]
       idx = @argv[1]
 
+      return "-Syntax error: LREF <key> <idx | range>" unless key and idx
       return forward key, "LREF #{key} #{idx}" unless @cluster.local_node.shard.include? key
 
       unless idx.is_i?
@@ -452,7 +456,7 @@ module XFireDB
     def exec
       db = XFireDB.db
       key = @argv[0]
-      return "Incorrect syntax: GET <key>" unless @argv[0]
+      return "-Incorrect syntax: GET <key>" unless @argv[0]
 
       return forward(key, "GET #{key}") unless @cluster.local_node.shard.include?(@argv[0])
       val = db[@argv[0]]
@@ -470,7 +474,7 @@ module XFireDB
       key = @argv[0]
       db = XFireDB.db
 
-      return "Incorrect syntax: DELETE <key>" unless key
+      return "-Incorrect syntax: DELETE <key>" unless key
       forward(key, "DELETE #{key}") unless @cluster.local_node.shard.include?(key)
       db.delete(key)
       super(false)

@@ -18,4 +18,23 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+
+#include <xfiredb/xfiredb.h>
+
+struct xfiredb_result *xfiredb_result_alloc(size_t num)
+{
+	void *ary;
+
+	ary = calloc(num, sizeof(struct xfiredb_result));
+	memset(ary, 0, sizeof(struct xfiredb_result) * num);
+
+	return ary;
+}
+
+void xfiredb_result_free(void *p)
+{
+	xfire_free(p);
+}
 

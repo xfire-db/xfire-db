@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	}
 
 	port = atoi(_port);
-	client = xfiredb_connect(ip, port, XFIREDB_AUTH | XFIREDB_SOCK_STREAM);
+	client = xfiredb_connect(ip, port, XFIREDB_SSL | XFIREDB_AUTH | XFIREDB_SOCK_STREAM);
 
 	if(!client) {
 		fprintf(stderr, "Could not connect to server!\n");

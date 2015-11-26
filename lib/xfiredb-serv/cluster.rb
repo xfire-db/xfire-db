@@ -281,7 +281,7 @@ module XFireDB
     def query(client)
       cmd = XFireDB.cmds
       cmd = cmd[client.request.cmd]
-      return "Command not known" unless cmd
+      return "-Command not known" unless cmd
       instance = cmd.new(self, client)
       instance.exec
     end
