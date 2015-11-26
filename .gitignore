@@ -2,6 +2,9 @@
 *.output
 build/
 Documentation/gen/
+Documentation/xfiredbengine
+Documentation/xfiredb-serv
+.yardoc
 
 *.swp
 config.h

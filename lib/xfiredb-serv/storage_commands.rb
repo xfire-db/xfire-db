@@ -22,12 +22,23 @@
 # - --> Error code answer ('nil' and 'OK' are considered error codes too)
 # % --> Numeral answer.
 
+#
 module XFireDB
+  # SET INCLUDE handler
   class CommandSInclude < XFireDB::Command
+
+    # Create a new instance of CommandSInclude.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
+    # @return [CommandSInclude] A new CommandSInclude object.
     def initialize(cluster, client)
       super(cluster, "SINCLUDE", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv.shift
 
@@ -46,11 +57,19 @@ module XFireDB
     end
   end
 
+  # Hanlder for SCLEAR. Clear an entire set.
   class CommandSClear < XFireDB::Command
+    # Create a new SClear handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "SCLEAR", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
 
@@ -66,11 +85,19 @@ module XFireDB
     end
   end
 
+  # SDEL handler.
   class CommandSDel < XFireDB::Command
+    # Create a new SDel handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "SDEL", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv.shift
 
@@ -95,11 +122,19 @@ module XFireDB
     end
   end
 
+  # SADD handler
   class CommandSAdd < XFireDB::Command
+    # Create a new SADD handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "SADD", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv.shift
 
@@ -121,11 +156,19 @@ module XFireDB
     end
   end
 
+  # MDEL handler
   class CommandMDel < XFireDB::Command
+    # Create a new MDEL handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "MDEL", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv.shift
 
@@ -150,12 +193,19 @@ module XFireDB
     end
   end
 
+  # MREF hanlder
   class CommandMRef < XFireDB::Command
+    # Create a new MREF handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "MREF", client)
     end
 
-    # MREF <key> <hkey1> <hkey2> ...
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv.shift
 
@@ -176,11 +226,19 @@ module XFireDB
     end
   end
 
+  # MCLEAR handler
   class CommandMClear < XFireDB::Command
+    # Create a new MCLEAR handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "MCLEAR", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
 
@@ -199,12 +257,19 @@ module XFireDB
     end
   end
 
+  # MADD handler
   class CommandMAdd < XFireDB::Command
+    # Create a new MADD handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "MADD", client)
     end
 
-    # MADD <key> <mapkey> <data>
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
       hkey = @argv[1]
@@ -221,11 +286,19 @@ module XFireDB
     end
   end
 
+  # MSIZE handler
   class CommandMSize < XFireDB::Command
+    # Create a new MSIZE handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "MSIZE", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
 
@@ -240,12 +313,19 @@ module XFireDB
     end
   end
 
+  # LPUSH handler
   class CommandLPush < XFireDB::Command
+    # Create a new LPUSH handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "LPUSH", client)
     end
 
-    # LPUSH <key> <data>
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
       data = @argv[1]
@@ -260,11 +340,19 @@ module XFireDB
     end
   end
 
+  # LCLEAR handler
   class CommandLClear < XFireDB::Command
+    # Create a new LCLEAR handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "LCLEAR", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
 
@@ -278,13 +366,19 @@ module XFireDB
     end
   end
 
+  # LPOP handler
   class CommandLPop < XFireDB::Command
+    # Create a new LPOP handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "LPOP", client)
     end
 
-    # LPOP <key> idx
-    # LPOP <key> n..m
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
       idx = @argv[1]
@@ -337,13 +431,19 @@ module XFireDB
     end
   end
 
+  # LREF handler
   class CommandLRef < XFireDB::Command
+    # Create a new LREF handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "LREF", client)
     end
 
-    # LREF <key> idx
-    # LREF <key> n..m
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
       idx = @argv[1]
@@ -384,12 +484,19 @@ module XFireDB
     end
   end
 
+  # LSIZE handler
   class CommandLSize < XFireDB::Command
+    # Create a new LSIZE handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "LSIZE", client)
     end
 
-    # LSIZE <key>
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
 
@@ -402,12 +509,19 @@ module XFireDB
     end
   end
 
+  # LSET handler
   class CommandLSet < XFireDB::Command
+    # Create a new LSET handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "LSET", client)
     end
 
-    # LSET <key> <idx> <data>
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
       idx = @argv[1]
@@ -426,11 +540,19 @@ module XFireDB
     end
   end
 
+  # SET handler
   class CommandSet < XFireDB::Command
+    # Create a new SET handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "SET", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
       data = @argv[1]
@@ -444,11 +566,19 @@ module XFireDB
     end
   end
 
+  # GET handler
   class CommandGet < XFireDB::Command
+    # Create a new GET handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "GET", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       db = XFireDB.db
       key = @argv[0]
@@ -461,11 +591,19 @@ module XFireDB
     end
   end
 
+  # DELETE handler
   class CommandDelete < XFireDB::Command
+    # Create a new DELETE handler.
+    #
+    # @param [Cluster] cluster Cluster object.
+    # @param [Client] client Client object.
     def initialize(cluster, client)
       super(cluster, "DELETE", client)
     end
 
+    # Excute the command.
+    #
+    # @return [String] Reply to client.
     def exec
       key = @argv[0]
       db = XFireDB.db

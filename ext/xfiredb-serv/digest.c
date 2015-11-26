@@ -59,6 +59,12 @@ static const u16 crc16tab[256]= {
     0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1,0x1ef0
 };
 
+/*
+ * Document-method: crc16
+ *
+ * Hash a string into a Fixnum using the CRC16 hashing algorithm. The
+ * resulting number is a 16-bit number.
+ */
 VALUE rb_digest_crc16(VALUE klass, VALUE str)
 {
 	const char *tmp = StringValueCStr(str);
@@ -74,6 +80,12 @@ VALUE rb_digest_crc16(VALUE klass, VALUE str)
 }
 
 VALUE c_digest;
+
+/*
+ * Document-class: Digest
+ *
+ * Crypto class to bring crc16 support to ruby.
+ */
 void Init_digest(void)
 {
 	c_digest = rb_define_class_under(c_xfiredb_mod, "Digest",

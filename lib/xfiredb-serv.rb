@@ -51,12 +51,18 @@ require 'xfiredb-serv/shell'
 require 'xfiredb-serv/keyshard'
 require 'xfiredb-serv/xql'
 
+# XFireDB server module. All XFireDB related classes are found within this module.
+#
+# @author Michel Megens
+# @since 0.0.1
 module XFireDB
   @@config = nil
   @@users = nil
   @@options = nil
   @@engine = nil
   @@running = true
+
+  # List of available command handles
   @@commands = {
     "GET" => XFireDB::CommandGet,
     "SET" => XFireDB::CommandSet,
@@ -82,14 +88,27 @@ module XFireDB
     "CLUSTER" => XFireDB::ClusterCommand
   }
 
+  # Keys which cannot be acced by clients and are not moved by
+  # a reshard operation.
   @@illegals = ["xfiredb", "xfiredb-nodes"]
+
+  # List of keys that are not accesible by clients, but are moved
+  # by a reshard operation.
   @@private_keys = ["xfiredb-users"]
 
+  # Get a list of keys that are needed during the preinit stage. These
+  # keys are loaded first from the harddisk.
+  #
+  # @return [Set] A list of keys needed during initalisation.
   def XFireDB.preinit_keys
     tmp = @@illegals + @@private_keys
     tmp.to_set
   end
 
+  # Start the XFireDB server / cluster node.
+  #
+  # @param cmdargs [String] Command line arguments
+  # @return nil
   def XFireDB.start(cmdargs)
     @options = OpenStruct.new
     @options.config = nil
@@ -170,19 +189,27 @@ module XFireDB
     end
   end
 
+  # Prepare the XFireDB server for shutdown.
   def XFireDB.shutdown
     puts("[exit]: Shutting down XFireDB server process")
     @@running = false
   end
 
+  # Check if the XFireDB server is running.
+  #
+  # @return [Boolean] true if the server is running, false otherwise.
   def XFireDB.running
     @@running
   end
 
+  # Get the list of available users.
+  #
+  # @return [Hash] The known users.
   def XFireDB.users
     @@users
   end
 
+  # Load the users from the database.
   def XFireDB.create_users
     map = XFireDB.db['xfiredb-users']
     @@users = Hash.new
@@ -196,10 +223,16 @@ module XFireDB
     end
   end
 
+  # Check if a key is illegal.
+  #
+  # @return [Boolean] true if the key is illegal, false otherwise.
   def XFireDB.illegal_key?(key)
     @@illegals.include? key
   end
 
+  # Check if a key is private.
+  #
+  # @return [Boolean] true if the key is private, false otherwise.
   def XFireDB.private_key?(key)
     @@private_keys.include? key
   end
@@ -220,18 +253,26 @@ module XFireDB
     @@commands
   end
 
+  # Getter for the XFireDB engine object.
+  #
+  # @return [XFireDB::Engine]
   def XFireDB.engine
     @@engine
   end
 
+  # Create a new XFireDB engine instance.
+  #
+  # @return [XFireDB::Engine]
   def XFireDB.create
     @@engine = XFireDB::Engine.new
   end
 
+  # Stop the database engine.
   def XFireDB.exit
     @@engine.exit if @@engine
   end
 
+  # Save the current state of the engine to the disk.
   def XFireDB.save
     @@engine.save if @@engine
   end

@@ -16,7 +16,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+#
 module XFireDB
+  # Thrown whenever a unknown command is issued to the server by a client.
   class IllegalCommandException < StandardError
   end
 end

@@ -12,3 +12,6 @@ gem 'daemons'
 # BCrypt gem to do complex hashing
 gem 'bcrypt'
 
+# Ruby documentation
+gem 'yard'
+

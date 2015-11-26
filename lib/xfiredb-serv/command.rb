@@ -17,6 +17,12 @@
 #
 
 module XFireDB
+  # XFireDB command base class. All XQL command classes are derived from
+  # this class.
+  #
+  # @abstract
+  # @author Michel Megens
+  # @since 0.0.1
   class Command
     @cmd = nil
     @argv = nil
@@ -24,6 +30,13 @@ module XFireDB
     @cluster = nil
     @client = nil
 
+    # Create a new command instance.
+    # 
+    # @author Michel Megens
+    # @param cluster [Cluster] Cluster object
+    # @param cmd [String] Name of the command.
+    # @param key [String] Database key involved in the command.
+    # @param raw [String] Raw XQL query.
     def initialize(cluster, cmd, client, key = nil, raw = nil)
       @cluster = cluster
       @cmd = cmd
@@ -42,6 +55,15 @@ module XFireDB
       end
     end
 
+    # Forward the command to another server in the cluster. This command
+    # is used when 'this' server doesn't hold the key. {#forward} uses the
+    # CLUSTER WHEREIS? command on the cluster bus to find out which cluster node
+    # holds the key.
+    #
+    # @author Michel Megens
+    # @param key [String] Key in question.
+    # @param query [String] Query to forward
+    # @return [String] Query reply from another cluster node.
     def forward(key, query = nil)
       node = @cluster.where_is? key
       node = @cluster.nodes[node]
@@ -49,6 +71,13 @@ module XFireDB
       return node.cluster_query query
     end
 
+    # Execute the command. Please note that this base method only has to be
+    # called for keyspace modifing commands.
+    #
+    # @author Michel Megens
+    # @param add [Boolean] When set to true, the key will be added
+    #   to the key space of this server, when false it will be removed.
+    # @return nil
     def exec(add)
       if add
         @cluster.local_node.shard.add_key(@key) unless @key.nil?

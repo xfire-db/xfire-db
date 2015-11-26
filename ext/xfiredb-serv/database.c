@@ -44,6 +44,10 @@ static VALUE rb_container_to_obj(struct db_entry_container *c)
 	return c->obj;
 }
 
+/* 
+ * Document-method: new
+ * @return [Database] A new database instance.
+ */
 static VALUE rb_db_new(VALUE klass)
 {
 	struct database *db = db_alloc("xfire-database");
@@ -163,6 +167,11 @@ static VALUE rb_db_store(VALUE self, VALUE key, VALUE data)
 	return data;
 }
 
+/*
+ * Document-mehtod: delete
+ *
+ * Delete a key from the database.
+ */
 static VALUE rb_db_delete(VALUE self, VALUE key)
 {
 	struct database *db;
@@ -194,6 +203,12 @@ static VALUE db_enum_size(VALUE db, VALUE args, VALUE obj)
 	return rb_db_size(db);
 }
 
+/*
+ * call-seq:
+ *     database.each {|key, value| block } -> db
+ *
+ * Creates an enumerator to enumerate each object in the database.
+ */
 static VALUE rb_db_each_pair(VALUE db)
 {
 	struct db_iterator *it;
@@ -231,6 +246,13 @@ static VALUE rb_db_each_pair(VALUE db)
 
 VALUE c_database;
 
+/*
+ * Document-class: XFireDB::Database
+ *
+ * The XFireDB::Database class is the backend of the XFireDB storage
+ * engine. This class is responsible for saving references to the stored
+ * data.
+ */
 void init_database(void)
 {
 	c_database = rb_define_class_under(c_xfiredb_mod,

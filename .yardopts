@@ -1,0 +1,4 @@
+-o Documentation/xfiredb-serv
+--main README.md
+
+lib/
