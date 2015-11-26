@@ -71,6 +71,7 @@ struct xfiredb_result {
 #define XFIREDB_RESULT_NIL 	0x1
 #define XFIREDB_RESULT_OK	0x2
 #define XFIREDB_RESULT_MSG	0x4
+#define XFIREDB_RESULT_SUCCESS	0x8
 
 #define XFIREDB_SOCK_STREAM	0x1
 #define XFIREDB_SOCK_RESOLV	0x2

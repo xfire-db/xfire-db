@@ -53,6 +53,7 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 			tmp = strdup(&r->data.ptr[1]);
 			xfire_free(r->data.ptr);
 			r->data.ptr = tmp;
+			r->status = XFIREDB_RESULT_SUCCESS;
 			break;
 
 		case '&':
@@ -61,6 +62,7 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 			xfire_free(r->data.ptr);
 			r->data.ptr = NULL;
 			r->data.boolean = numeral;
+			r->status = XFIREDB_RESULT_SUCCESS;
 			break;
 
 		case '%':
@@ -69,6 +71,7 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 			numeral = atoi(tmp);
 			xfire_free(r->data.ptr);
 			r->data.si = numeral;
+			r->status = XFIREDB_RESULT_SUCCESS;
 			break;
 
 		case '-':
@@ -81,7 +84,7 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 				tmp = r->data.ptr;
 
 			if(!strcmp("OK", tmp)) {
-				r->status = XFIREDB_RESULT_OK;
+				r->status = XFIREDB_RESULT_OK | XFIREDB_RESULT_SUCCESS;
 				xfire_free(r->data.ptr);
 				r->data.ptr = NULL;
 			} else if(!strcmp("nil", tmp)) {
