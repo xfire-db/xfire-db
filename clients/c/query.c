@@ -41,17 +41,14 @@ again:
 			num = SSL_read(client->ssl->ssl, &c, 1);
 		else
 			num = read(client->socket, &c, 1);
-		if(num <= 0)
+
+		if(num <= 0 || c == '\n')
 			goto done;
 
 		tmp[i] = c;
-		if(c == '\n') {
-			i++;
-			goto done;
-		}
 	}
 
-	tmp[i+1] = '\0';
+	tmp[i] = '\0';
 	if(tmp != rv) {
 		len = strlen(tmp) + strlen(rv) + 1;
 		rv = realloc(rv, len);
@@ -75,40 +72,66 @@ done:
 	return rv;
 }
 
-static struct xfiredb_result *__query(struct xfiredb_client *client, const char *query)
+static struct xfiredb_result **__query(struct xfiredb_client *client, const char *query)
 {
 	return NULL;
 }
 
-static struct xfiredb_result *ssl_query(struct xfiredb_client *client, const char *query)
+static struct xfiredb_result **ssl_query(struct xfiredb_client *client, const char *query)
 {
-	struct xfiredb_result *res;
-	int len;
-	ssize_t num;
-	char *query2;
+	struct xfiredb_result **res;
+	struct xfiredb_ssl_client *ssl;
+	int len, i;
+	ssize_t num, size;
+	char *query2, *buf, **sizes;
 
-	if(!client || !query)
+	if(!client->ssl || !query)
 		return NULL;
 
+	ssl = client->ssl;
 	xfiredb_sprintf(&query2, "%s\n", query);
 	len = strlen(query2);
-	num = SSL_write(client->ssl->ssl, query2, len);
+	num = SSL_write(ssl->ssl, query2, len);
 	xfire_free(query2);
 
 	if(num <= 0L)
 		return NULL;
 
-	return NULL;
+	buf = query_readline(client);
+	len = str_count_occurences(buf, ' ') + 1;
+	sizes = str_split(buf, ' ');
+	res = xfiredb_result_alloc(len);
+	xfire_free(buf);
+
+	for(i = 0; i < len; i++) {
+		size = atoi(sizes[i]);
+		res[i]->data.ptr = xfire_zalloc(size);
+		num = SSL_read(ssl->ssl, res[i]->data.ptr, size);
+		res[i]->data.ptr[num-1] = '\0';
+		xfire_free(sizes[i]);
+	}
+
+	xfire_free(sizes);
+
+	return res;
 }
 
-struct xfiredb_result *xfiredb_query(struct xfiredb_client *client, const char *query)
+struct xfiredb_result **xfiredb_query(struct xfiredb_client *client, const char *query)
 {
+	struct xfiredb_result **rv;
+
 	if(!client)
 		return NULL;
 
 	if(client->flags & XFIREDB_SSL)
-		return ssl_query(client, query);
+		rv = ssl_query(client, query);
 	else
-		return __query(client, query);
+		rv = __query(client, query);
+
+	if(!rv)
+		return NULL;
+
+	xfiredb_result_parse(rv);
+	return rv;
 }
 

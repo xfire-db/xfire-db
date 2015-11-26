@@ -23,52 +23,41 @@
 
 #include <xfiredb/xfiredb.h>
 
-static int dbg_query(struct xfiredb_client *client, const char *query)
+static void numeral_test(struct xfiredb_client *client)
 {
-	char tmp[1024];
-	char *querynl;
-	int len;
+	struct xfiredb_result **r;
+	int i;
+	char *query_add = "SADD setkey \"key1\" \"key2\" \"key3\" \"key4\"";
+	char *query_del = "DELETE setkey";
 
-	len = strlen(query);
-	querynl = xfire_zalloc(len + 2);
-	memcpy(querynl, query, len);
-	querynl[len] = '\n';
-	querynl[len + 1] = '\0';
-	len = strlen(querynl);
+	printf("Executing numeral test.\nAdding 4 keys to a set:\n");
+	r = xfiredb_query(client, query_add);
+	for(i = 0; r[i]; i++) {
+		if(xfiredb_result_type(r[i]) == XFIREDB_FIXNUM) {
+			printf("Number of set keys inserted: %li\n", xfiredb_result_to_int(r[i]));
+		} else {
+			printf("An error occurred");
+			if(xfiredb_result_type(r[i]) == XFIREDB_STATUS && xfiredb_result_status(r[i]) == XFIREDB_RESULT_MSG)
+				printf(": %s\n", xfiredb_result_to_ptr(r[i]));
+		}
+	}
+	xfiredb_result_free(r);
 
-	write(client->socket, querynl, len);
-	xfire_free(querynl);
-	len = read(client->socket, tmp, sizeof(tmp));
-	tmp[len-1] = '\0';
-	printf("Received: %s\n", tmp);
-	return 0;
-}
-static int dbg_ssl_query(struct xfiredb_client *client, const char *query)
-{
-	char tmp[1024];
-	char *querynl;
-	int len;
-
-	len = strlen(query);
-	querynl = xfire_zalloc(len + 2);
-	memcpy(querynl, query, len);
-	querynl[len] = '\n';
-	querynl[len + 1] = '\0';
-	len = strlen(querynl);
-
-	SSL_write(client->ssl->ssl, querynl, len);
-	xfire_free(querynl);
-	len = SSL_read(client->ssl->ssl, tmp, sizeof(tmp));
-	tmp[len-1] = '\0';
-	printf("Received: %s\n", tmp);
-	return 0;
+	printf("\nSet test done, deleting set:");
+	r = xfiredb_query(client, query_del);
+	if(r[0]->type == XFIREDB_STATUS && r[0]->status == XFIREDB_RESULT_OK)
+		printf("OK\n");
+	else
+		printf("ERROR!\n");
+	xfiredb_result_free(r);
 }
 
 int main(int argc, char **argv)
 {
 	struct xfiredb_client *client;
+	struct xfiredb_result **result;
 	char *ip, *_port;
-	int port;
+	int port, i;
 
 	if(argc != 3) {
 		fprintf(stderr, "Usage: %s <hostname> <portnum>\n", argv[0]);
@@ -87,9 +76,15 @@ int main(int argc, char **argv)
 	}
 
 	xfiredb_auth_client(client, "cluster", "cluster");
-	dbg_query(client, "GET key1");
+	numeral_test(client);
+	printf("\n");
+	result = xfiredb_query(client, "lref tl 0..-1");
 	xfiredb_disconnect(client);
 
+	for(i = 0; result[i]; i++)
+		printf("%s\n", result[i]->data.ptr);
+
+	xfiredb_result_free(result);
 	return -EXIT_SUCCESS;
 }
 

@@ -30,14 +30,22 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+static int initialised = 0;
+
+void xfiredb_init(void)
+{
+	SSL_library_init();
+	OpenSSL_add_all_algorithms();
+	SSL_load_error_strings();
+
+	initialised = 1;
+}
+
 SSL_CTX *xfiredb_ssl_init(void)
 {
 	const SSL_METHOD *method;
 	SSL_CTX *ctx;
 
-	SSL_library_init();
-	OpenSSL_add_all_algorithms();
-	SSL_load_error_strings();
 	method = SSLv23_client_method();
 	ctx = SSL_CTX_new(method);
 
@@ -74,6 +82,9 @@ static struct xfiredb_client *xfiredb_ssl_connect(char *hostname, int port, long
 	struct sockaddr_in addr;
 	struct hostent *host;
 	int sock;
+
+	if(!initialised)
+		xfiredb_init();
 
 	client = xfire_zalloc(sizeof(*client));
 	client->ssl = xfire_zalloc(sizeof(*client->ssl));
@@ -174,7 +185,7 @@ struct xfiredb_client *xfiredb_connect(char *host, int port, long flags)
 	if(!client)
 		return NULL;
 
-	if((flags & XFIREDB_SOCK_STREAM) != 0L && (flags & XFIREDB_AUTH) == 0L) {
+	if((flags & (XFIREDB_SOCK_STREAM | XFIREDB_AUTH)) == XFIREDB_SOCK_STREAM) {
 		if(flags & XFIREDB_SSL)
 			SSL_write(client->ssl->ssl, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
 		else

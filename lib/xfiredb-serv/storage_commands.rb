@@ -50,7 +50,7 @@ module XFireDB
 
       rv = Array.new
       @argv.each do |hkey|
-        rv.push "+" + set.include?(hkey).to_s
+        rv.push "&" + set.include?(hkey).to_s
       end
 
       return rv
@@ -138,8 +138,8 @@ module XFireDB
     def exec
       key = @argv.shift
 
-      return forward(key, "SADD #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
       return "-Syntax error: SADD <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+      return forward(key, "SADD #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
 
       XFireDB.db[key] = XFireDB::Set.new unless XFireDB.db[key].is_a? XFireDB::Set
       set = XFireDB.db[key]
