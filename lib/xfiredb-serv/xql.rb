@@ -16,7 +16,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+#
 module XFireDB
+  # XQL query wrapper.
   class XQLCommand
     attr_reader :cmd, :args, :raw
     attr_accessor :src_ip, :src_port
@@ -27,6 +29,11 @@ module XFireDB
     @src_ip = nil
     @src_port = nil
 
+    # Create a new XQL query query.
+    #
+    # @param [String] cmd Command identifier.
+    # @param [String] args Arguments to cmd.
+    # @param [String] query The full XQL query.
     def initialize(cmd, args, query)
       @cmd = cmd
       @args = args
@@ -34,7 +41,12 @@ module XFireDB
     end
   end
 
+  # XQL factory
   class XQL
+    # Factory method to produce an XQLCommand.
+    #
+    # @param [String] query An XQL query.
+    # @return [XQLCommand]
     def XQL.parse(query)
       cmdary = query.tokenize
       cmd = cmdary.shift
