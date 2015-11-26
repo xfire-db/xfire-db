@@ -74,7 +74,39 @@ done:
 
 static struct xfiredb_result **__query(struct xfiredb_client *client, const char *query)
 {
-	return NULL;
+	struct xfiredb_result **res;
+	int len, i;
+	ssize_t num, size;
+	char *query2, *buf, **sizes;
+
+	if(!query)
+		return NULL;
+
+	xfiredb_sprintf(&query2, "%s\n", query);
+	len = strlen(query2);
+	num = write(client->socket, query2, len);
+	xfire_free(query2);
+
+	if(num <= 0L)
+		return NULL;
+
+	buf = query_readline(client);
+	len = str_count_occurences(buf, ' ') + 1;
+	sizes = str_split(buf, ' ');
+	res = xfiredb_result_alloc(len);
+	xfire_free(buf);
+
+	for(i = 0; i < len; i++) {
+		size = atoi(sizes[i]);
+		res[i]->data.ptr = xfire_zalloc(size);
+		num = read(client->socket, res[i]->data.ptr, size);
+		res[i]->data.ptr[num-1] = '\0';
+		xfire_free(sizes[i]);
+	}
+
+	xfire_free(sizes);
+
+	return res;
 }
 
 static struct xfiredb_result **ssl_query(struct xfiredb_client *client, const char *query)
