@@ -16,9 +16,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+#
 module XFireDB
+  # XFireDB user
   class User
+    # ADMIN user level
     ADMIN = 10
+    # REGULAR user level
     NORMAL = 1
     attr_reader :user, :password
     attr_accessor :authenticated, :level
@@ -29,17 +33,30 @@ module XFireDB
     @authenticated = false
     @level = 1
 
+    # Create a new user.
+    #
+    # @param [String] user Username.
+    # @param [String] pw Password.
     def initialize(user, pw)
       @user = user
       @password = pw
     end
 
+    # Create a new user from a hash.
+    #
+    # @param [String] user Username.
+    # @param [String] hash Password hash.
+    # @return [User] New user object.
     def User.from_hash(user, hash)
       u = User.new(user, nil)
       u.hash = hash
       return u
     end
 
+    # Assign a new hash to a {User}. The hash will be converted
+    # to a {BCrypt::Password}.
+    #
+    # @param [String] hash Password hash to set.
     def hash=(hash)
       if hash.is_a? BCrypt::Password
         @hash = hash
@@ -48,10 +65,18 @@ module XFireDB
       end
     end
 
+    # Hash getter method.
+    #
+    # @return [BCrypt::Password] User password hash.
     def hash
       @hash
     end
 
+    # Authenticate a user. The authentication will be done
+    # using the so called 'local' users (i.e. this is not a cluster wide
+    # authentication). For cluster wide authentication please check {Client#auth}.
+    #
+    # @return [Boolean] true if the authentication succeeded false otherwise.
     def auth
       db = XFireDB.db
       map = db['xfiredb']
@@ -61,6 +86,9 @@ module XFireDB
       return @authenticated
     end
 
+    # Convert a {User} to a string.
+    #
+    # @return [String] String representation of {User}.
     def to_s
       "#{@user}::#{@hash}::#{@level}"
     end
