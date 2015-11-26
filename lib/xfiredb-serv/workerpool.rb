@@ -51,10 +51,12 @@ module XFireDB
 
                 v = cluster.query(client)
                 if v.is_a? Array
+                  stream.puts v.length
                   v.each do |val|
                     stream.puts val
                   end
                 else
+                  stream.puts 1
                   stream.puts v
                 end
                 break unless client.keep
