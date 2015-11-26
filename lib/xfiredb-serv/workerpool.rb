@@ -41,6 +41,8 @@ module XFireDB
                   stream.puts "Access denied"
                   stream.close
                   next
+                else
+                  stream.puts "OK"
                 end
               end
 
@@ -72,6 +74,7 @@ module XFireDB
             stream.close
             next
           rescue Exception => e
+            puts e.class
             if e.is_a? BCrypt::Errors::InvalidHash
               stream.puts "Access denied for #{ip}"
               XFireDB::Log.auth_fail(ip, auth.args[0])
