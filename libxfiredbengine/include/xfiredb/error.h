@@ -16,10 +16,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup stdlib
+ * @{
+ */
+
 #ifndef __XFIREDB_ERROR_H__
 #define __XFIREDB_ERROR_H__
 
+/**
+ * @name XFireDB errors
+ * @{
+ */
 #define XFIREDB_OK	0 //!< SUCCESS error code
 #define XFIREDB_ERR	1 //!< General error code
+/** @} */
 
 #endif
+
+/** @} */
+

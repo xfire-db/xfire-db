@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup stdlib
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -53,4 +58,6 @@ int xfiredb_sprintf(char **buf, const char *format, ...)
 
 	return size;
 }
+
+/** @} */
 

@@ -111,6 +111,12 @@ void raw_xfiredb_log(const char *msg)
 	fflush(xfiredb_stdout);
 }
 
+/**
+ * @brief Log to the console.
+ *
+ * This function logs to both the console and the file
+ * pointed to by xfiredb_stdout.
+ */
 void raw_xfiredb_log_console(const char *msg)
 {
 	if(xfiredb_stdout != stdout)
