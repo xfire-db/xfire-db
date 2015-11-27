@@ -19,3 +19,129 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <xfiredb/xfiredb.h>
+
+void xfiredb_escape_free(char *str)
+{
+	xfire_free(str);
+}
+
+static void xfiredb_unescape_char(char *c, char *dst)
+{
+	switch(*c) {
+	case 'a':
+		*dst = '\a';
+		break;
+	case 'b':
+		*dst = '\b';
+		break;
+	case 'f':
+		*dst = '\f';
+		break;
+	case 'n':
+		*dst = '\n';
+		break;
+	case 'r':
+		*dst = '\r';
+		break;
+	case 't':
+		*dst = '\t';
+		break;
+	case 'v':
+		*dst = '\v';
+		break;
+	default:
+		*dst = *c;
+		break;
+	}
+}
+
+char *xfiredb_unescape_string(char *src)
+{
+	char *dst, *orig, c;
+	int len;
+
+	len = strlen(src);
+	orig = dst = xfire_zalloc(len);
+
+	while((c = *(src++)) != '\0') {
+		switch(c) {
+		case '\\':
+			xfiredb_unescape_char(src, dst);
+			dst++;
+			src++;
+			break;
+		default:
+			*(dst++) = c;
+			break;
+		}
+	}
+
+	*dst = '\0';
+	len = strlen(orig) + 1;
+	return realloc(orig, len);
+
+}
+
+char *xfiredb_escape_string(char *src)
+{
+	int len;
+	char *orig, *dst, c;
+
+	len = strlen(src);
+	orig = dst = xfire_zalloc(len * 2);
+
+	while((c = *(src++)) != '\0') {
+		switch(c) {
+		case '\a':
+			*(dst++) = '\\';
+			*(dst++) = 'a';
+			break;
+		case '\b':
+			*(dst++) = '\\';
+			*(dst++) = 'b';
+			break;
+		case '\f':
+			*(dst++) = '\\';
+			*(dst++) = 'f';
+			break;
+		case '\n':
+			*(dst++) = '\\';
+			*(dst++) = 'n';
+			break;
+		case '\r':
+			*(dst++) = '\\';
+			*(dst++) = 'r';
+			break;
+		case '\t':
+			*(dst++) = '\\';
+			*(dst++) = 't';
+			break;
+		case '\v':
+			*(dst++) = '\\';
+			*(dst++) = 'v';
+			break;
+		case '\\':
+			*(dst++) = '\\';
+			*(dst++) = '\\';
+			break;
+		case '\"':
+			*(dst++) = '\\';
+			*(dst++) = '\"';
+			break;
+		case '\'':
+			*(dst++) = '\\';
+			*(dst++) = '\'';
+			break;
+		default:
+			*(dst++) = c;
+			break;
+		}
+	}
+
+	*dst = '\0';
+
+	len = strlen(orig) + 1;
+	return realloc(orig, len);
+}
+

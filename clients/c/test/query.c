@@ -45,10 +45,80 @@ static void numeral_test(struct xfiredb_client *client)
 
 	printf("\nSet test done, deleting set:");
 	r = xfiredb_query(client, query_del);
-	if(r[0]->type == XFIREDB_STATUS && r[0]->status == XFIREDB_RESULT_OK)
+	if(r[0]->type == XFIREDB_STATUS && (r[0]->status & XFIREDB_RESULT_OK))
 		printf("OK\n");
 	else
 		printf("ERROR!\n");
+	xfiredb_result_free(r);
+}
+
+#define HASH_QUERY "MADD hash-key %s \"%s\""
+static void hash_test(struct xfiredb_client *client)
+{
+	int i;
+	char *data1 = "Data for \"key1\"";
+	char *data2 = "Data for \"key2\"";
+	char *data3 = "Data for \"key3\"";
+	char *query, *tmp;
+	struct xfiredb_result **r;
+
+	tmp = xfiredb_escape_string(data1);
+	xfiredb_sprintf(&query, HASH_QUERY, "hkey1", tmp);
+	r = xfiredb_query(client, query);
+
+	if(!xfiredb_result_success(r[0])) {
+		printf("Query error!\n");
+		abort();
+	}
+	xfiredb_result_free(r);
+	xfiredb_escape_free(tmp);
+	xfire_free(query);
+
+	tmp = xfiredb_escape_string(data2);
+	xfiredb_sprintf(&query, HASH_QUERY, "hkey2", tmp);
+	r = xfiredb_query(client, query);
+
+	if(!xfiredb_result_success(r[0])) {
+		printf("Query error!\n");
+		abort();
+	}
+	xfiredb_result_free(r);
+	xfiredb_escape_free(tmp);
+	xfire_free(query);
+
+	tmp = xfiredb_escape_string(data3);
+	xfiredb_sprintf(&query, HASH_QUERY, "hkey3", tmp);
+	r = xfiredb_query(client, query);
+
+	if(!xfiredb_result_success(r[0])) {
+		printf("Query error!\n");
+		abort();
+	}
+	xfiredb_result_free(r);
+	xfiredb_escape_free(tmp);
+	xfire_free(query);
+
+	/* GET data */
+	query = "MREF hash-key hkey1 hkey2 hkey3";
+	r = xfiredb_query(client, query);
+
+	for(i = 0; r[i]; i++) {
+		if(!xfiredb_result_success(r[i])) {
+			printf("Query error!\n");
+			abort();
+		}
+
+		tmp = xfiredb_unescape_string(xfiredb_result_to_ptr(r[i]));
+		printf("%s\n", tmp);
+		xfiredb_escape_free(tmp);
+	}
+	xfiredb_result_free(r);
+
+	r = xfiredb_query(client, "DELETE hash-key");
+	if(!xfiredb_result_success(r[0])) {
+		printf("Query error!\n");
+		abort();
+	}
 	xfiredb_result_free(r);
 }
 
@@ -77,6 +147,8 @@ int main(int argc, char **argv)
 
 	xfiredb_auth_client(client, "cluster", "cluster");
 	numeral_test(client);
+	printf("\n");
+	hash_test(client);
 	printf("\n");
 	result = xfiredb_query(client, "lref tl 0..-1");
 	xfiredb_disconnect(client);

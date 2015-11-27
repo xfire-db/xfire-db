@@ -109,6 +109,11 @@ static inline char *xfiredb_result_to_ptr(struct xfiredb_result *r)
 	return r->data.ptr;
 }
 
+static inline int xfiredb_result_success(struct xfiredb_result *r)
+{
+	return !!(r->status & XFIREDB_RESULT_SUCCESS);
+}
+
 extern struct xfiredb_client *xfiredb_connect(char *host, int port, long flags);
 extern void xfiredb_disconnect(struct xfiredb_client *);
 extern int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *password);
@@ -118,6 +123,10 @@ extern struct xfiredb_result **xfiredb_query(struct xfiredb_client *client, cons
 extern void xfiredb_result_free(struct xfiredb_result **p);
 extern struct xfiredb_result **xfiredb_result_alloc(size_t num);
 extern void xfiredb_result_parse(struct xfiredb_result **rp);
+
+extern char *xfiredb_escape_string(char *src);
+extern char *xfiredb_unescape_string(char *src);
+extern void xfiredb_escape_free(char *str);
 
 extern int xfiredb_sprintf(char **buf, const char *format, ...);
 extern char** str_split(char* a_str, const char a_delim);
