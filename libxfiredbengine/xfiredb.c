@@ -130,6 +130,9 @@ void xfiredb_load_key(char *key, void (*hook)(int argc, char **rows, char **cols
 
 /**
  * @brief Destructor for the XFireDB storage engine.
+ *
+ * Stop the XFireDB engine. Before the engine is stopped, all data is
+ * synced to the disk firest.
  */
 void xfiredb_se_exit(void)
 {
@@ -145,6 +148,9 @@ void xfiredb_se_exit(void)
 
 /**
  * @brief Save the current state of the database to disk.
+ * @see bio_sync
+ *
+ * The background I/O queue is synced when this function returns.
  */
 void xfiredb_se_save(void)
 {
@@ -246,6 +252,7 @@ void xfiredb_store_container(char *_key, struct container *c)
 	}
 }
 
+#ifndef __DOXYGEN__
 static container_type_t xfiredb_get_row_type(char *cell)
 {
 	if(!strcmp(cell, "string"))
@@ -968,6 +975,7 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 	xfiredb_free(c);
 	return -XFIREDB_OK;
 }
+#endif
 
 /** @} */
 

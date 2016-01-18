@@ -175,6 +175,7 @@ static inline long bio_size(void)
 
 /**
  * @brief Immediatly wake up the BIO worker.
+ * @see xfiredb_sync
  */
 void bio_sync(void)
 {

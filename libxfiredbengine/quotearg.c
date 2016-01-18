@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup stdlib
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +29,12 @@
 #include <xfiredb/error.h>
 #include <xfiredb/mem.h>
 
+/**
+ * @brief Free an allocated string.
+ * @param str String to free.
+ *
+ * Free a string allocated by xfiredb_escape_string or xfiredb_unescape_string.
+ */
 void xfiredb_escape_free(char *str)
 {
 	xfiredb_free(str);
@@ -59,6 +70,13 @@ static void xfiredb_unescape_char(char *c, char *dst)
 	}
 }
 
+/**
+ * @brief Unescape a string.
+ * @param src String to unescape.
+ * @note Only feed strings escaped by xfiredb_escape_string to this function.
+ * @note The returned string is allocated using malloc.
+ * @see xfiredb_escape_free
+ */
 char *xfiredb_unescape_string(char *src)
 {
 	char *dst, *orig, c;
@@ -86,6 +104,13 @@ char *xfiredb_unescape_string(char *src)
 
 }
 
+/**
+ * @brief Escape a string.
+ * @param src String to escape.
+ * @return The escaped version of \p src.
+ * @see xfiredb_unescape_string xfiredb_escape_free
+ * @note The return value is allocated by malloc.
+ */
 char *xfiredb_escape_string(char *src)
 {
 	int len;
@@ -147,4 +172,6 @@ char *xfiredb_escape_string(char *src)
 	len = strlen(orig);
 	return xfiredb_realloc(orig, len);
 }
+
+/** @} */
 
