@@ -211,6 +211,13 @@ extern void xfiredb_mutex_lock(xfiredb_mutex_t *m);
  * @param m Mutex to unlock.
  */
 extern void xfiredb_mutex_unlock(xfiredb_mutex_t *m);
+
+/**
+ * @brief Get the current time of the day in milliseconds.
+ * @return The current timi in milli's.
+ */
+extern time_t xfiredb_time_stamp(void);
+
 /**
  * @brief Create a new thread.
  * @param name Thread name.

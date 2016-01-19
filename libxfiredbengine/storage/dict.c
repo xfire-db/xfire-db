@@ -356,10 +356,7 @@ static void dict_reset(struct dict_map *map)
  */
 static long long dict_time_in_ms(void)
 {
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-	return (((long long)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
+	return xfiredb_time_stamp();
 }
 
 #define DICT_SEED 0x8FE3C9A1
