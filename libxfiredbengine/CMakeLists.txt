@@ -31,6 +31,7 @@ add_library(xfiredbengine SHARED
 	os/sleep.c
 
 	# core files
+	crc16.c
 	bitops-atomic.c
 	bitops.c
 	xfiredb.c
