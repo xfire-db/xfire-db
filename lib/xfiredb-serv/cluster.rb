@@ -17,12 +17,17 @@
 #
 
 module XFireDB
+  # Cluster object.
   class Cluster
     attr_reader :nodes, :local
 
+    # Gossip code to add a node.
     GOSSIP_ADD = "100"
+    # Gossip code to remove a node.
     GOSSIP_DEL = "101"
+    # Gossip code to move a node.
     GOSSIP_MOVE = "102"
+    # Gossip code to check a node.
     GOSSIP_CHECK = "103"
 
     @nodes = nil
@@ -30,6 +35,10 @@ module XFireDB
     @engine = nil
     @local = nil
 
+    # Create a new Cluster instance.
+    #
+    # @param [String] addr Local address.
+    # @param [Fixnum] port Local node port.
     def initialize(addr, port)
       @nodes = Hash.new
 
@@ -53,6 +62,10 @@ module XFireDB
       @nodes[local['id']] = LocalNode.new(addr, port, self)
     end
 
+    # Add slots to the local node.
+    #
+    # @param [Set] Slots to add.
+    # @return [String] Error code.
     def add_slots(slots)
       local_node.shard.add_slots(slots)
       db = XFireDB.db
@@ -68,11 +81,19 @@ module XFireDB
       "OK"
     end
 
+    # Add a new node to the cluster.
+    #
+    # @param [String] id Node ID.
+    # @param [String] ip Node IP address.
+    # @param [Fixnum] port Node port number.
     def add_node(id, ip, port)
       @nodes[id] = ClusterNode.new(ip, port)
       @nodes[id]
     end
 
+    # Remove a node from the cluster.
+    #
+    # @param [String] id Node ID.
     def remove_node(id)
       node = @nodes.delete(id)
       return unless node;
@@ -88,15 +109,20 @@ module XFireDB
       dbnodes.pop(idx)
     end
 
+    # Get the LocalNode object. Getter function.
+    #
+    # @return [LocalNode] The LocalNode.
     def local_node
       @nodes[@local]
     end
 
+    # Start the cluster.
     def start
       local = @nodes[@local]
       local.start
     end
 
+    # Broadcast a message to all cluster nodes.
     def broadcast(cmd)
       rv = Array.new
 
@@ -107,6 +133,11 @@ module XFireDB
       return rv
     end
 
+    # Authenticate a node.
+    #
+    # @param [String] ip Node IP.
+    # @param [String] source Source ID, IP and port.
+    # @param [String] Authentication details.
     def auth_node(ip, source, node)
       source = source.split(' ')
       node = node.split(' ')
@@ -131,11 +162,17 @@ module XFireDB
       return "ID::#{db['xfiredb']['id']}"
     end
 
+    # Find out on which cluster a specific key is stored.
     def where_is?(key)
       client = XFireDB::Client.new(nil, "CLUSTER WHEREIS? #{key}")
       self.query(client)
     end
 
+    # Reshard a node.
+    #
+    # @param [Fixnum] Number of slots to reshard.
+    # @param [String] src Source node.
+    # @param [String] dst Destination node.
     def reshard(num, src, dst)
       if src == "all"
         dstnode = @nodes[dst]
@@ -188,6 +225,10 @@ module XFireDB
       "OK"
     end
 
+    # Delete a node from the cluster. Its keyshard will be distributed
+    # evenly over the remaining nodes.
+    #
+    # @param [String] node_id Node which has to be forgotten.
     def forget(node_id)
       node = @nodes[node_id]
       return "Node not known" unless node
@@ -218,10 +259,12 @@ module XFireDB
     end
 
     # Parse gossip packet
+    #
+    # @param [Array] latest Latest gossip information
     # latest[n+0] = node id
-    # latest[n+0] = node ip
-    # latest[n+0] = node port
-    # latest[n+0] = node state/msg
+    # latest[n+1] = node ip
+    # latest[n+2] = node port
+    # latest[n+3] = node state/msg
     def gossip(latest)
       len = latest.length
       len = len / 4
@@ -255,6 +298,10 @@ module XFireDB
       end
     end
 
+    # Check if the given IP is a node within the cluster.
+    #
+    # @param [String] ip IP to check.
+    # @return [Boolean] true if the IP is in the cluster, false otherwise.
     def request_from_node?(ip)
       @nodes.each do |id, node|
         return true if node.addr == ip
@@ -263,6 +310,11 @@ module XFireDB
       return false
     end
 
+    # Get the ID of another node.
+    #
+    # @param [String] ip Node IP.
+    # @param [Fixnum] port Node port.
+    # @return [String] Node ID.
     def get_far_id(ip, port)
       sock = XFireDB::SocketFactory.create_cluster_socket ip, port
       sock.puts "QUERY"
@@ -272,12 +324,18 @@ module XFireDB
       return rv
     end
 
+    # Invalidate a user.
+    #
+    # @param [String] user User to poison.
     def poison_user(user)
       @nodes.each do |id, node|
         node.cluster_query "CLUSTER USERPOISON #{user}"
       end
     end
 
+    # Execute a query.
+    #
+    # @param [Client] client Source client.
     def query(client)
       cmd = XFireDB.cmds
       cmd = cmd[client.request.cmd]
@@ -286,6 +344,9 @@ module XFireDB
       instance.exec
     end
 
+    # Execute a cluster query.
+    #
+    # @param [Client] client Source client.
     def cluster_query(client)
       return self.query(client)
       #cmd = XFireDB::ClusterCommand.new(self, client)
