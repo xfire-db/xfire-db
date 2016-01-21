@@ -17,6 +17,8 @@
 #
 
 module XFireDB
+  # ClusterNode implementation for the local node. The localnode
+  # is the node that 'this' server is controlling within a cluster.
   class LocalNode < ClusterNode
     attr_reader :engine, :shard
 
@@ -26,6 +28,11 @@ module XFireDB
     @options = nil
     @cluster = nil
 
+    # Create a new LocalNode object.
+    #
+    # @param [String] addr Node address.
+    # @param [Fixnum] port Node port number.
+    # @param [Cluster] cluster Cluster object.
     def initialize(addr, port, cluster)
       super(addr, port)
       @engine = XFireDB.engine
@@ -44,10 +51,17 @@ module XFireDB
       end
     end
 
+    # Convert the LocalNode object to a String object.
+    #
+    # @return [String] String representation of the LocalNode.
     def to_s
       "myself, #{@addr} #{@port}"
     end
 
+    # Authenticate another node using the cluster secret.
+    #
+    # @param [String] secret The given secret to compare against.
+    # @return [Boolean] true if the given secret is correct, false otherwise.
     def auth_cluster_node(secret)
       map = XFireDB.db['xfiredb']
       known = map['secret']
@@ -55,6 +69,8 @@ module XFireDB
       return known == secret ? true : false
     end
 
+    # Start the clusterbus server. The clusterbus is a seperate server used
+    # by other cluster node's for intercluster communication.
     def start_clusterbus
       server = TCPServer.new(@config.addr, @config.port + 10000)
       if @config.ssl
@@ -145,6 +161,7 @@ module XFireDB
       end
     end
 
+    # Start the XFireDB server.
     def start
       puts "[init]: XFireDB started in debugging mode" if @config.debug
       ontop = @config.debug
@@ -196,6 +213,11 @@ module XFireDB
       end
     end
 
+    # Migrate a number of slots to another node.
+    #
+    # @param [Fixnum] num Number of shards to migrate.
+    # @param [String] dst Destination node ID.
+    # @return [Boolean] true if the migration was succesful.
     def migrate(num, dst)
       db = XFireDB.db
       slots, keys = @shard.reshard(num)
@@ -234,11 +256,13 @@ module XFireDB
       return true
     end
 
+    # Gossip about other nodes.
     def gossip(gossip)
       # this node is sending the gossip and therefore
       # already knows the contents. No action required.
     end
 
+    # Send a query to this node.
     def query(query)
     end
   end
