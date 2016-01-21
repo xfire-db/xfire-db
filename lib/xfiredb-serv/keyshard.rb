@@ -17,12 +17,17 @@
 #
 
 module XFireDB
+  # A key shard contains a number of the total keys, called slots.
+  # All key shards of all cluster nodes combined contain every possible key.
   class KeyShard
     attr_reader :slots
 
     @slots = nil
     @keys = nil
 
+    # Create a new key shard
+    #
+    # @param [Array] Range of this key shard.
     def initialize(range = nil)
       db = XFireDB.db
       @slots = ::Set.new
@@ -47,20 +52,33 @@ module XFireDB
 
     end
 
+    # Add a number of slots to the key shard.
+    #
+    # @param [Set] slots Number of slots to be added.
     def add_slots(slots)
       @slots = @slots + slots
     end
 
+    # Add a single slot to the key shard.
+    #
+    # @param [String] Slot to be added.
     def add_slot(slot)
       return nil unless slot.class == String
       @slots.add? slot
     end
 
+    # Get the slot number of a key.
+    #
+    # #param [String] key 
     def KeyShard.key_to_slot(key)
       slot = XFireDB::Digest.crc16(key) % 16384
       slot.to_s
     end
 
+    # Check if a key is included in the keyshard.
+    #
+    # @param [String] key Key to check.
+    # @return [Boolean] true if the key is included, false otherwise.
     def include?(key)
       key = key.to_s if key.class == Fixnum
       hash = XFireDB::Digest.crc16(key) % 16384
@@ -68,14 +86,24 @@ module XFireDB
       @slots.include?(hash)
     end
 
+    # Add a key to the keyshard.
+    #
+    # @param [String] Key to be added.
     def add_key(key)
       @keys.add(key) if self.include?(key)
     end
 
+    # Delete a key from the keyshard.
+    #
+    # @param [String] Key to be deleted.
     def del_key(key)
       @keys.delete(key)
     end
 
+    # Reshard a specific number of keys.
+    #
+    # @param [Fixnum] num Number of slots to be resharded.
+    # @return [Array] An array of the removed slots and keys.
     def reshard(num)
       rm = ::Set.new
       rmkeys = ::Set.new
@@ -95,6 +123,9 @@ module XFireDB
       [rm, rmkeys]
     end
 
+    # Get the number of slots in this keyshard.
+    #
+    # @return [Fixnum] The number of slots in this keyshard.
     def size
       @slots.size
     end

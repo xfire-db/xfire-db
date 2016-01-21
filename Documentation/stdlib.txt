@@ -1,0 +1,9 @@
+/**
+ * @defgroup stdlib LibC extensions
+ * @ingroup lib
+ * @brief Extensions to LibC.
+ *
+ * This module contains functions which extend standard library functions to provide
+ * the extra functionality required by libxfiredbengine.
+ */
+

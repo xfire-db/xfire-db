@@ -42,8 +42,8 @@ module XFireDB
     def exec
       key = @argv.shift
 
-      return forward(key, "SINCLUDE #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
       return "-Syntax error: SINCLUDE <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+      return forward(key, "SINCLUDE #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
 
       set = XFireDB.db[key]
       return "-nil" unless set.is_a? XFireDB::Set
@@ -73,8 +73,8 @@ module XFireDB
     def exec
       key = @argv[0]
 
-      return forward(key, "SCLEAR #{key}") unless @cluster.local_node.shard.include? key
       return "-Syntax error: SCEAR <key>" unless key and @argv.length > 0
+      return forward(key, "SCLEAR #{key}") unless @cluster.local_node.shard.include? key
 
       set = XFireDB.db[key]
       return "-nil" unless set.is_a? XFireDB::Set
@@ -101,8 +101,8 @@ module XFireDB
     def exec
       key = @argv.shift
 
-      return forward(key, "SDEL #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
       return "-Syntax error: SDEL <key> <set-key1> <set-key2> ..." unless key and @argv.length > 0
+      return forward(key, "SDEL #{key} #{@argv.map(&:quote).join(' ')}") unless @cluster.local_node.shard.include? key
 
       set = XFireDB.db[key]
       return "-nil" unless set.is_a? XFireDB::Set
@@ -172,8 +172,8 @@ module XFireDB
     def exec
       key = @argv.shift
 
-      return forward(key, "MDEL #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
       return "-Syntax error: MDEL <key> <hkey1> <hkey2> ..." unless key
+      return forward(key, "MDEL #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
 
       map = XFireDB.db[key]
       return "-nil" unless map.is_a? XFireDB::Hashmap
@@ -209,8 +209,8 @@ module XFireDB
     def exec
       key = @argv.shift
 
-      return forward(key, "MREF #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
       return "-Syntax error: MREF <key> <hkey1> <hkey2> ..." unless key
+      return forward(key, "MREF #{key} #{@argv.join(' ')}") unless @cluster.local_node.shard.include? key
 
       map = XFireDB.db[key]
       return "-nil" unless map.is_a? XFireDB::Hashmap

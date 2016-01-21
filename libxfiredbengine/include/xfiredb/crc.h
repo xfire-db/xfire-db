@@ -1,5 +1,5 @@
 /*
- *  XFire Error
+ *  XFireDB CRC algorithms
  *  Copyright (C) 2015   Michel Megens <dev@michelmegens.net>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,23 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * @addtogroup stdlib
- * @{
- */
+#ifndef __CRC_H__
+#define __CRC_H__
 
-#ifndef __XFIREDB_ERROR_H__
-#define __XFIREDB_ERROR_H__
+#include <stdlib.h>
 
-/**
- * @name XFireDB errors
- * @{
- */
-#define XFIREDB_OK	0 //!< SUCCESS error code
-#define XFIREDB_ERR	1 //!< General error code
-/** @} */
+#include <xfiredb/xfiredb.h>
+#include <xfiredb/types.h>
+
+CDECL
+extern u16 xfiredb_crc16(const char *str);
+CDECL_END
 
 #endif
-
-/** @} */
 
