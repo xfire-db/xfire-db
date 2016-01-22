@@ -66,3 +66,15 @@ char** str_split(char* a_str, const char a_delim)
 	return result;
 }
 
+int str_count_occurences(const char *str, char x)
+{
+	int rv = 0;
+
+	while(*str++) {
+		if(*str == x)
+			rv++;
+	}
+
+	return rv;
+}
+

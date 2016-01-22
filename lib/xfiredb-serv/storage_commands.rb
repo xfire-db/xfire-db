@@ -50,7 +50,7 @@ module XFireDB
 
       rv = Array.new
       @argv.each do |hkey|
-        rv.push "+" + set.include?(hkey).to_s
+        rv.push "&" + set.include?(hkey).to_s
       end
 
       return rv

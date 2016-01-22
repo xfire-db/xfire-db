@@ -23,18 +23,98 @@
 
 #include <xfiredb/xfiredb.h>
 
-struct xfiredb_result *xfiredb_result_alloc(size_t num)
+struct xfiredb_result **xfiredb_result_alloc(size_t num)
 {
-	void *ary;
+	void **ary;
+	int i;
 
-	ary = calloc(num, sizeof(struct xfiredb_result));
-	memset(ary, 0, sizeof(struct xfiredb_result) * num);
+	ary = xfire_zalloc(sizeof(*ary) * (num + 1));
+	for(i = 0; i < num; i++)
+		ary[i] = xfire_zalloc(sizeof(struct xfiredb_result));
 
-	return ary;
+	ary[num] = NULL;
+
+	return (struct xfiredb_result**)ary;
 }
 
-void xfiredb_result_free(void *p)
+void xfiredb_result_parse(struct xfiredb_result **rp)
 {
+	struct xfiredb_result *r;
+	char *tmp;
+	int i;
+	ssize_t numeral;
+
+	for(i = 0; rp[i]; i++) {
+		r = rp[i];
+
+		switch(r->data.ptr[0]) {
+		case '+':
+			r->type = XFIREDB_STRING;
+			tmp = strdup(&r->data.ptr[1]);
+			xfire_free(r->data.ptr);
+			r->data.ptr = tmp;
+			r->status = XFIREDB_RESULT_SUCCESS;
+			break;
+
+		case '&':
+			r->type = XFIREDB_BOOL;
+			numeral = strcmp("&true", r->data.ptr) ? 0 : 1;
+			xfire_free(r->data.ptr);
+			r->data.ptr = NULL;
+			r->data.boolean = numeral;
+			r->status = XFIREDB_RESULT_SUCCESS;
+			break;
+
+		case '%':
+			r->type = XFIREDB_FIXNUM;
+			tmp = &r->data.ptr[1];
+			numeral = atoi(tmp);
+			xfire_free(r->data.ptr);
+			r->data.si = numeral;
+			r->status = XFIREDB_RESULT_SUCCESS;
+			break;
+
+		case '-':
+		default:
+			r->type = XFIREDB_STATUS;
+
+			if(r->data.ptr[0] == '-')
+				tmp = &r->data.ptr[1];
+			else
+				tmp = r->data.ptr;
+
+			if(!strcmp("OK", tmp)) {
+				r->status = XFIREDB_RESULT_OK | XFIREDB_RESULT_SUCCESS;
+				xfire_free(r->data.ptr);
+				r->data.ptr = NULL;
+			} else if(!strcmp("nil", tmp)) {
+				r->status = XFIREDB_RESULT_NIL;
+				xfire_free(r->data.ptr);
+				r->data.ptr = NULL;
+			} else {
+				r->status = XFIREDB_RESULT_MSG;
+			}
+
+			break;
+		}
+	}
+}
+
+void xfiredb_result_free(struct xfiredb_result **__p)
+{
+	int i;
+	void **p = (void**)__p;
+	struct xfiredb_result *r;
+
+	for(i = 0; p[i]; i++) {
+		r = p[i];
+
+		if(r->data.ptr && (r->status == XFIREDB_RESULT_MSG || r->type == XFIREDB_STRING))
+			xfire_free(r->data.ptr);
+
+		xfire_free(r);
+	}
+
 	xfire_free(p);
 }
 
