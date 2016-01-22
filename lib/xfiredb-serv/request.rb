@@ -17,13 +17,18 @@
 #
 
 module XFireDB
+  # XFireDB client requests.
   class Request
     @xql = nil
 
+    # Create a new request.
+    #
+    # @param [String] xql XQL query.
     def initialize(xql)
       @xql = xql
     end
 
+    # Handle a request.
     def handle
     end
   end
