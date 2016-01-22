@@ -55,6 +55,7 @@ module XFireDB
       self.set_loadstate(true)
     end
 
+    # Stop the XFireDB engine. All data will be stored to disk.
     def exit
       self.set_loadstate(false)
       @db.each do |key, value|

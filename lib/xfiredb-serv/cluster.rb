@@ -64,7 +64,7 @@ module XFireDB
 
     # Add slots to the local node.
     #
-    # @param [Set] Slots to add.
+    # @param [Set] slots Slots to add.
     # @return [String] Error code.
     def add_slots(slots)
       local_node.shard.add_slots(slots)
@@ -137,7 +137,7 @@ module XFireDB
     #
     # @param [String] ip Node IP.
     # @param [String] source Source ID, IP and port.
-    # @param [String] Authentication details.
+    # @param [String] node Authentication details.
     def auth_node(ip, source, node)
       source = source.split(' ')
       node = node.split(' ')
@@ -170,7 +170,7 @@ module XFireDB
 
     # Reshard a node.
     #
-    # @param [Fixnum] Number of slots to reshard.
+    # @param [Fixnum] num Number of slots to reshard.
     # @param [String] src Source node.
     # @param [String] dst Destination node.
     def reshard(num, src, dst)
@@ -252,6 +252,9 @@ module XFireDB
       "OK"
     end
 
+    # Broadcast a gossip packet.
+    #
+    # @param [String] gossip Gossip packet to broadcast.
     def gossip_send(gossip)
       @nodes.each do |id, node|
         node.gossip(gossip)

@@ -54,7 +54,7 @@ module XFireDB
     end
 
     # Assign a new hash to a {User}. The hash will be converted
-    # to a {BCrypt::Password}.
+    # to a [BCrypt::Password].
     #
     # @param [String] hash Password hash to set.
     def hash=(hash)

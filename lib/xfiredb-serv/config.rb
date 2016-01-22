@@ -175,7 +175,7 @@ module XFireDB
 
     # Check the configuration file.
     #
-    # @param [File] Config file to check.
+    # @param [File] file Config file to check.
     def check_config(file)
       !File.world_readable?(file).nil? && File.exist?(file)
     end

@@ -31,6 +31,7 @@ module XFireDB
       self.connect
     end
 
+    # Close a SSLSocket.
     def close
       @sock.close
     end

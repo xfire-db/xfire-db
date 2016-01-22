@@ -24,7 +24,7 @@ module XFireDB
 
     # Start the shell.
     #
-    # @param [Engine] XFireDB engine instance.
+    # @param [Engine] engine XFireDB engine instance.
     def Shell.start(engine)
       $stdout.sync = true
       @@engine = engine
@@ -43,6 +43,9 @@ module XFireDB
       }
     end
 
+    # Execute a shell command.
+    #
+    # @param [String] cmd Shell command to execute.
     def Shell.exec(cmd)
       res = case cmd[0]
             when "daemonize"
@@ -89,6 +92,7 @@ module XFireDB
       db.delete('xfiredb-nodes')
     end
 
+    # Reset the node to a root node.
     def Shell.reset_root_node
       Shell.setup_root_node
     end
