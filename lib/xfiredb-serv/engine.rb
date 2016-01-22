@@ -17,13 +17,18 @@
 #
 
 module XFireDB
+  # XFireDB storage engine interface.
   class Engine
     attr_reader :db
 
+    # Create a new storage engine.
     def initialize
       @db = XFireDB::Database.new
     end
 
+    # Create a pre-init storage engine. This engine isn't fully
+    # initialised either and can therefore by safely shutdown without
+    # breaking anything.
     def pre_init
       config = XFireDB.config
       self.init(config.log_file, config.err_log_file, config.db_file, config.persist_level, false)
@@ -37,6 +42,7 @@ module XFireDB
       set_loadstate(true)
     end
 
+    # Start the storage engine.
     def start
       set_loadstate(false)
       config = XFireDB.config
@@ -58,6 +64,7 @@ module XFireDB
     end
 
     private
+    # Load a database entry from file.
     def load_entry(key, hash, type, data)
         case type
         when "string"
@@ -71,10 +78,18 @@ module XFireDB
         end
     end
 
+    # Load a string into the DB.
+    #
+    # @param [String] key Key to load.
+    # @param [String] data Data to load.
     def load_string(key, data)
       @db[key] = data
     end
 
+    # Load a list entry into the DB.
+    #
+    # @param [String] key Key to load.
+    # @param [String] data Data to load.
     def load_list_entry(key, data)
       @db[key] ||= XFireDB::List.new
       list = @db[key]
@@ -82,6 +97,11 @@ module XFireDB
       list.push(data)
     end
 
+    # Load a hashmap entry from disk.
+    #
+    # @param [String] key Key to load.
+    # @param [String] hash Hash to load.
+    # @param [String] data Data to load.
     def load_map_entry(key, hash, data)
       @db[key] ||= XFireDB::Hashmap.new
       map = @db[key]
@@ -89,6 +109,10 @@ module XFireDB
       map[hash] = data
     end
 
+    # Load a set entry from disk.
+    #
+    # @param [String] key Key to load.
+    # @param [String] skey Set-key to load.
     def load_set_entry(key, skey)
       @db[key] ||= XFireDB::Set.new
       set = @db[key]
