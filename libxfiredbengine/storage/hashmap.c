@@ -108,6 +108,35 @@ struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map)
 	return it;
 }
 
+struct hashmap_node *hashmap_iterator_next(struct hashmap_iterator *it)
+{
+	struct rb_node *node;
+
+	if(!it || !it->it)
+		return NULL;
+
+	node = rb_iterator_next(it->it);
+
+	if(!node)
+		return NULL;
+
+	return container_of(node, struct hashmap_node, node);
+}
+
+struct hashmap_node *hashmap_clear_next(struct hashmap *map)
+{
+	struct hashmap_node *hnode;
+	struct rb_node *node = rb_get_root(&map->root);
+
+	if(!node)
+		return NULL;
+
+	hnode = container_of(node, struct hashmap_node, node);
+	hashmap_remove(map, hnode->key);
+
+	return hnode;
+}
+
 void hashmap_free_iterator(struct hashmap_iterator *it)
 {
 	rb_free_iterator(it->it);

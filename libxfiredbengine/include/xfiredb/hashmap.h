@@ -78,35 +78,8 @@ extern void hashmap_destroy(struct hashmap *hm);
 extern void hashmap_node_destroy(struct hashmap_node *n);
 extern struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map);
 extern void hashmap_free_iterator(struct hashmap_iterator *it);
-
-static inline struct hashmap_node *hashmap_iterator_next(struct hashmap_iterator *it)
-{
-	struct rb_node *node;
-
-	if(!it || !it->it)
-		return NULL;
-
-	node = rb_iterator_next(it->it);
-
-	if(!node)
-		return NULL;
-
-	return container_of(node, struct hashmap_node, node);
-}
-
-static inline struct hashmap_node *hashmap_clear_next(struct hashmap *map)
-{
-	struct hashmap_node *hnode;
-	struct rb_node *node = rb_get_root(&map->root);
-
-	if(!node)
-		return NULL;
-
-	hnode = container_of(node, struct hashmap_node, node);
-	hashmap_remove(map, hnode->key);
-
-	return hnode;
-}
+extern struct hashmap_node *hashmap_iterator_next(struct hashmap_iterator *it);
+extern struct hashmap_node *hashmap_clear_next(struct hashmap *map);
 CDECL_END
 
 #endif
