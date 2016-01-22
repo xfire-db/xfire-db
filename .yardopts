@@ -1,4 +1,4 @@
--o Documentation/xfiredb-serv
+-o Documentation/gen/xfiredb-serv
 --main README.md
 
 lib/
