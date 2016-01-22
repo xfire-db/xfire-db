@@ -17,17 +17,24 @@
 #
 
 module XFireDB
+  # XFireDB logging module.
   class Log
+    # Init logging.
     LOG_INIT = "[init]: ".freeze
+    # Server logging.
     LOG_SERVER = "[server]: ".freeze
+    # Client logging.
     LOG_CLIENT = "[client]: ".freeze
+    # XQL logging.
     LOG_XQL = "[xql]: ".freeze
 
+    # Log a connecting client.
     def Log.connecting_client(client,user = nil)
       XFireDB::Log.write(Log::LOG_SERVER + "Client [#{client}] connected")
       XFireDB::Log.write(" (authenticated as #{user})\n") unless user.nil?
     end
 
+    # Log an authentication failure.
     def Log.auth_fail(ip, user)
       XFireDB::Log.write(XFireDB::Log::LOG_SERVER + "Client [#{ip}] failed to authenticate as #{user}\n")
     end
