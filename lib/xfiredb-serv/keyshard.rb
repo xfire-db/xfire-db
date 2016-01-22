@@ -27,7 +27,7 @@ module XFireDB
 
     # Create a new key shard
     #
-    # @param [Array] Range of this key shard.
+    # @param [Array] range Range of this key shard.
     def initialize(range = nil)
       db = XFireDB.db
       @slots = ::Set.new
@@ -61,7 +61,7 @@ module XFireDB
 
     # Add a single slot to the key shard.
     #
-    # @param [String] Slot to be added.
+    # @param [String] slot Slot to be added.
     def add_slot(slot)
       return nil unless slot.class == String
       @slots.add? slot
@@ -88,14 +88,14 @@ module XFireDB
 
     # Add a key to the keyshard.
     #
-    # @param [String] Key to be added.
+    # @param [String] key Key to be added.
     def add_key(key)
       @keys.add(key) if self.include?(key)
     end
 
     # Delete a key from the keyshard.
     #
-    # @param [String] Key to be deleted.
+    # @param [String] key Key to be deleted.
     def del_key(key)
       @keys.delete(key)
     end

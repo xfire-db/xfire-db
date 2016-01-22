@@ -17,9 +17,14 @@
 #
 
 module XFireDB
+  # XFireDB server shell. This shell can be used to configure and setup
+  # an XFireDB instance.
   class Shell
     @@engine = nil
 
+    # Start the shell.
+    #
+    # @param [Engine] engine XFireDB engine instance.
     def Shell.start(engine)
       $stdout.sync = true
       @@engine = engine
@@ -38,6 +43,9 @@ module XFireDB
       }
     end
 
+    # Execute a shell command.
+    #
+    # @param [String] cmd Shell command to execute.
     def Shell.exec(cmd)
       res = case cmd[0]
             when "daemonize"
@@ -64,6 +72,7 @@ module XFireDB
             end
     end
 
+    # Add a new user.
     def Shell.useradd
       print "Username: "
       user = gets.chop
@@ -76,16 +85,21 @@ module XFireDB
       puts "\nUser created!"
     end
 
+    # Reset a XFireDB node.
     def Shell.reset
       db = @@engine.db
       db['xfiredb'].delete('shards') unless db['xfiredb'].nil?
       db.delete('xfiredb-nodes')
     end
 
+    # Reset the node to a root node.
     def Shell.reset_root_node
       Shell.setup_root_node
     end
 
+    # Setup a XFireDB server/node.
+    #
+    # @param [Cluster] cluster Cluster instance.
     def Shell.setup(cluster)
       db = @@engine.db
       db['xfiredb'] ||= XFireDB::Hashmap.new
@@ -107,6 +121,7 @@ module XFireDB
       return
     end
 
+    # Setup a XFireDB root node.
     def Shell.setup_root_node
       db = @@engine.db
       rv = (0..16383).to_a
@@ -116,6 +131,10 @@ module XFireDB
       return
     end
 
+    # Parse a shell command.
+    #
+    # @param [String] rawcmd The command to parse.
+    # @return [Array] The parsed command and its arguments.
     def Shell.parse(rawcmd)
       rawcmd = rawcmd.split(/(?:^|(?:[.!?]\s))(\w+) (.+)/)
       cmd = rawcmd[1] || rawcmd[0]

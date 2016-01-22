@@ -17,6 +17,7 @@
 #
 
 module XFireDB
+  # Cluster commands.
   class ClusterCommand < Command
     attr_reader :cluster
 
@@ -26,6 +27,10 @@ module XFireDB
     @ip = nil
     @port = nil
 
+    # Create a new cluster command.
+    #
+    # @param [Cluster] cluster Cluster instance.
+    # @param [Client] client Client issuing the command.
     def initialize(cluster, client)
       super(cluster, "CLUSTER", client)
 
@@ -38,6 +43,9 @@ module XFireDB
       @port = client.request.src_port
     end
 
+    # Execute the cluster command.
+    #
+    # @return [String] Return code.
     def exec
       rv = case @subcmd.upcase
            when "USERPOISON"
@@ -74,6 +82,8 @@ module XFireDB
     end
 
     private
+
+    # Poison a user.
     def cluster_userpoison
       user = @argv[0]
       users = XFireDB.users
@@ -83,6 +93,7 @@ module XFireDB
       "OK"
     end
 
+    # Modify a user.
     def cluster_usermod
       uname = @argv[0]
       action = @argv[1]
@@ -135,6 +146,7 @@ module XFireDB
       return rv
     end
 
+    # Add a new user.
     def cluster_useradd
       uname = @argv[0]
       pass = @argv[1]
@@ -154,6 +166,7 @@ module XFireDB
       "OK"
     end
 
+    # Delete a user.
     def cluster_userdel
       uname = @argv[0]
       query = "CLUSTER USERDEL #{uname}"
@@ -170,6 +183,7 @@ module XFireDB
       "OK"
     end
 
+    # Get the number of slots from a cluster node.
     def cluster_num_slots
       rv = Hash.new
 
@@ -183,6 +197,7 @@ module XFireDB
       end
     end
 
+    # Forget a cluster node.
     def cluster_forget
       node = @argv[0]
 
@@ -190,7 +205,7 @@ module XFireDB
       @cluster.forget(node)
     end
 
-    # CLUSTER MIGRATE <number-of-slots> <dst-id>
+    # Migrate a number of slots to another node.
     def cluster_migrate
       num = @argv[0]
       dst = @argv[1]
@@ -200,6 +215,7 @@ module XFireDB
       @cluster.local_node.migrate(num, dst) ? "OK" : "Migration failed"
     end
 
+    # Reshard a number of slots from node x to node y.
     def cluster_reshard
       num = @argv[0]
       src = @argv[1]
@@ -213,6 +229,7 @@ module XFireDB
       return @cluster.reshard(num, src, dst)
     end
 
+    # Find out where a specific key resides (on which node).
     def where_is?
       key = @argv[0]
       return "Incorrect syntax: CLUSTER WHEREIS? <key>" unless key
@@ -226,6 +243,7 @@ module XFireDB
       return "Key not known"
     end
 
+    # Add a new cluster node to the cluster.
     def cluster_meet
       ip = @argv[0]
       port = @argv[1]
@@ -272,6 +290,7 @@ module XFireDB
       return rv
     end
 
+    # Get all nodes within the cluster.
     def get_nodes
       rv = Array.new
       @cluster.nodes.each do |key, value|
@@ -281,10 +300,12 @@ module XFireDB
       return rv
     end
 
+    # Get the ID of another node in the cluster.
     def cluster_far_id(ip, port)
       @cluster.get_far_id(ip, port)
     end
 
+    # Get the ID of 'this' node.
     def cluster_get_id
       XFireDB.db['xfiredb']['id']
     end

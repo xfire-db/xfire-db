@@ -17,6 +17,7 @@
 #
 
 module XFireDB
+  # Configuration class
   class Config
     attr_reader :port, :config_port, :addr, :cluster,
       :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
@@ -56,6 +57,9 @@ module XFireDB
     @cluser_auth = false
     @pid_file = nil
 
+    # Create a new config.
+    #
+    # @param [String] file Path to the configuration file.
     def initialize(file = nil)
       return unless file
 
@@ -78,6 +82,8 @@ module XFireDB
       check_mandatory
     end
 
+    # Check if all mandatory configuration keys are present and
+    # have correct arguments.
     def check_mandatory
       fail_count = 0
 
@@ -121,6 +127,10 @@ module XFireDB
       exit unless fail_count == 0
     end
 
+    # Parse the config options.
+    #
+    # @param [String] opt Option to parse.
+    # @param [String] arg Argument to the option.
     def parse(opt, arg)
       case opt
         # Main config options
@@ -163,6 +173,9 @@ module XFireDB
       end
     end
 
+    # Check the configuration file.
+    #
+    # @param [File] file Config file to check.
     def check_config(file)
       !File.world_readable?(file).nil? && File.exist?(file)
     end

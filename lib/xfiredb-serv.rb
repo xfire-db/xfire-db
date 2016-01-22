@@ -237,18 +237,30 @@ module XFireDB
     @@private_keys.include? key
   end
 
+  # Config option getter.
+  #
+  # @return [Config] The configuration options.
   def XFireDB.config
     @@config
   end
 
+  # Command line option getter.
+  #
+  # @return [OpenStruct] The command line options.
   def XFireDB.options
     @@options
   end
 
+  # Engine getter.
+  #
+  # @return [Engine] The XFireDB engine.
   def XFireDB.db
     @@engine.db
   end
 
+  # Commands getter.
+  #
+  # @return [Hash] Hashmap of the known commands.
   def XFireDB.cmds
     @@commands
   end
@@ -277,11 +289,15 @@ module XFireDB
     @@engine.save if @@engine
   end
 
+  # Print a string to the standard output and flush the buffer.
   def XFireDB.print(str)
     print str
     $stdout.flush
   end
 
+  # Get the number of worker threads.
+  #
+  # @return [Fixnum] The number of worker threads.
   def XFireDB.worker_num
     @options[:workers]
   end

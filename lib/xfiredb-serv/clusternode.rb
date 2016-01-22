@@ -48,8 +48,8 @@ module XFireDB
 
     # Migrate a number of slots from this node to another one.
     #
-    # @param [Fixnum] Number of slots to migrate.
-    # @param [String] Destination node ID.
+    # @param [Fixnum] num Number of slots to migrate.
+    # @param [String] dst Destination node ID.
     # @return [String] Error code.
     def migrate_query(num, dst)
       query = "CLUSTER MIGRATE #{num} #{dst}"
@@ -58,7 +58,7 @@ module XFireDB
 
     # Add slots to this node.
     #
-    # @param [String] Space separated list of slots to be added.
+    # @param [String] slots Space separated list of slots to be added.
     # @return [String] Error code.
     def add_slots(slots)
       socket = XFireDB::SocketFactory.create_cluster_socket @addr, @cluster_port
