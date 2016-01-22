@@ -31,6 +31,11 @@
 #include <xfiredb/types.h>
 #include <xfiredb/rbtree.h>
 
+/**
+ * @brief Clear a hashmap node iteratively.
+ * @param __hm Hashmap to clear.
+ * @param __n Node carriage.
+ */
 #define hashmap_clear_foreach(__hm, __n) for(__n = hashmap_clear_next(__hm); \
 					     __n; __n = hashmap_clear_next(__hm))
 
