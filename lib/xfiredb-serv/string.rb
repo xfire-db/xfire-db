@@ -16,20 +16,28 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# XFireDB string extensions.
 class String
+  # Check if a string contains numeral characters only.
   def is_i?
     /\A[-+]?\d+\z/ === self
   end
 
+  # Remove the first character if it starts with a specific seperator.
+  #
+  # @param [String] sep Seperator to test the start of the string against.
   def rchomp(sep = $/)
     self.start_with?(sep) ? self[sep.size..-1] : self
   end
 
+  # Add quotation marks around the string.
   def quote
     "\"#{self}\""
   end
 
+  # Tokenize a string.
   def tokenize
     self.scan(/(?:"(?:\\.|[^"])*"|[^" ])+/).map {|s| s.strip.rchomp('"').chomp('"')}
   end
 end
+
