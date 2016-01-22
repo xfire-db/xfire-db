@@ -29,14 +29,8 @@ module XFireDB
     #
     # @param [Array] range Range of this key shard.
     def initialize(range = nil)
-      db = XFireDB.db
       @slots = ::Set.new
       @keys = ::Set.new
-
-      db.each do |k, v|
-        next if XFireDB.illegal_key? k
-        @keys.add? k
-      end
 
       range.nil? and return
 
@@ -50,6 +44,20 @@ module XFireDB
         start += 1
       end
 
+    end
+
+    # Load all available keys from the database.
+    #
+    # @return [NilClass] nil.
+    def load_keys
+      db = XFireDB.db
+
+      db.each do |k,v|
+        next if XFireDB.illegal_key? k
+        @keys.add? k
+      end
+
+      nil
     end
 
     # Add a number of slots to the key shard.

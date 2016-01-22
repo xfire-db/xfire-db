@@ -173,6 +173,7 @@ module XFireDB
       Daemons.run_proc('xfiredb', opts) do
         XFireDB.create
         XFireDB.engine.start
+        @shard.load_keys
 
         self.start_clusterbus
         @engine = XFireDB.engine
