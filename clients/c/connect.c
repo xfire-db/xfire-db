@@ -32,6 +32,9 @@
 
 static int initialised = 0;
 
+/**
+ * @brief Initialise the XFireDB client library.
+ */
 void xfiredb_init(void)
 {
 	SSL_library_init();
@@ -41,7 +44,7 @@ void xfiredb_init(void)
 	initialised = 1;
 }
 
-SSL_CTX *xfiredb_ssl_init(void)
+static SSL_CTX *xfiredb_ssl_init(void)
 {
 	const SSL_METHOD *method;
 	SSL_CTX *ctx;
@@ -165,6 +168,14 @@ static struct xfiredb_client *__xfiredb_connect(const char *hostname, int port, 
 #define XFIREDB_STREAM_COMMAND "STREAM\n"
 #define SIZE_OF_BUF(__b) (sizeof(__b) - 1)
 
+/**
+ * @brief Connect to a XFireDB server.
+ *
+ * @param host Server host.
+ * @param port Server port.
+ * @param flags Connection settings.
+ * @return The connected client or \p NULL if an error occurred.
+ */
 struct xfiredb_client *xfiredb_connect(char *host, int port, long flags)
 {
 	struct xfiredb_client *client;
@@ -195,6 +206,14 @@ struct xfiredb_client *xfiredb_connect(char *host, int port, long flags)
 	return client;
 }
 
+/**
+ * @brief Authenticate a connected client.
+ *
+ * @param client Client structure.
+ * @param username Username to authenticate as.
+ * @param password Password for \p username.
+ * @return An error code.
+ */
 int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *password)
 {
 	char *query;
@@ -233,6 +252,11 @@ int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *pas
 	return -XFIRE_OK;
 }
 
+/**
+ * @brief Disconnect a connected client.
+ *
+ * @param client Client to disconnect.
+ */
 void xfiredb_disconnect(struct xfiredb_client *client)
 {
 	if(!client)

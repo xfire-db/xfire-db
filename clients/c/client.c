@@ -21,6 +21,12 @@
 
 #include <xfiredb/xfiredb.h>
 
+/**
+ * @brief Free memory allocated by xfiredb_escape_string or
+ *        xfiredb_unescape_char.
+ *
+ * @param str String to free.
+ */
 void xfiredb_escape_free(char *str)
 {
 	xfire_free(str);
@@ -56,6 +62,12 @@ static void xfiredb_unescape_char(char *c, char *dst)
 	}
 }
 
+/**
+ * @brief Remove the escape characters from a string.
+ *
+ * @param src String to remove escape characters from.
+ * @return A new string with the escape characters removed.
+ */
 char *xfiredb_unescape_string(char *src)
 {
 	char *dst, *orig, c;
@@ -83,6 +95,12 @@ char *xfiredb_unescape_string(char *src)
 
 }
 
+/**
+ * @brief Escape a string.
+ *
+ * @param src String to escape.
+ * @return The escaped version of \p src.
+ */
 char *xfiredb_escape_string(char *src)
 {
 	int len;
