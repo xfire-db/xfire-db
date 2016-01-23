@@ -148,6 +148,12 @@ static struct xfiredb_result **ssl_query(struct xfiredb_client *client, const ch
 	return res;
 }
 
+/**
+ * @brief Query a XFireDB server.
+ * @param client XFireDB client object.
+ * @param query XQL query to sent to the server.
+ * @return The query result.
+ */
 struct xfiredb_result **xfiredb_query(struct xfiredb_client *client, const char *query)
 {
 	struct xfiredb_result **rv;
