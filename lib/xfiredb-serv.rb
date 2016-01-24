@@ -56,6 +56,8 @@ require 'xfiredb-serv/xql'
 # @author Michel Megens
 # @since 0.0.1
 module XFireDB
+  VERSION = 'v0.0.1'
+
   @@config = nil
   @@users = nil
   @@options = nil
@@ -121,6 +123,12 @@ module XFireDB
       opts.on("-c", "--config FILE",
               "Path to the XFireDB server configuration file") do |conf|
         @options.config = conf
+      end
+
+      opts.on("-v", "--version",
+              "Print the current version of the XFireDB server") do
+        puts "XFireDB #{VERSION}"
+        return
       end
 
       opts.on("-w", "--workers NUM",
