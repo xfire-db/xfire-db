@@ -41,6 +41,13 @@ static int xfiredb_vsprintf(char **str, const char *fmt, va_list args)
 	return size;
 }
 
+/**
+ * @brief Output a formatted string into another string.
+ * @param buf Output buffer.
+ * @param format Format to use.
+ * @param ... Variable arguments.
+ * @return An error code.
+ */
 int xfiredb_sprintf(char **buf, const char *format, ...)
 {
 	int size;
