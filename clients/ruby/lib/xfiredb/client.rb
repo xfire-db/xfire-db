@@ -31,8 +31,20 @@ module XFireDB
 
       if flags & XFireDB::AUTH == XFireDB::AUTH
         @socket.puts "AUTH #{user} #{pass}"
-        @authenticated = true if @sockets.gets.chomp == "OK"
+        result = @socket.gets.chomp
+
+        if result == "OK"
+          @authenticated = true
+        else
+          return false
+        end
+
+        @socket.puts "STREAM" if @stream
+      elsif @stream
+        @socket.puts "STREAM"
       end
+
+      return true
     end
 
     def connected?
