@@ -33,7 +33,7 @@ static char *query_readline(struct xfiredb_client *client)
 	int num;
 	char c;
 
-	tmp = rv = xfire_zalloc(1024);
+	tmp = rv = xfiredb_zalloc(1024);
 
 again:
 	for(i = 0; i < 1022; i++) {
@@ -55,7 +55,7 @@ again:
 		strcat(rv, tmp);
 	}
 
-	tmp = xfire_zalloc(1024);
+	tmp = xfiredb_zalloc(1024);
 	goto again;
 
 done:
@@ -85,7 +85,7 @@ static struct xfiredb_result **__query(struct xfiredb_client *client, const char
 	xfiredb_sprintf(&query2, "%s\n", query);
 	len = strlen(query2);
 	num = write(client->socket, query2, len);
-	xfire_free(query2);
+	xfiredb_free(query2);
 
 	if(num <= 0L)
 		return NULL;
@@ -94,17 +94,17 @@ static struct xfiredb_result **__query(struct xfiredb_client *client, const char
 	len = str_count_occurences(buf, ' ') + 1;
 	sizes = str_split(buf, ' ');
 	res = xfiredb_result_alloc(len);
-	xfire_free(buf);
+	xfiredb_free(buf);
 
 	for(i = 0; i < len; i++) {
 		size = atoi(sizes[i]);
-		res[i]->data.ptr = xfire_zalloc(size);
+		res[i]->data.ptr = xfiredb_zalloc(size);
 		num = read(client->socket, res[i]->data.ptr, size);
 		res[i]->data.ptr[num-1] = '\0';
-		xfire_free(sizes[i]);
+		xfiredb_free(sizes[i]);
 	}
 
-	xfire_free(sizes);
+	xfiredb_free(sizes);
 
 	return res;
 }
@@ -124,7 +124,7 @@ static struct xfiredb_result **ssl_query(struct xfiredb_client *client, const ch
 	xfiredb_sprintf(&query2, "%s\n", query);
 	len = strlen(query2);
 	num = SSL_write(ssl->ssl, query2, len);
-	xfire_free(query2);
+	xfiredb_free(query2);
 
 	if(num <= 0L)
 		return NULL;
@@ -133,17 +133,17 @@ static struct xfiredb_result **ssl_query(struct xfiredb_client *client, const ch
 	len = str_count_occurences(buf, ' ') + 1;
 	sizes = str_split(buf, ' ');
 	res = xfiredb_result_alloc(len);
-	xfire_free(buf);
+	xfiredb_free(buf);
 
 	for(i = 0; i < len; i++) {
 		size = atoi(sizes[i]);
-		res[i]->data.ptr = xfire_zalloc(size);
+		res[i]->data.ptr = xfiredb_zalloc(size);
 		num = SSL_read(ssl->ssl, res[i]->data.ptr, size);
 		res[i]->data.ptr[num-1] = '\0';
-		xfire_free(sizes[i]);
+		xfiredb_free(sizes[i]);
 	}
 
-	xfire_free(sizes);
+	xfiredb_free(sizes);
 
 	return res;
 }

@@ -29,7 +29,7 @@
  */
 void xfiredb_escape_free(char *str)
 {
-	xfire_free(str);
+	xfiredb_free(str);
 }
 
 static void xfiredb_unescape_char(char *c, char *dst)
@@ -74,7 +74,7 @@ char *xfiredb_unescape_string(char *src)
 	int len;
 
 	len = strlen(src);
-	orig = dst = xfire_zalloc(len);
+	orig = dst = xfiredb_zalloc(len);
 
 	while((c = *(src++)) != '\0') {
 		switch(c) {
@@ -107,7 +107,7 @@ char *xfiredb_escape_string(char *src)
 	char *orig, *dst, c;
 
 	len = strlen(src);
-	orig = dst = xfire_zalloc(len * 2);
+	orig = dst = xfiredb_zalloc(len * 2);
 
 	while((c = *(src++)) != '\0') {
 		switch(c) {

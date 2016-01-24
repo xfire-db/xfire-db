@@ -25,7 +25,7 @@
  * @param len Number of bytes to allocate.
  * @return Allocated memory.
  */
-void *xfire_alloc(size_t len)
+void *xfiredb_alloc(size_t len)
 {
 	void *region;
 
@@ -48,11 +48,11 @@ void *xfire_alloc(size_t len)
  * @return Allocated memory.
  * @note Allocated memory will be set to zero.
  */
-void *xfire_zalloc(size_t len)
+void *xfiredb_zalloc(size_t len)
 {
 	void *region;
 
-	region = xfire_alloc(len);
+	region = xfiredb_alloc(len);
 	memset(region, 0x0, len);
 
 	return region;
@@ -64,7 +64,7 @@ void *xfire_zalloc(size_t len)
  * @param size Size of each element.
  * @return Allocated memory.
  */
-void *xfire_calloc(size_t num, size_t size)
+void *xfiredb_calloc(size_t num, size_t size)
 {
 	void *region;
 
@@ -80,7 +80,7 @@ void *xfire_calloc(size_t num, size_t size)
  * @param size New size of the region.
  * @return The new memory region.
  */
-void *xfire_realloc(void *region, size_t size)
+void *xfiredb_realloc(void *region, size_t size)
 {
 	return realloc(region, size);
 }
@@ -89,7 +89,7 @@ void *xfire_realloc(void *region, size_t size)
  * @brief Return allocated memory.
  * @param region Memory region to deallocate.
  */
-void xfire_free(void *region)
+void xfiredb_free(void *region)
 {
 	if(!region)
 		return;

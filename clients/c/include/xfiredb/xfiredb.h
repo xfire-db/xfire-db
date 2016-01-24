@@ -21,10 +21,10 @@
 
 #include <openssl/ssl.h>
 
-#define XFIRE_OK 0 //!< XFireDB success error code
-#define XFIRE_ERR 1 //!< XFireDB general error code
-#define XFIRE_NOTCONN 2 //!< Not connected error
-#define XFIRE_AUTH 3 //!< Not authorized error
+#define XFIREDB_OK 0 //!< XFireDB success error code
+#define XFIREDB_ERR 1 //!< XFireDB general error code
+#define XFIREDB_NOTCONN 2 //!< Not connected error
+#define XFIREDB_NOTAUTH 3 //!< Not authorized error
 
 #ifdef __cplusplus
 #define CDECL extern "C" {
@@ -182,11 +182,11 @@ extern int xfiredb_sprintf(char **buf, const char *format, ...);
 extern char** str_split(char* a_str, const char a_delim);
 extern int str_count_occurences(const char *str, char x);
 
-extern void *xfire_alloc(size_t len);
-extern void *xfire_zalloc(size_t len);
-extern void *xfire_calloc(size_t num, size_t size);
-extern void xfire_free(void *region);
-extern void *xfire_realloc(void *region, size_t size);
+extern void *xfiredb_alloc(size_t len);
+extern void *xfiredb_zalloc(size_t len);
+extern void *xfiredb_calloc(size_t num, size_t size);
+extern void xfiredb_free(void *region);
+extern void *xfiredb_realloc(void *region, size_t size);
 CDECL_END
 
 #endif

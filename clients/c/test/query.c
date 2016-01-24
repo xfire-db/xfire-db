@@ -72,7 +72,7 @@ static void hash_test(struct xfiredb_client *client)
 	}
 	xfiredb_result_free(r);
 	xfiredb_escape_free(tmp);
-	xfire_free(query);
+	xfiredb_free(query);
 
 	tmp = xfiredb_escape_string(data2);
 	xfiredb_sprintf(&query, HASH_QUERY, "hkey2", tmp);
@@ -84,7 +84,7 @@ static void hash_test(struct xfiredb_client *client)
 	}
 	xfiredb_result_free(r);
 	xfiredb_escape_free(tmp);
-	xfire_free(query);
+	xfiredb_free(query);
 
 	tmp = xfiredb_escape_string(data3);
 	xfiredb_sprintf(&query, HASH_QUERY, "hkey3", tmp);
@@ -96,7 +96,7 @@ static void hash_test(struct xfiredb_client *client)
 	}
 	xfiredb_result_free(r);
 	xfiredb_escape_free(tmp);
-	xfire_free(query);
+	xfiredb_free(query);
 
 	/* GET data */
 	query = "MREF hash-key hkey1 hkey2 hkey3";
