@@ -18,7 +18,7 @@
 
 module XFireDB
   class Socket
-    def connect(addr, port, ssl)
+    def self.connect(addr, port, ssl)
       sock = TCPSocket.new addr, port
 
       return sock unless ssl

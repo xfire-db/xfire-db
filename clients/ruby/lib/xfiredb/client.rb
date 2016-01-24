@@ -47,6 +47,11 @@ module XFireDB
       return true
     end
 
+    def close
+      @sockets.puts "QUIT" if @connected
+      @socket.close
+    end
+
     def connected?
       @connected
     end

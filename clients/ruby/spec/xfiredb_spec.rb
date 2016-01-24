@@ -10,4 +10,12 @@ describe XFireDB do
     x = XFireDB.new
     expect(x.connected?).to be false
   end
+
+  it 'is able to connect and disconnect' do
+    x = XFireDB.connect('localhost', 7000,
+                        XFireDB::SSL | XFireDB::AUTH | XFireDB::STREAM,
+                          'root', 'root')
+    expect(x.class).to be XFireDB::Client
+    expect(x.close).to be nil
+  end
 end
