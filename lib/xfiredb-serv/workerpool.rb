@@ -36,7 +36,14 @@ module XFireDB
               client = XFireDB::Client.from_stream(stream, cluster)
               family, port, host, ip = stream.peeraddr
               if XFireDB.config.auth
-                auth = stream.gets.chomp
+                auth = stream.gets
+                if auth
+                  auth.chomp!
+                else
+                  stream.close
+                  next
+                end
+
                 auth = XFireDB::XQL.parse(auth)
                 unless auth.cmd == "AUTH"
                   stream.puts "Access denied"
