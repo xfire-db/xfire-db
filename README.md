@@ -32,6 +32,12 @@ if it's not included, look at http://www.gnu.org/licences/.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+Dependancies
+------------
+
+The XFireDB currently depends on sqlite and openssl. Make sure that these
+libraries are installed on your system (including the development files).
+
 Compiling XFireDB
 ----------------
 
