@@ -23,6 +23,12 @@
 
 #include <xfiredb/xfiredb.h>
 
+/**
+ * @brief Allocate a new result.
+ * @param num Number of results to be allocated.
+ *
+ * @return A \p NULL terminated array of results.
+ */
 struct xfiredb_result **xfiredb_result_alloc(size_t num)
 {
 	void **ary;
@@ -37,6 +43,10 @@ struct xfiredb_result **xfiredb_result_alloc(size_t num)
 	return (struct xfiredb_result**)ary;
 }
 
+/**
+ * @brief Parse a serie of results.
+ * @param rp Pointer to an array of results.
+ */
 void xfiredb_result_parse(struct xfiredb_result **rp)
 {
 	struct xfiredb_result *r;
@@ -100,6 +110,10 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 	}
 }
 
+/**
+ * @brief Free a set of results.
+ * @param __p Pointer to an array of results.
+ */
 void xfiredb_result_free(struct xfiredb_result **__p)
 {
 	int i;
