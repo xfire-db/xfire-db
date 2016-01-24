@@ -16,28 +16,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-require 'socket'
-require 'openssl'
-
-require 'xfiredb/socket'
-require 'xfiredb/version'
-require 'xfiredb/client'
-
 module XFireDB
-  SSL    = 0x1
-  AUTH   = 0x2
-  STREAM = 0x4
+  class Socket
+    def connect(addr, port, ssl)
+      sock = TCPSocket.new addr, port
 
-  class << self
-    def new
-      Client.new
+      return sock unless ssl
+      return XFireDB::SSLSocket.new sock
     end
+  end
 
-    def connect(host, port, flags = nil, user = nil, pass = nil)
-      client = Client.new
-      client.connect(host, port, flags, user, pass)
-      return client
+  class SSLSocket < OpenSSL::SSL::SSLSocket
+    @sock = nil
+
+    def initialize(sock)
+      super(sock)
+
+      @sock = sock
+      self.sync_close = true
+      self.connect
     end
   end
 end
-
