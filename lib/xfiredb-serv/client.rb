@@ -124,7 +124,9 @@ module XFireDB
       if data.upcase == "STREAM"
         @keep = true
         data = @stream.gets.chomp
-      elsif data.upcase == "QUIT"
+      end
+
+      if data.upcase == "QUIT"
         @quit_recv = true
         return
       end
