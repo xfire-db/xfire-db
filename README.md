@@ -17,7 +17,7 @@ The COPYING file should contian more information about the licence, or
 if it's not included, look at http://www.gnu.org/licences/.
 
     XFIREDB
-    Copyright (C) 2014, 2015
+    Copyright (C) 2014, 2015, 2016
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,10 +62,12 @@ Before you can build XFireDB you have to configure it:
     cd build
     cmake ..
 
-various options can be passed to cmake, check the documentation for more information.
+Instead of cmake, ccmake can be used to configure libxfiredbengine. ccmake is a cmake
+configuration tool using the curses library to provide a graphical user interface.
 
-When you are finished configuring the project run the following make commands
-to fully build XFireDB:
+Various options can be passed to cmake, check the documentation for more
+information. When you are finished configuring the project run the following make 
+commands to fully build XFireDB:
 
     make
     make install
