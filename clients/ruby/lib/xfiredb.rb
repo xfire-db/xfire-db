@@ -22,6 +22,7 @@ require 'openssl'
 require 'xfiredb/socket'
 require 'xfiredb/version'
 require 'xfiredb/client'
+require 'xfiredb/result'
 
 module XFireDB
   SSL    = 0x1
