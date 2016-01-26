@@ -2,6 +2,12 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(HAVE_LINUX "#define HAVE_LINUX")
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
+if(${UNIX})
+	set(HAVE_UNIX "#define HAVE_UNIX")
+else(${UNIX})
+	message( FATAL_ERROR "XFireDB requires a POSIX compatible system")
+endif(${UNIX})
+
 option (XFIREDB_SERVER
 	"Set to to true if the XFire server should be build and installed"
 	true)
@@ -30,6 +36,8 @@ set (DATA_PATH "$ENV{HOME}/.xfire" CACHE STRING
 set(HAVE_PTHREAD "")
 if(XFIREDB_PTHREAD)
 	set(HAVE_PTHREAD "#define HAVE_PTHREAD")
+else(XFIREDB_PTHREAD)
+	message( FATAL_ERROR "XFireDB requires the pthreads library")
 endif(XFIREDB_PTHREAD)
 
 set(HAVE_DBG "")
