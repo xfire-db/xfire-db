@@ -1,8 +1,8 @@
-if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+if(XFIREDB_PTHREAD)
 	set(XFIREDB_OS_FILES
 		os/pthread.c
 	)
-endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+endif(XFIREDB_PTHREAD)
 
 include_directories(${XFIREDB_INCLUDE_DIR})
 
