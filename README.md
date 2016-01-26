@@ -72,6 +72,12 @@ commands to fully build XFireDB:
     make
     make install
 
+Windows
+-------
+
+For information how to compile and install an instance of XFireDB on Windows,
+please checkout [this webpage](http://xfiredb.bietje.net).
+
 Contributing
 ------------
 
