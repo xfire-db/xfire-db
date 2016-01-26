@@ -36,7 +36,7 @@
  */
 #define PTR_SIZE (sizeof(void*))
 
-#if defined(HAVE_LINUX) || defined(__DOXYGEN__)
+#if defined(HAVE_PTHREAD) || defined(__DOXYGEN__)
 #define xfiredb_cond_t pthread_cond_t //!< XFire condition variable.
 #define xfiredb_mutex_t mutex_t //!< XFire mutex.
 #define xfiredb_spinlock_t pthread_spinlock_t //!< XFire spinlock.
@@ -131,7 +131,7 @@ static inline void xfiredb_set_stack_size(xfiredb_attr_t *attr, size_t *stack)
  * @brief Custom thread structure.
  */
 struct thread {
-#if defined(HAVE_LINUX) || defined(__DOXYGEN__)
+#if defined(HAVE_PTHREAD) || defined(__DOXYGEN__)
 	pthread_t thread; //!< pthread thread.
 	pthread_attr_t attr; //!< pthread attributes.
 #endif
@@ -143,7 +143,7 @@ struct thread {
  * @brief Mutex data structure.
  */
 typedef struct mutex {
-#if defined(HAVE_LINUX) || defined(__DOXYGEN__)
+#if defined(HAVE_PTHREAD) || defined(__DOXYGEN__)
 	pthread_mutex_t mtx; //!< pthread mutex
 	pthread_mutexattr_t attr; //!< pthread mutex attributes
 #endif
