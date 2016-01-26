@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+#include <math.h>
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/time.h>
@@ -48,6 +49,21 @@ void xfiredb_sleep_ns(long ns)
 	tspec.tv_sec = secs;
 	tspec.tv_nsec = ns;
 	nanosleep(&tspec, NULL);
+}
+
+time_t xfiredb_time_stamp(void)
+{
+	time_t rv;
+	long s, ms;
+	struct timespec spec;
+
+	clock_gettime(CLOCK_REALTIME, &spec);
+	s = spec.tv_sec;
+	ms = round(spec.tv_nsec / 1.0e6);
+	rv = s * 1000;
+	rv += ms;
+
+	return rv;
 }
 #endif
 

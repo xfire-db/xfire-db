@@ -19,8 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include <time.h>
-#include <math.h>
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/error.h>
@@ -106,21 +104,6 @@ void *xfiredb_thread_join(struct thread *tp)
 
 	if(pthread_join(tp->thread, &rv))
 		rv = NULL;
-
-	return rv;
-}
-
-time_t xfiredb_time_stamp(void)
-{
-	time_t rv;
-	long s, ms;
-	struct timespec spec;
-
-	clock_gettime(CLOCK_REALTIME, &spec);
-	s = spec.tv_sec;
-	ms = round(spec.tv_nsec / 1.0e6);
-	rv = s * 1000;
-	rv += ms;
 
 	return rv;
 }

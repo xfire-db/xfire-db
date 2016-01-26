@@ -1,6 +1,6 @@
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIREDB_OS_FILES
-		os/linux.c
+		os/pthread.c
 	)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
@@ -28,7 +28,7 @@ add_library(xfiredbengine SHARED
 
 	# os files
 	${XFIREDB_OS_FILES}
-	os/sleep.c
+	os/time.c
 
 	# core files
 	crc16.c
