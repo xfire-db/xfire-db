@@ -44,11 +44,38 @@ module XFireDB
         @socket.puts "STREAM"
       end
 
+      @connected = true
       return true
     end
 
+    def query(q)
+      return false unless @connected
+
+      @socket.puts q
+      reply = @socket.gets
+      reply.chomp! if reply
+      num = reply.scan(/\ /).count + 1
+
+      puts num
+
+      num.times do
+        data = @socket.gets
+        data.chomp! if data
+        puts data
+        res = XFireDB::Result.new data
+        res.process
+        yield res
+      end
+
+      true
+    end
+
     def close
-      @sockets.puts "QUIT" if @connected
+      @connected = false
+      @authenticated = false
+      @stream = false
+
+      @socket.puts "QUIT" if @connected
       @socket.close
     end
 
