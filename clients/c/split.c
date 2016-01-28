@@ -21,6 +21,12 @@
 #include <string.h>
 #include <assert.h>
 
+/**
+ * @brief Split a string based on a delimiter.
+ * @param a_str String to split.
+ * @param a_delim Delimiter to use for splitting \p a_str.
+ * @return An array of strings.
+ */
 char** str_split(char* a_str, const char a_delim)
 {
 	char** result = 0;
@@ -66,6 +72,12 @@ char** str_split(char* a_str, const char a_delim)
 	return result;
 }
 
+/**
+ * @brief Count how often a given character occurs in a string.
+ * @param str String to search in.
+ * @param x Character to search for.
+ * @return Number of times \p x occurs in \p str.
+ */
 int str_count_occurences(const char *str, char x)
 {
 	int rv = 0;

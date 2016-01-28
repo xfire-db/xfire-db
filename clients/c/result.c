@@ -23,20 +23,30 @@
 
 #include <xfiredb/xfiredb.h>
 
+/**
+ * @brief Allocate a new result.
+ * @param num Number of results to be allocated.
+ *
+ * @return A \p NULL terminated array of results.
+ */
 struct xfiredb_result **xfiredb_result_alloc(size_t num)
 {
 	void **ary;
 	int i;
 
-	ary = xfire_zalloc(sizeof(*ary) * (num + 1));
+	ary = xfiredb_zalloc(sizeof(*ary) * (num + 1));
 	for(i = 0; i < num; i++)
-		ary[i] = xfire_zalloc(sizeof(struct xfiredb_result));
+		ary[i] = xfiredb_zalloc(sizeof(struct xfiredb_result));
 
 	ary[num] = NULL;
 
 	return (struct xfiredb_result**)ary;
 }
 
+/**
+ * @brief Parse a serie of results.
+ * @param rp Pointer to an array of results.
+ */
 void xfiredb_result_parse(struct xfiredb_result **rp)
 {
 	struct xfiredb_result *r;
@@ -51,7 +61,7 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 		case '+':
 			r->type = XFIREDB_STRING;
 			tmp = strdup(&r->data.ptr[1]);
-			xfire_free(r->data.ptr);
+			xfiredb_free(r->data.ptr);
 			r->data.ptr = tmp;
 			r->status = XFIREDB_RESULT_SUCCESS;
 			break;
@@ -59,7 +69,7 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 		case '&':
 			r->type = XFIREDB_BOOL;
 			numeral = strcmp("&true", r->data.ptr) ? 0 : 1;
-			xfire_free(r->data.ptr);
+			xfiredb_free(r->data.ptr);
 			r->data.ptr = NULL;
 			r->data.boolean = numeral;
 			r->status = XFIREDB_RESULT_SUCCESS;
@@ -69,7 +79,7 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 			r->type = XFIREDB_FIXNUM;
 			tmp = &r->data.ptr[1];
 			numeral = atoi(tmp);
-			xfire_free(r->data.ptr);
+			xfiredb_free(r->data.ptr);
 			r->data.si = numeral;
 			r->status = XFIREDB_RESULT_SUCCESS;
 			break;
@@ -85,11 +95,11 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 
 			if(!strcmp("OK", tmp)) {
 				r->status = XFIREDB_RESULT_OK | XFIREDB_RESULT_SUCCESS;
-				xfire_free(r->data.ptr);
+				xfiredb_free(r->data.ptr);
 				r->data.ptr = NULL;
 			} else if(!strcmp("nil", tmp)) {
 				r->status = XFIREDB_RESULT_NIL;
-				xfire_free(r->data.ptr);
+				xfiredb_free(r->data.ptr);
 				r->data.ptr = NULL;
 			} else {
 				r->status = XFIREDB_RESULT_MSG;
@@ -100,6 +110,10 @@ void xfiredb_result_parse(struct xfiredb_result **rp)
 	}
 }
 
+/**
+ * @brief Free a set of results.
+ * @param __p Pointer to an array of results.
+ */
 void xfiredb_result_free(struct xfiredb_result **__p)
 {
 	int i;
@@ -110,11 +124,11 @@ void xfiredb_result_free(struct xfiredb_result **__p)
 		r = p[i];
 
 		if(r->data.ptr && (r->status == XFIREDB_RESULT_MSG || r->type == XFIREDB_STRING))
-			xfire_free(r->data.ptr);
+			xfiredb_free(r->data.ptr);
 
-		xfire_free(r);
+		xfiredb_free(r);
 	}
 
-	xfire_free(p);
+	xfiredb_free(p);
 }
 

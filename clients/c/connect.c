@@ -32,6 +32,9 @@
 
 static int initialised = 0;
 
+/**
+ * @brief Initialise the XFireDB client library.
+ */
 void xfiredb_init(void)
 {
 	SSL_library_init();
@@ -41,7 +44,7 @@ void xfiredb_init(void)
 	initialised = 1;
 }
 
-SSL_CTX *xfiredb_ssl_init(void)
+static SSL_CTX *xfiredb_ssl_init(void)
 {
 	const SSL_METHOD *method;
 	SSL_CTX *ctx;
@@ -65,15 +68,15 @@ static int hostname_to_ip(char *host, char *ip)
 
 	he = gethostbyname(host);
 	if(!he)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
 	addr_list = (struct in_addr**) he->h_addr_list;
 	for(; addr_list[i]; i++) {
 		strcpy(ip, inet_ntoa(*addr_list[i]));
-		return -XFIRE_OK;
+		return -XFIREDB_OK;
 	}
 
-	return -XFIRE_OK;
+	return -XFIREDB_OK;
 }
 
 static struct xfiredb_client *xfiredb_ssl_connect(char *hostname, int port, long flags)
@@ -86,13 +89,13 @@ static struct xfiredb_client *xfiredb_ssl_connect(char *hostname, int port, long
 	if(!initialised)
 		xfiredb_init();
 
-	client = xfire_zalloc(sizeof(*client));
-	client->ssl = xfire_zalloc(sizeof(*client->ssl));
+	client = xfiredb_zalloc(sizeof(*client));
+	client->ssl = xfiredb_zalloc(sizeof(*client->ssl));
 	client->ssl->ctx = xfiredb_ssl_init();
 
 	if((host = gethostbyname(hostname)) == NULL) {
-		xfire_free(client->ssl);
-		xfire_free(client);
+		xfiredb_free(client->ssl);
+		xfiredb_free(client);
 		return NULL;
 	}
 
@@ -104,8 +107,8 @@ static struct xfiredb_client *xfiredb_ssl_connect(char *hostname, int port, long
 
 	if(connect(sock, (struct sockaddr*)&addr, sizeof(addr))) {
 		close(sock);
-		xfire_free(client->ssl);
-		xfire_free(client);
+		xfiredb_free(client->ssl);
+		xfiredb_free(client);
 		return NULL;
 	}
 
@@ -115,8 +118,8 @@ static struct xfiredb_client *xfiredb_ssl_connect(char *hostname, int port, long
 		fprintf(stderr, "xfiredb: cound not connect to SSL server!\n");
 		close(sock);
 		SSL_CTX_free(client->ssl->ctx);
-		xfire_free(client->ssl);
-		xfire_free(client);
+		xfiredb_free(client->ssl);
+		xfiredb_free(client);
 		return NULL;
 	}
 
@@ -155,7 +158,7 @@ static struct xfiredb_client *__xfiredb_connect(const char *hostname, int port, 
 		return NULL;
 	}
 
-	client = xfire_zalloc(sizeof(*client));
+	client = xfiredb_zalloc(sizeof(*client));
 	client->socket = sock;
 	client->flags = flags;
 
@@ -165,13 +168,21 @@ static struct xfiredb_client *__xfiredb_connect(const char *hostname, int port, 
 #define XFIREDB_STREAM_COMMAND "STREAM\n"
 #define SIZE_OF_BUF(__b) (sizeof(__b) - 1)
 
+/**
+ * @brief Connect to a XFireDB server.
+ *
+ * @param host Server host.
+ * @param port Server port.
+ * @param flags Connection settings.
+ * @return The connected client or \p NULL if an error occurred.
+ */
 struct xfiredb_client *xfiredb_connect(char *host, int port, long flags)
 {
 	struct xfiredb_client *client;
 	char tmp[16];
 
 	if((flags & XFIREDB_SOCK_RESOLV) != 0L) {
-		if(hostname_to_ip(host, tmp) != -XFIRE_OK)
+		if(hostname_to_ip(host, tmp) != -XFIREDB_OK)
 			return NULL;
 		else
 			host = tmp;
@@ -195,6 +206,14 @@ struct xfiredb_client *xfiredb_connect(char *host, int port, long flags)
 	return client;
 }
 
+/**
+ * @brief Authenticate a connected client.
+ *
+ * @param client Client structure.
+ * @param username Username to authenticate as.
+ * @param password Password for \p username.
+ * @return An error code.
+ */
 int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *password)
 {
 	char *query;
@@ -209,8 +228,8 @@ int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *pas
 		tmp[num] = '\0';
 
 		if(strcmp(tmp, "OK\n")) {
-			xfire_free(query);
-			return -XFIRE_ERR;
+			xfiredb_free(query);
+			return -XFIREDB_ERR;
 		}
 
 		if(client->flags & XFIREDB_SOCK_STREAM)
@@ -221,18 +240,23 @@ int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *pas
 		tmp[num] = '\0';
 
 		if(strcmp(tmp, "OK\n")) {
-			xfire_free(query);
-			return -XFIRE_ERR;
+			xfiredb_free(query);
+			return -XFIREDB_ERR;
 		}
 
 		if(client->flags & XFIREDB_SOCK_STREAM)
 			write(client->socket, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
 	}
 
-	xfire_free(query);
-	return -XFIRE_OK;
+	xfiredb_free(query);
+	return -XFIREDB_OK;
 }
 
+/**
+ * @brief Disconnect a connected client.
+ *
+ * @param client Client to disconnect.
+ */
 void xfiredb_disconnect(struct xfiredb_client *client)
 {
 	if(!client)
@@ -241,13 +265,13 @@ void xfiredb_disconnect(struct xfiredb_client *client)
 	if((client->flags & XFIREDB_SSL) && client->ssl) {
 	       	SSL_free(client->ssl->ssl);
 		SSL_CTX_free(client->ssl->ctx);
-		xfire_free(client->ssl);
+		xfiredb_free(client->ssl);
 	}
 
 	close(client->socket);
 	if(client->serv)
-		xfire_free(client->serv);
+		xfiredb_free(client->serv);
 
-	xfire_free(client);
+	xfiredb_free(client);
 }
 
