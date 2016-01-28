@@ -141,6 +141,7 @@ int main(int argc, char **argv)
 
 	client = cli_connect(host, port, user, pass, ssl, auth);
 	cli_run(client);
+	xfiredb_disconnect(client);
 
 	return -EXIT_SUCCESS;
 }
