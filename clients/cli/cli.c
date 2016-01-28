@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <wordexp.h>
@@ -34,13 +35,14 @@ static struct option long_opts[] = {
 	{"pass",  required_argument, 0, 'p'},
 	{"host",  required_argument, 0, 'H'},
 	{"port",  required_argument, 0, 'P'},
+	{"auth",    no_argument, 0, 'a'},
 	{"ssl",    no_argument, 0, 's'},
 	{"help",    no_argument, 0, 'h'},
 };
 
 static void cli_usage(const char *prog)
 {
-	printf("Usage: %s -H <host> -P <port> -[uphs]\n", prog);
+	printf("Usage: %s -H <host> -P <port> -[upahs]\n", prog);
 }
 
 static void cli_help(const char *prog)
@@ -48,6 +50,9 @@ static void cli_help(const char *prog)
 	cli_usage(prog);
 	printf("Connect to an XFireDB server using a command line interface. \n" \
 		"\n" \
+		"   -H, --host <hostname>       Server address." \
+		"   -P, --port <port>           Server port." \
+		"   -a, --auth                  Read username/password from stdin." \
 		"   -u, --user <username>       Username to use during authentication.\n" \
 		"   -p, --pass <passowd>        Password to use during authentication.\n" \
 		"   -s, --ssl                   Connect using SSL.\n" \
@@ -86,6 +91,18 @@ static void cli_run(struct xfiredb_client *client)
 {
 }
 
+static void cli_getpass(char **user, char **pass)
+{
+	char buff[1024];
+
+	printf("Username: ");
+	fgets(buff, 1023, stdin);
+	*user = xfiredb_zalloc(strlen(buff) + 1);
+	strcpy(*user, buff);
+
+	*pass = getpass("Password: ");
+}
+
 int main(int argc, char **argv)
 {
 	int option, opt_idx = 0, port = 0;
@@ -94,11 +111,15 @@ int main(int argc, char **argv)
 	struct xfiredb_client *client = NULL;
 
 	while(true) {
-		option = getopt_long(argc, argv, "H:P:u:p:sh", long_opts, &opt_idx);
+		option = getopt_long(argc, argv, "H:P:u:p:sha", long_opts, &opt_idx);
 		if(option == -1)
 			break;
 
 		switch(option) {
+		case 'a':
+			cli_getpass(&user, &pass);
+			auth = true;
+			break;
 		case 'p':
 			pass = optarg;
 			auth = true;
@@ -145,4 +166,3 @@ int main(int argc, char **argv)
 
 	return -EXIT_SUCCESS;
 }
-
