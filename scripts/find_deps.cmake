@@ -24,10 +24,15 @@ CHECK_INCLUDE_FILES(stdio.h STDIO_HEADER)
 CHECK_INCLUDE_FILES(stdarg.h STDARG_HEADER)
 CHECK_INCLUDE_FILES(string.h STRING_HEADER)
 CHECK_INCLUDE_FILES(assert.h ASSERT_HEADER)
+CHECK_INCLUDE_FILES(unistd.h UNISTD_HEADER)
 
 IF(NOT SSL_HEADER)
 	message( FATAL_ERROR "openssl/ssl.h is not found" )
 ENDIF()
+
+IF(NOT UNISTD_HEADER)
+	message( FATAL_ERROR "unistd.h is not found" )
+endif()
 
 IF(NOT STRING_HEADER)
 	message( FATAL_ERROR "string.h is not found" )
