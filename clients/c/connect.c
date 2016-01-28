@@ -60,7 +60,7 @@ static SSL_CTX *xfiredb_ssl_init(void)
 	return ctx;
 }
 
-static int hostname_to_ip(char *host, char *ip)
+static int hostname_to_ip(const char *host, char *ip)
 {
 	struct hostent *he;
 	struct in_addr **addr_list;
@@ -79,7 +79,7 @@ static int hostname_to_ip(char *host, char *ip)
 	return -XFIREDB_OK;
 }
 
-static struct xfiredb_client *xfiredb_ssl_connect(char *hostname, int port, long flags)
+static struct xfiredb_client *xfiredb_ssl_connect(const char *hostname, int port, long flags)
 {
 	struct xfiredb_client *client;
 	struct sockaddr_in addr;
@@ -176,7 +176,7 @@ static struct xfiredb_client *__xfiredb_connect(const char *hostname, int port, 
  * @param flags Connection settings.
  * @return The connected client or \p NULL if an error occurred.
  */
-struct xfiredb_client *xfiredb_connect(char *host, int port, long flags)
+struct xfiredb_client *xfiredb_connect(const char *host, int port, long flags)
 {
 	struct xfiredb_client *client;
 	char tmp[16];
@@ -214,7 +214,7 @@ struct xfiredb_client *xfiredb_connect(char *host, int port, long flags)
  * @param password Password for \p username.
  * @return An error code.
  */
-int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *password)
+int xfiredb_auth_client(struct xfiredb_client *client, const char *username, const char *password)
 {
 	char *query;
 	char tmp[1024];

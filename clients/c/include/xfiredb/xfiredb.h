@@ -164,9 +164,9 @@ static inline int xfiredb_result_success(struct xfiredb_result *r)
 	return !!(r->status & XFIREDB_RESULT_SUCCESS);
 }
 
-extern struct xfiredb_client *xfiredb_connect(char *host, int port, long flags);
+extern struct xfiredb_client *xfiredb_connect(const char *host, int port, long flags);
 extern void xfiredb_disconnect(struct xfiredb_client *);
-extern int xfiredb_auth_client(struct xfiredb_client *client, char *username, char *password);
+extern int xfiredb_auth_client(struct xfiredb_client *client, const char *username, const char *password);
 
 extern struct xfiredb_result **xfiredb_query(struct xfiredb_client *client, const char *query);
 

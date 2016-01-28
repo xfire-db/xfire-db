@@ -32,13 +32,15 @@
 static struct option long_opts[] = {
 	{"user",  required_argument, 0, 'u'},
 	{"pass",  required_argument, 0, 'p'},
+	{"host",  required_argument, 0, 'H'},
+	{"port",  required_argument, 0, 'P'},
 	{"ssl",    no_argument, 0, 's'},
 	{"help",    no_argument, 0, 'h'},
 };
 
 static void cli_usage(const char *prog)
 {
-	printf("Usage: %s [OPTS]\n", prog);
+	printf("Usage: %s -H <host> -P <port> -[uphs]\n", prog);
 }
 
 static void cli_help(const char *prog)
@@ -52,21 +54,67 @@ static void cli_help(const char *prog)
 		"   -h, --help                  Display this help text.\n");
 }
 
+static struct xfiredb_client *cli_connect(const char *host, int port,
+					const char *user, const char *pass, 
+					int ssl, int auth)
+{
+	struct xfiredb_client *client;
+	int flags = XFIREDB_SOCK_STREAM | XFIREDB_SOCK_RESOLV;
+
+	if(auth)
+		flags |= XFIREDB_AUTH;
+	if(ssl)
+		flags |= XFIREDB_SSL;
+
+	if(!(client = xfiredb_connect(host, port, flags))) {
+		printf("Failed to connect to server!\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if(auth) {
+		if(xfiredb_auth_client(client, user, pass) != -XFIREDB_OK) {
+			printf("Could not authenticate with the server!\n");
+			xfiredb_disconnect(client);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	return client;
+}
+
+static void cli_run(struct xfiredb_client *client)
+{
+}
+
 int main(int argc, char **argv)
 {
-	int option, opt_idx = 0;
+	int option, opt_idx = 0, port = 0;
+	int auth, ssl;
+	char *user = NULL, *pass = NULL, *host = NULL;
+	struct xfiredb_client *client = NULL;
 
 	while(true) {
-		option = getopt_long(argc, argv, "u:p:sh", long_opts, &opt_idx);
+		option = getopt_long(argc, argv, "H:P:u:p:sh", long_opts, &opt_idx);
 		if(option == -1)
 			break;
 
 		switch(option) {
 		case 'p':
+			pass = optarg;
+			auth = true;
 			break;
 		case 'u':
+			user = optarg;
+			auth = true;
+			break;
+		case 'P':
+			port = atoi(optarg);
+			break;
+		case 'H':
+			host = optarg;
 			break;
 		case 's':
+			ssl = true;
 			break;
 		case 'h':
 			cli_help(argv[0]);
@@ -78,6 +126,21 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
+
+	if(!host || !port) {
+		cli_usage(argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	if(auth && (!pass || !user)) {
+		printf("Both a username and password have to be supplied to " \
+			"authenticate with a server.\n\n");
+		cli_help(argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	client = cli_connect(host, port, user, pass, ssl, auth);
+	cli_run(client);
 
 	return -EXIT_SUCCESS;
 }
