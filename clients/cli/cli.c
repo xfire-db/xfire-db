@@ -96,20 +96,25 @@ static void cli_run(struct xfiredb_client *client)
 	int i = 1;
 
 	while(true) {
+		bzero(query, 4096);
 		printf("xfiredb> ");
-		scanf("%s", query);
+		fgets(query, 4095, stdin);
+		query[strlen(query)-1] = '\0';
 
 		if(!strcmp(query, "quit"))
 			break;
 
 		r = xfiredb_query(client, query);
 
-		if(!r)
+		if(!r) {
 			printf("> Failed to query the server!\n");
+			continue;
+		}
 
-		for(c = r[0]; c; c = r[i], i++) {
-			if(!xfiredb_result_success(c))
-				printf("> Failed to query the server!\n");
+		for(i = 0;; i++) {
+			c = r[i];
+			if(!c)
+				break;
 
 			switch(xfiredb_result_type(c)) {
 			case XFIREDB_STRING:
@@ -136,6 +141,7 @@ static void cli_run(struct xfiredb_client *client)
 				break;
 			default:
 				printf("> Failed to query the server!\n");
+				break;
 			}
 		}
 

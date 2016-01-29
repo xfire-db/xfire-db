@@ -74,16 +74,18 @@ module XFireDB
               stream.close
             end
           rescue IllegalKeyException => e
+            stream.puts e.to_s.length + 1
             stream.puts e
             stream.close
             next
           rescue IllegalCommandException => e
+            stream.puts e.to_s.length + 1
             stream.puts e
             stream.close
             next
           rescue Exception => e
-            puts e.class
             if e.is_a? BCrypt::Errors::InvalidHash
+              stream.puts "Access denied for #{ip}".length + 1
               stream.puts "Access denied for #{ip}"
               XFireDB::Log.auth_fail(ip, auth.args[0])
               stream.close
@@ -92,6 +94,7 @@ module XFireDB
 
             puts e
             puts e.backtrace
+            steram.puts "Query failed".length + 1
             stream.puts "Query failed"
             stream.close
             next
