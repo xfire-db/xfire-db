@@ -89,6 +89,15 @@ static struct xfiredb_client *cli_connect(const char *host, int port,
 
 static void cli_run(struct xfiredb_client *client)
 {
+	char query[4096];
+
+	while(true) {
+		printf("xfiredb> ");
+		scanf("%s", query);
+
+		if(!strcmp(query, "quit"))
+			break;
+	}
 }
 
 static void cli_getpass(char **user, char **pass)
@@ -166,3 +175,4 @@ int main(int argc, char **argv)
 
 	return -EXIT_SUCCESS;
 }
+
