@@ -90,6 +90,10 @@ static struct xfiredb_client *cli_connect(const char *host, int port,
 static void cli_run(struct xfiredb_client *client)
 {
 	char query[4096];
+	struct xfiredb_result **r, *c;
+	long status;
+	unsigned char b;
+	int i = 1;
 
 	while(true) {
 		printf("xfiredb> ");
@@ -97,6 +101,45 @@ static void cli_run(struct xfiredb_client *client)
 
 		if(!strcmp(query, "quit"))
 			break;
+
+		r = xfiredb_query(client, query);
+
+		if(!r)
+			printf("> Failed to query the server!\n");
+
+		for(c = r[0]; c; c = r[i], i++) {
+			if(!xfiredb_result_success(c))
+				printf("> Failed to query the server!\n");
+
+			switch(xfiredb_result_type(c)) {
+			case XFIREDB_STRING:
+				printf("> %s\n", xfiredb_result_to_ptr(c));
+				break;
+
+			case XFIREDB_BOOL:
+				b = xfiredb_result_to_bool(c);
+				printf("> (%s)\n", b ? "true" : "false");
+				break;
+
+			case XFIREDB_FIXNUM:
+				printf("> (%ld)\n", xfiredb_result_to_int(c));
+				break;
+
+			case XFIREDB_STATUS:
+				status = xfiredb_result_status(c);
+				if(status & XFIREDB_RESULT_OK)
+					printf("> (OK)\n");
+				if(status & XFIREDB_RESULT_NIL)
+					printf("> (nil)\n");
+				if(status & XFIREDB_RESULT_MSG)
+					printf("> %s\n", xfiredb_result_to_ptr(c));
+				break;
+			default:
+				printf("> Failed to query the server!\n");
+			}
+		}
+
+		xfiredb_result_free(r);
 	}
 }
 
