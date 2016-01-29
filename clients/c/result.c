@@ -24,6 +24,11 @@
 #include <xfiredb/xfiredb.h>
 
 /**
+ * @addtogroup query
+ * @{
+ */
+
+/**
  * @brief Allocate a new result.
  * @param num Number of results to be allocated.
  *
@@ -131,4 +136,6 @@ void xfiredb_result_free(struct xfiredb_result **__p)
 
 	xfiredb_free(p);
 }
+
+/** @} */
 

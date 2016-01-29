@@ -21,6 +21,11 @@
 #include <stdio.h>
 
 /**
+ * @addtogroup gen
+ * @{
+ */
+
+/**
  * @brief Allocate a memory region.
  * @param len Number of bytes to allocate.
  * @return Allocated memory.
@@ -96,4 +101,6 @@ void xfiredb_free(void *region)
 
 	free(region);
 }
+
+/** @} */
 

@@ -1,0 +1,16 @@
+/**
+ * @defgroup query Query API
+ * @brief API to sent queries to the server.
+ * @note The result API is also covered here.
+ */
+
+/**
+ * @defgroup con Connection API
+ * @brief XFireDB connection API. This API can be used to manage connections
+ *        to an XFireDB server.
+ */
+
+/**
+ * @defgroup gen General API
+ * @brief Generic functions to support the XFireDB API.
+ */

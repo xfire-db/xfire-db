@@ -30,6 +30,11 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+/**
+ * @addtogroup con
+ * @{
+ */
+
 static int initialised = 0;
 
 /**
@@ -274,4 +279,6 @@ void xfiredb_disconnect(struct xfiredb_client *client)
 
 	xfiredb_free(client);
 }
+
+/** @} */
 

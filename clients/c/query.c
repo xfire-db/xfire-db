@@ -25,6 +25,11 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+/**
+ * @addtogroup query
+ * @{
+ */
+
 static char *query_readline(struct xfiredb_client *client)
 {
 	char *tmp, *rv;
@@ -172,4 +177,6 @@ struct xfiredb_result **xfiredb_query(struct xfiredb_client *client, const char 
 	xfiredb_result_parse(rv);
 	return rv;
 }
+
+/** @} */
 

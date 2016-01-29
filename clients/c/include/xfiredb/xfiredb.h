@@ -16,15 +16,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #ifndef __XFIREDB_H__
 #define __XFIREDB_H__
 
 #include <openssl/ssl.h>
 
+/**
+ * @addtogroup gen
+ * @{
+ */
 #define XFIREDB_OK 0 //!< XFireDB success error code
 #define XFIREDB_ERR 1 //!< XFireDB general error code
 #define XFIREDB_NOTCONN 2 //!< Not connected error
 #define XFIREDB_NOTAUTH 3 //!< Not authorized error
+/** @} */
 
 #ifdef __cplusplus
 #define CDECL extern "C" {
@@ -34,6 +40,10 @@
 #define CDECL_END
 #endif
 
+/**
+ * @addtogroup query
+ * @{
+ */
 /**
  * @brief SSL client data structure.
  */
@@ -93,7 +103,13 @@ struct xfiredb_result {
 #define XFIREDB_SSL		0x4 //!< Connect using SSL.
 #define XFIREDB_AUTH		0x8 //!< Authenticate to the server using a username and password.
 
+/** @} */
+
 CDECL
+/**
+ * @addtogroup query
+ * @{
+ */
 /**
  * @brief Get the result type.
  * @param r Result to get the type from.
@@ -163,6 +179,7 @@ static inline int xfiredb_result_success(struct xfiredb_result *r)
 {
 	return !!(r->status & XFIREDB_RESULT_SUCCESS);
 }
+/** @} */
 
 extern struct xfiredb_client *xfiredb_connect(const char *host, int port, long flags);
 extern void xfiredb_disconnect(struct xfiredb_client *);
@@ -191,3 +208,4 @@ CDECL_END
 
 #endif
 
+/** @} */

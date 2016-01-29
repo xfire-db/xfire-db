@@ -22,6 +22,11 @@
 #include <xfiredb/xfiredb.h>
 
 /**
+ * @addtogroup query
+ * @{
+ */
+
+/**
  * @brief Free memory allocated by xfiredb_escape_string or
  *        xfiredb_unescape_char.
  *
@@ -163,3 +168,4 @@ char *xfiredb_escape_string(char *src)
 	return realloc(orig, len);
 }
 
+/** @} */
