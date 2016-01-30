@@ -155,6 +155,7 @@ static void cli_getpass(char **user, char **pass)
 
 	printf("Username: ");
 	fgets(buff, 1023, stdin);
+	buff[strlen(buff)-1] = '\0';
 	*user = xfiredb_zalloc(strlen(buff) + 1);
 	strcpy(*user, buff);
 
