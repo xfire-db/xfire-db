@@ -50,9 +50,9 @@ static void cli_help(const char *prog)
 	cli_usage(prog);
 	printf("Connect to an XFireDB server using a command line interface. \n" \
 		"\n" \
-		"   -H, --host <hostname>       Server address." \
-		"   -P, --port <port>           Server port." \
-		"   -a, --auth                  Read username/password from stdin." \
+		"   -H, --host <hostname>       Server address.\n" \
+		"   -P, --port <port>           Server port.\n" \
+		"   -a, --auth                  Read username/password from stdin.\n" \
 		"   -u, --user <username>       Username to use during authentication.\n" \
 		"   -p, --pass <passowd>        Password to use during authentication.\n" \
 		"   -s, --ssl                   Connect using SSL.\n" \
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 	if(auth && (!pass || !user)) {
 		printf("Both a username and password have to be supplied to " \
 			"authenticate with a server.\n\n");
-		cli_help(argv[0]);
+		cli_usage(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
