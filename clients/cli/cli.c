@@ -30,6 +30,11 @@
 #define true !false
 #endif
 
+#define COPYRIGHT_NOTICE \
+  "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n" \
+  "This is free software: you are free to change and redistribute it.\n" \
+  "There is NO WARRANTY, to the extent permitted by law."
+
 static struct option long_opts[] = {
 	{"user",  required_argument, 0, 'u'},
 	{"pass",  required_argument, 0, 'p'},
@@ -37,8 +42,14 @@ static struct option long_opts[] = {
 	{"port",  required_argument, 0, 'P'},
 	{"auth",    no_argument, 0, 'a'},
 	{"ssl",    no_argument, 0, 's'},
+	{"version", no_argument, 0, 'v'},
 	{"help",    no_argument, 0, 'h'},
 };
+
+static void cli_version(void)
+{
+	printf("XFireDB Command line interface\n%s\n", COPYRIGHT_NOTICE);
+}
 
 static void cli_usage(const char *prog)
 {
@@ -56,6 +67,7 @@ static void cli_help(const char *prog)
 		"   -u, --user <username>       Username to use during authentication.\n" \
 		"   -p, --pass <passowd>        Password to use during authentication.\n" \
 		"   -s, --ssl                   Connect using SSL.\n" \
+		"   -v, --verion                Print version information.\n" \
 		"   -h, --help                  Display this help text.\n");
 }
 
@@ -170,7 +182,7 @@ int main(int argc, char **argv)
 	struct xfiredb_client *client = NULL;
 
 	while(true) {
-		option = getopt_long(argc, argv, "H:P:u:p:sha", long_opts, &opt_idx);
+		option = getopt_long(argc, argv, "H:P:u:p:shva", long_opts, &opt_idx);
 		if(option == -1)
 			break;
 
@@ -195,6 +207,10 @@ int main(int argc, char **argv)
 			break;
 		case 's':
 			ssl = true;
+			break;
+		case 'v':
+			cli_version();
+			exit(-EXIT_SUCCESS);
 			break;
 		case 'h':
 			cli_help(argv[0]);
