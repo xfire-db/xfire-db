@@ -85,14 +85,14 @@ static struct xfiredb_client *cli_connect(const char *host, int port,
 
 	if(!(client = xfiredb_connect(host, port, flags))) {
 		printf("Failed to connect to server!\n");
-		exit(EXIT_FAILURE);
+		exit(-EXIT_FAILURE);
 	}
 
 	if(auth) {
 		if(xfiredb_auth_client(client, user, pass) != -XFIREDB_OK) {
 			printf("Could not authenticate with the server!\n");
 			xfiredb_disconnect(client);
-			exit(EXIT_FAILURE);
+			exit(-EXIT_FAILURE);
 		}
 	}
 
@@ -214,25 +214,25 @@ int main(int argc, char **argv)
 			break;
 		case 'h':
 			cli_help(argv[0]);
-			exit(EXIT_SUCCESS);
+			exit(-EXIT_SUCCESS);
 			break;
 		default:
 			cli_usage(argv[0]);
-			exit(EXIT_FAILURE);
+			exit(-EXIT_FAILURE);
 			break;
 		}
 	}
 
 	if(!host || !port) {
 		cli_usage(argv[0]);
-		exit(EXIT_FAILURE);
+		exit(-EXIT_FAILURE);
 	}
 
 	if(auth && (!pass || !user)) {
 		printf("Both a username and password have to be supplied to " \
 			"authenticate with a server.\n\n");
 		cli_usage(argv[0]);
-		exit(EXIT_FAILURE);
+		exit(-EXIT_FAILURE);
 	}
 
 	client = cli_connect(host, port, user, pass, ssl, auth);
