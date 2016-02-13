@@ -1,7 +1,7 @@
 set(CXX_COMPILE_FLAGS
-	"-Wall -std=gnu++98")
+	"-Wall -std=gnu++98 -lm -ldl")
 set(C_COMPILE_FLAGS
-	"-Wall -std=gnu89 -lm")
+	"-Wall -std=gnu89 -lm -ldl")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(C_COMPILE_FLAGS "${C_COMPILE_FLAGS} -pthread")

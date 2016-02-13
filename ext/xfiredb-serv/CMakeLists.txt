@@ -1,4 +1,4 @@
-include_directories(${XFIREDB_INCLUDE_DIR})
+include_directories(${XFIREDB_INCLUDE_DIR} ${XFIREDB_SQLITE_INCLUDE_DIR})
 
 ADD_RUBY_EXTENSION(storage_engine
 	database.c

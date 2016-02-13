@@ -2,12 +2,6 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(HAVE_LINUX "#define HAVE_LINUX")
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
-if(${UNIX})
-	set(HAVE_UNIX "#define HAVE_UNIX")
-else(${UNIX})
-	message( FATAL_ERROR "XFireDB requires a POSIX compatible system")
-endif(${UNIX})
-
 option (XFIREDB_SERVER
 	"Set to to true if the XFire server should be build and installed"
 	true)
