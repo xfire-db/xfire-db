@@ -1,1 +1,3 @@
-add_subdirectory(c)
+if(${UNIX})
+	add_subdirectory(c)
+endif(${UNIX})

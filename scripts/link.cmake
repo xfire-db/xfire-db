@@ -18,6 +18,9 @@ if("${isSystemDir}" STREQUAL "-1")
 	set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif("${isSystemDir}" STREQUAL "-1")
 
+find_library(XFIREDB_PTHREAD_LIB
+	NAMES pthread winpthread
+	PATHS ${CMAKE_FIND_ROOT_PATH}/lib)
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIREDB_SQLITE_LIB sqlite3)

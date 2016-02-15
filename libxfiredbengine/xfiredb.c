@@ -72,6 +72,15 @@ void xfiredb_set_loadstate(bool state)
 }
 
 /**
+ * @brief Return the current load state of the engine.
+ * @return The load state of the engine. TRUE if fully loaded, FALSE if not.
+ */
+bool xfiredb_loadstate(void)
+{
+	return load_state;
+}
+
+/**
  * @brief Initialise the storage engine without logging.
  * @param conf XFireDB configuration.
  */

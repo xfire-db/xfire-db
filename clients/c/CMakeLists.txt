@@ -14,4 +14,6 @@ add_subdirectory(test)
 
 install (TARGETS xfiredb
 	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
 	)

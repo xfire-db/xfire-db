@@ -25,7 +25,6 @@
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/time.h>
 
-#ifdef HAVE_POSIX
 void xfiredb_sleep(int secs)
 {
 	sleep(secs);
@@ -65,5 +64,4 @@ time_t xfiredb_time_stamp(void)
 
 	return rv;
 }
-#endif
 

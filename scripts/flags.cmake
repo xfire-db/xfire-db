@@ -1,12 +1,12 @@
 set(CXX_COMPILE_FLAGS
-	"-Wall -std=gnu++98 -lm -ldl")
+	"-Wall -std=gnu++98 -pthread -lm")
 set(C_COMPILE_FLAGS
-	"-Wall -std=gnu89 -lm -ldl")
+	"-Wall -std=gnu89 -pthread -lm")
 
-if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
-	set(C_COMPILE_FLAGS "${C_COMPILE_FLAGS} -pthread")
-	set(CXX_COMPILE_FLAGS "${CXX_COMPILE_FLAGS} -pthread")
-endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+if(${UNIX})
+	set(CXX_COMPILE_FLAGS "${CXX_COMPILE_FLAGS} -ldl")
+	set(C_COMPILE_FLAGS "${C_COMPILE_FLAGS} -ldl")
+endif(${UNIX})
 
 set(DEBUG_FLAGS "")
 if(XFIREDB_DEBUG)

@@ -22,6 +22,9 @@ option (RECURSION
 	"Set to true if search functions should use recursion."
 	true)
 
+set (RUBY_RBCONF "" CACHE STRING
+	"Ruby config file.")
+
 set (STACK_SIZE "2097152" CACHE STRING
 	"Default stack size.")	
 set (DATA_PATH "$ENV{HOME}/.xfire" CACHE STRING
