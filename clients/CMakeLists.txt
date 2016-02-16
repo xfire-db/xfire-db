@@ -1,6 +1,4 @@
 if(${UNIX})
-	add_subdirectory(c)
-
 	MESSAGE( STATUS "looking for libssl")
 	find_library(OPENSSL_LIB
 		NAMES ssl
@@ -12,4 +10,5 @@ if(${UNIX})
 	IF(NOT SSL_HEADER)
 		message( FATAL_ERROR "openssl/ssl.h is not found" )
 	ENDIF()
+	add_subdirectory(c)
 endif(${UNIX})
