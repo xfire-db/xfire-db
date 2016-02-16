@@ -77,13 +77,21 @@ static void dbg_iterate_tree(struct rb_root *root)
 	struct rb_iterator *it = rb_new_iterator(root);
 	struct rb_node *carriage;
 
+#if HAVE_X64
 	printf("Length = %lli\n", (long long)rb_get_size(root));
+#else
+	printf("Length = %li\n", (long)rb_get_size(root));
+#endif
 	for(carriage = rb_iterator_next(it);
 			carriage; carriage = rb_iterator_next(it)) {
 		rb_remove(root, carriage->key, (void*)node_data);
 	}
 	rb_free_iterator(it);
+#if HAVE_X64
 	printf("Length = %lli\n", (long long)rb_get_size(root));
+#else
+	printf("Length = %li\n", (long)rb_get_size(root));
+#endif
 }
 
 static void dbg_setup_tree(void)

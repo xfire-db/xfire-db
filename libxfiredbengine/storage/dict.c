@@ -467,7 +467,9 @@ static inline unsigned long dict_real_size(unsigned long size)
 	size |= size >> 4;
 	size |= size >> 8;
 	size |= size >> 16;
+#ifdef HAVE_X64
 	size |= size >> 32;
+#endif
 	size++;
 
 	return size;
@@ -555,6 +557,7 @@ static void *dict_rehash_worker(void *arg)
 
 	xfiredb_mutex_unlock(&d->lock);
 	xfiredb_thread_exit(NULL);
+	return NULL;
 }
 
 /**

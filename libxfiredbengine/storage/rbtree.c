@@ -1302,9 +1302,15 @@ static void rb_dump_node(struct rb_node *tree, FILE *stream)
 	}
 
 	printf("d:[");
+#if HAVE_X64
 	printf("%llu,%s,%llu", (unsigned long long)tree->key,
 			rb_colour_to_string(tree), tree->parent ? 
 			(unsigned long long)tree->parent->key : 0ULL);
+#else
+	printf("%lu,%s,%lu", (unsigned long)tree->key,
+			rb_colour_to_string(tree), tree->parent ? 
+			(unsigned long)tree->parent->key : 0UL);
+#endif
 	
 	printf("]");
 

@@ -2,6 +2,10 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(HAVE_LINUX "#define HAVE_LINUX")
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 
+option (X64
+	"Set to true if compiling for a 64-bit machine"
+	true)
+
 option (XFIREDB_SERVER
 	"Set to to true if the XFire server should be build and installed"
 	true)
@@ -46,4 +50,9 @@ set(HAVE_RECURSION "")
 if(RECURSION)
 	set(HAVE_RECURSION "#define HAVE_RECURSION")
 endif(RECURSION)
+
+set(HAVE_X64 "")
+if(X64)
+	set(HAVE_X64 "#define HAVE_X64")
+endif(X64)
 

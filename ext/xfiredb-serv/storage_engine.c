@@ -74,9 +74,9 @@ VALUE rb_se_get_loadstate(VALUE self)
 
 VALUE rb_se_load_key(VALUE self, VALUE _key)
 {
-	char *k = StringValueCStr(_key);
 	VALUE ary;
 	auto void load_hook(int argc, char **rows, char **cols);
+	char *k = StringValueCStr(_key);
 
 	ary = rb_ary_new();
 	xfiredb_load_key(k, &load_hook);

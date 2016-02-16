@@ -25,6 +25,8 @@ ${HAVE_LINUX}
 
 ${HAVE_PTHREAD}
 
+${HAVE_X64}
+
 #if defined(HAVE_UNIX) || defined(HAVE_LINUX)
 #define HAVE_POSIX
 #endif
