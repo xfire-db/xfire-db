@@ -30,7 +30,6 @@ require 'set'
 require 'io/console'
 
 require 'xfiredb-serv/storage_engine'
-require 'xfiredb-serv/digest'
 require 'xfiredb-serv/illegalkeyexception'
 require 'xfiredb-serv/illegalcommandexception'
 require 'xfiredb-serv/socket'

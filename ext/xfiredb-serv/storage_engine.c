@@ -159,5 +159,6 @@ void Init_storage_engine(void)
 	init_set();
 	init_string();
 	init_log();
+	init_digest();
 }
 
