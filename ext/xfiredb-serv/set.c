@@ -170,10 +170,10 @@ static VALUE set_enum_size(VALUE self)
 
 static VALUE rb_set_each(VALUE set)
 {
-	RETURN_SIZED_ENUMERATOR(set, 0, 0, set_enum_size);
 	struct set *s;
 	struct set_key *k;
 	struct set_iterator *it;
+	RETURN_SIZED_ENUMERATOR(set, 0, 0, set_enum_size);
 
 	s = obj_to_set(set);
 	it = set_iterator_new(s);
