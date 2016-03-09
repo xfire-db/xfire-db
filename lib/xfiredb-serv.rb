@@ -133,6 +133,7 @@ module XFireDB
 
       opts.on("-w", "--workers NUM",
               "Number of threads used to accept incoming connections") do |num|
+        num = num.to_i unless num.nil?
         @options.workers = num || 2
       end
 
