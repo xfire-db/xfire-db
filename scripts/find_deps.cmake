@@ -1,3 +1,17 @@
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	MESSAGE( STATUS "looking for libws_32")
+	find_library(WS32_LIB
+		NAMES ws2_32
+		HINTS ${CMAKE_FIND_ROOT_PATH}/lib)
+	MESSAGE( STATUS "Found libws_32: ${WS32_LIB}")
+
+	MESSAGE( STATUS "looking for libcrypto")
+	find_library(CRYPTO_LIB
+		NAMES libcrypto.a crypto
+		HINTS ${CMAKE_FIND_ROOT_PATH}/lib)
+	MESSAGE( STATUS "Found libcrypto: ${CRYPTO_LIB}")
+endif()
+
 CHECK_INCLUDE_FILES(stdlib.h STDLIB_HEADER)
 CHECK_INCLUDE_FILES(stdint.h STDINT_HEADER)
 CHECK_INCLUDE_FILES(stdio.h STDIO_HEADER)

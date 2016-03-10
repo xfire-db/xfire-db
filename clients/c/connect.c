@@ -21,11 +21,16 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
-#include <netdb.h>
 
+#ifdef __unix__
+#include <netdb.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#else
+#include <winsock2.h>
+#endif
+
 #include <xfiredb/xfiredb.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -100,7 +105,7 @@ static struct xfiredb_client *xfiredb_ssl_connect(char *hostname, int port, long
 	}
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
-	bzero(&addr, sizeof(addr));
+	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = *(long*)(host->h_addr);
@@ -146,7 +151,7 @@ static struct xfiredb_client *__xfiredb_connect(const char *hostname, int port, 
 		return NULL;
 	}
 
-	bzero(&addr, sizeof(addr));
+	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = *(long*)(serv->h_addr);
 	addr.sin_port = htons(port);

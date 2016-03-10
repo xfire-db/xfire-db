@@ -11,7 +11,11 @@ ADD_RUBY_EXTENSION(storage_engine
 	digest.c
 	)
 
-target_link_libraries(storage_engine LINK_PUBLIC xfiredbengine)
+if(NOT ${UNIX})
+	target_link_libraries(storage_engine LINK_PUBLIC xfiredbengine ${WS32_LIB})
+else()
+	target_link_libraries(storage_engine LINK_PUBLIC xfiredbengine)
+endif()
 
 install(TARGETS storage_engine
 	LIBRARY DESTINATION ${RUBY_EXTENSIONS_INSTALL_DIR}/xfiredb-serv)

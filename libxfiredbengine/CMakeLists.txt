@@ -40,7 +40,7 @@ add_library(xfiredbengine SHARED
 	quotearg.c)
 
 
-target_link_libraries(xfiredbengine LINK_PUBLIC ${SQLITE3_LIB} ${XFIREDB_PTHREAD_LIB})
+target_link_libraries(xfiredbengine LINK_PUBLIC xfiredb-sqlite3 ${XFIREDB_PTHREAD_LIB})
 
 install (TARGETS xfiredbengine
 	LIBRARY DESTINATION lib
