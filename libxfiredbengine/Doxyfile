@@ -770,6 +770,7 @@ INPUT                  = . \
                          ../Documentation/container.txt \
                          ../Documentation/engine.txt \
                          ../Documentation/hashmap.txt \
+			 ../Documentation/object.txt \
                          ../Documentation/bio.txt \
                          ../Documentation/bg.txt \
                          ../Documentation/disk.txt \

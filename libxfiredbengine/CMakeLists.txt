@@ -17,6 +17,7 @@ add_library(xfiredbengine SHARED
 	# storage files	
 	storage/dict.c
 	storage/database.c
+	storage/object.c
 	storage/disk.c
 	storage/set.c
 	storage/hashmap.c
