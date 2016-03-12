@@ -76,6 +76,7 @@ extern void container_init(struct container *c, container_type_t type);
 extern void *container_get_data(struct container *c);
 extern void container_destroy(struct container *c);
 extern struct container *container_alloc(container_type_t type);
+extern struct object *container_to_object(struct container *c);
 CDECL_END
 
 #endif
