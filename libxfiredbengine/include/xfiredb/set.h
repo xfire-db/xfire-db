@@ -30,6 +30,7 @@
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
 #include <xfiredb/mem.h>
+#include <xfiredb/object.h>
 #include <xfiredb/rbtree.h>
 #include <xfiredb/error.h>
 
@@ -37,6 +38,7 @@
  * @brief Set datastructure.
  */
 struct set {
+	struct object obj; //!< Base object.
 	struct rb_root root; //!< Red-black tree root.
 	atomic_t num; //!< Set size.
 };

@@ -29,6 +29,7 @@
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
+#include <xfiredb/object.h>
 #include <xfiredb/rbtree.h>
 
 /**
@@ -43,6 +44,7 @@
  * @brief Hashmap definition.
  */
 struct hashmap {
+	struct object obj; //!< Base object.
 	struct rb_root root; //!< Red-black tree root.
 	atomic_t num; //!< Number of entry's in the hashmap.
 	void *privdata; //!< Private data.

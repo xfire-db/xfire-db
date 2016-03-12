@@ -29,6 +29,7 @@
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
+#include <xfiredb/os.h>
 
 /**
  * @brief XFireDB base object.
@@ -40,22 +41,51 @@
  * that the object does not expire.
  */
 struct object {
-	char *key; //!< Object key.
-
 	time_t crea, //!< Creation time.
 	       exp; //!< Expire time.
+
+	unsigned long flags; //!< Object flags
+	xfiredb_spinlock_t lock; //!< Object lock.
 };
+
+/**
+ * @name Object flags
+ * @{
+ */
+#define OBJECT_INTREE_FLAG          0
+#define OBJECT_EXPIRED_FLAG         1
+/** @} */
 
 #define raw_xfiredb_obj_to(__obj, __type, __field) \
 	container_of(__obj, __type, __field)
 #define xfiredb_obj_to(__obj, __type) raw_xfiredb_obj_to(__obj, __type, obj)
 
 CDECL
-struct object *xfiredb_obj_alloc(const char *key, time_t exp);
-void xfiredb_obj_init(const char *key, time_t exp);
+extern struct object *object_alloc(void);
+extern void object_init(struct object *obj);
 
-void xfiredb_obj_destroy(struct object *obj);
-void xfiredb_obj_free(struct object *obj);
+extern bool object_has_expired(struct object *obj);
+extern int object_set_expiry(struct object *obj, time_t exp);
+
+extern void object_destroy(struct object *obj);
+extern void object_free(struct object *obj);
+
+static inline void object_lock(struct object *obj)
+{
+	if(!obj)
+		return;
+
+	xfiredb_spin_lock(&obj->lock);
+}
+
+static inline void object_unlock(struct object *obj)
+{
+	if(!obj)
+		return;
+
+	xfiredb_spin_unlock(&obj->lock);
+}
+
 CDECL_END
 
 #endif /* __HASHMAP__H__ */

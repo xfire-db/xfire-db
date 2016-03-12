@@ -27,6 +27,7 @@
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
 #include <xfiredb/os.h>
+#include <xfiredb/object.h>
 #include <xfiredb/list.h>
 #include <xfiredb/rbtree.h>
 #include <xfiredb/hashmap.h>
@@ -35,6 +36,7 @@
  * @brief String container.
  */
 struct string {
+	struct object obj; //!< Base object.
 	struct list entry; //!< List entry.
 	struct hashmap_node node; //!< Map node.
 

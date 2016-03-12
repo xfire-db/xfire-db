@@ -26,6 +26,7 @@
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
+#include <xfiredb/object.h>
 #include <xfiredb/list.h>
 #include <xfiredb/os.h>
 

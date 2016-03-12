@@ -25,6 +25,7 @@
 #define __LIST_H__
 
 #include <xfiredb/xfiredb.h>
+#include <xfiredb/object.h>
 #include <xfiredb/os.h>
 
 /**
@@ -39,6 +40,7 @@ typedef struct list {
  * @brief List head data type.
  */
 typedef struct list_head {
+	struct object obj; //!< Base object.
 	struct list head; //!< List head.
 
 	xfiredb_spinlock_t lock; //!< List lock.
