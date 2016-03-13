@@ -47,6 +47,7 @@ void raw_skiplist_init(struct skiplist *l, double p)
 		return;
 
 	xfiredb_mutex_init(&l->lock);
+	atomic_init(&l->size);
 	node = xfiredb_zalloc(sizeof(*node));
 	node->key = NULL;
 	node->hash = SKIPLIST_MAX_SIZE;
@@ -58,7 +59,6 @@ void raw_skiplist_init(struct skiplist *l, double p)
 	l->header = node;
 	l->prob = p;
 	l->level = 1;
-	l->size = 0UL;
 }
 
 struct skiplist *skiplist_alloc(void)
@@ -84,6 +84,7 @@ void skiplist_destroy(struct skiplist *l)
 	if(!l || !l->header || !l->header->forward)
 		return;
 
+	atomic_destroy(&l->size);
 	xfiredb_mutex_destroy(&l->lock);
 	xfiredb_free(l->header->forward);
 	xfiredb_free(l->header);
@@ -280,6 +281,7 @@ int skiplist_insert(struct skiplist *list, const char *key, struct skiplist_node
 		}
 	}
 
+	atomic_inc(list->size);
 	skiplist_unlock(list);
 	return -XFIREDB_OK;
 }
@@ -336,6 +338,7 @@ int skiplist_delete(struct skiplist *list, const char *key)
 				== list->header)
 			list->level--;
 
+		atomic_dec(list->size);
 		skiplist_unlock(list);
 		return -XFIREDB_OK;
 	}

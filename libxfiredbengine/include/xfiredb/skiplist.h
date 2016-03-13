@@ -44,7 +44,7 @@ struct skiplist {
 	xfiredb_mutex_t lock;
 
 	int level; //!< Current number of levels.
-	unsigned long size; //!< Number of elements.
+	atomic_t size; //!< Atomic size.
 	struct skiplist_node *header; //!< Node header.
 	double prob; //!< Skiplist probability
 };
