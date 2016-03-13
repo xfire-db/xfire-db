@@ -86,12 +86,12 @@ extern void skiplist_iterator_free(struct skiplist_iterator *it);
 extern void skiplist_destroy(struct skiplist *l);
 extern void skiplist_free(struct skiplist *l);
 
-static inline void xfiredb_skiplist_lock(struct skiplist *list)
+static inline void skiplist_lock(struct skiplist *list)
 {
 	xfiredb_mutex_lock(&list->lock);
 }
 
-static inline void xfiredb_skiplist_unlock(struct skiplist *list)
+static inline void skiplist_unlock(struct skiplist *list)
 {
 	xfiredb_mutex_unlock(&list->lock);
 }
