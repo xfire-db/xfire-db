@@ -78,10 +78,6 @@ VALUE rb_se_load_key(VALUE self, VALUE _key)
 	auto void load_hook(int argc, char **rows, char **cols);
 	char *k = StringValueCStr(_key);
 
-	ary = rb_ary_new();
-	xfiredb_load_key(k, &load_hook);
-	return ary;
-
 	void load_hook(int argc, char **rows, char **cols)
 	{
 		VALUE key, hash, type, data, tmp;
@@ -97,6 +93,10 @@ VALUE rb_se_load_key(VALUE self, VALUE _key)
 			rb_ary_push(ary, tmp);
 		}
 	}
+
+	ary = rb_ary_new();
+	xfiredb_load_key(k, &load_hook);
+	return ary;
 }
 
 VALUE rb_se_load(VALUE self)
@@ -104,10 +104,6 @@ VALUE rb_se_load(VALUE self)
 	auto void load_hook(int argc, char **rows, char **cols);
 	VALUE ary;
 
-	ary = rb_ary_new();
-	xfiredb_raw_load(&load_hook);
-	return ary;
-
 	void load_hook(int argc, char **rows, char **cols)
 	{
 		VALUE key, hash, type, data, tmp;
@@ -123,6 +119,10 @@ VALUE rb_se_load(VALUE self)
 			rb_ary_push(ary, tmp);
 		}
 	}
+
+	ary = rb_ary_new();
+	xfiredb_raw_load(&load_hook);
+	return ary;
 }
 
 VALUE rb_se_exit(VALUE self, VALUE db)

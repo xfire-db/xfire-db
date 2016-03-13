@@ -1,0 +1,9 @@
+/**
+ * @defgroup object Object API
+ * @ingroup storage
+ * @brief Base object API.
+ *
+ * The object structure provides a base for all storage objects and
+ * every storage object is required to inherit it. The base object is
+ * mostly used to keep a time record of the object.
+ */

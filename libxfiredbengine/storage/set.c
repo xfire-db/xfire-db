@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #include <xfiredb/xfiredb.h>
+#include <xfiredb/object.h>
 #include <xfiredb/types.h>
 #include <xfiredb/mem.h>
 #include <xfiredb/rbtree.h>
@@ -49,6 +50,7 @@ static bool set_cmp_node(struct rb_node *node, const void *arg)
 void set_init(struct set *s)
 {
 	rb_init_root(&s->root);
+	object_init(&s->obj);
 	s->root.cmp = set_cmp_node;
 	atomic_init(&s->num);
 }

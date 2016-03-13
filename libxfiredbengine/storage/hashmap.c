@@ -26,6 +26,7 @@
 
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
+#include <xfiredb/object.h>
 #include <xfiredb/rbtree.h>
 #include <xfiredb/hashmap.h>
 #include <xfiredb/mem.h>

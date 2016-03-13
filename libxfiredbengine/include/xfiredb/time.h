@@ -25,6 +25,9 @@
 
 #include <xfiredb/xfiredb.h>
 
+#define time_after(a, b) \
+	(((long)(b) - (a)) < 0L)
+
 CDECL
 extern void xfiredb_sleep(int s);
 extern void xfiredb_sleep_ms(int ms);

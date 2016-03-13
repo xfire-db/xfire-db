@@ -16,7 +16,9 @@ set(XFIREDB_OS_FILES
 add_library(xfiredbengine SHARED
 	# storage files	
 	storage/dict.c
+	storage/skiplist.c
 	storage/database.c
+	storage/object.c
 	storage/disk.c
 	storage/set.c
 	storage/hashmap.c

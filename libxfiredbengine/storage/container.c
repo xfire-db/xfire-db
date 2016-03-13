@@ -102,6 +102,31 @@ void *container_get_data(struct container *c)
 	return data;
 }
 
+struct object *container_to_object(struct container *c)
+{
+	struct object *obj;
+
+	switch(c->type) {
+	case CONTAINER_STRING:
+		obj = &c->data.string.obj;
+		break;
+	case CONTAINER_LIST:
+		obj = &c->data.list.obj;
+		break;
+	case CONTAINER_HASHMAP:
+		obj = &c->data.map.obj;
+		break;
+	case CONTAINER_SET:
+		obj = &c->data.set.obj;
+		break;
+	default:
+		obj = NULL;
+		break;
+	}
+
+	return obj;
+}
+
 /**
  * @brief Destroy a given container.
  * @param c Cotainer to destroy.
