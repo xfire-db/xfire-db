@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @addtogroup gen
+ * @{
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -33,14 +38,21 @@ static int xfiredb_vsprintf(char **str, const char *fmt, va_list args)
 	va_end(tmpa);
 
 	if(size < 0)
-		return -XFIRE_ERR;
+		return -XFIREDB_ERR;
 
-	*str = xfire_zalloc(size + 1);
+	*str = xfiredb_zalloc(size + 1);
 	size = vsprintf(*str, fmt, args);
 
 	return size;
 }
 
+/**
+ * @brief Output a formatted string into another string.
+ * @param buf Output buffer.
+ * @param format Format to use.
+ * @param ... Variable arguments.
+ * @return An error code.
+ */
 int xfiredb_sprintf(char **buf, const char *format, ...)
 {
 	int size;
@@ -52,4 +64,6 @@ int xfiredb_sprintf(char **buf, const char *format, ...)
 
 	return size;
 }
+
+/** @} */
 
