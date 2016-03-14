@@ -467,7 +467,7 @@ static inline unsigned long dict_real_size(unsigned long size)
 	size |= size >> 4;
 	size |= size >> 8;
 	size |= size >> 16;
-#ifdef HAVE_X64
+#if defined(HAVE_X64) && !defined(HAVE_WINDOWS)
 	size |= size >> 32;
 #endif
 	size++;
