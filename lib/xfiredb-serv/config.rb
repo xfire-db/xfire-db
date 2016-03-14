@@ -29,15 +29,12 @@ module XFireDB
     CONFIG_CLUSTER = "cluster-enabled"
     CONFIG_DEBUG = "debug-mode"
     CONFIG_TEST_OPT = "test-option"
-    CONFIG_LOG_FILE = "stdout-file"
-    CONFIG_ERR_LOG_FILE = "stderr-file"
     CONFIG_DB_FILE = "db-file"
     CONFIG_PERSIST_LEVEL = "persist-level"
     CONFIG_AUTH_REQUIRED = "auth-required"
     CONFIG_SSL_SERV = 'ssl-required'
     CONFIG_SSL_CERT = 'ssl-certificate'
     CONFIG_SSL_KEY = 'ssl-key'
-    CONFIG_PID_FILE = 'pid-file'
     CONFIG_DATA_DIR = 'data-dir'
 
     @port = nil
