@@ -828,6 +828,7 @@ int xfiredb_key_delete(char *key)
 	struct container *c;
 	struct hashmap *hm;
 	struct hashmap_node *hnode;
+	struct hashmap_iterator *hit;
 	char *bio_key, *bio_data, *bio_skey;
 	db_data_t data;
 	int rv = 0;
@@ -865,16 +866,18 @@ int xfiredb_key_delete(char *key)
 	case CONTAINER_HASHMAP:
 		hm = container_get_data(c);
 		rv += (int)hashmap_size(hm);
-		for(hnode = hashmap_clear_next(hm); hnode;
-				hnode = hashmap_clear_next(hm)) {
+		hit = hashmap_new_iterator(hm);
+		while((hnode = hashmap_iterator_next(hit)) != NULL) { 
 			s = container_of(hnode, struct string, node);
 			xfiredb_sprintf(&bio_key, "%s", key);
 			xfiredb_sprintf(&bio_skey, "%s", hnode->key);
 			bio_queue_add(bio_key, bio_skey, NULL, HM_DEL);
+			hashmap_iterator_delete(hit);
 			hashmap_node_destroy(hnode);
 			string_destroy(s);
 			xfiredb_free(s);
 		}
+		hashmap_free_iterator(hit);
 		container_destroy(c);
 		xfiredb_free(c);
 		break;
@@ -945,6 +948,7 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 	struct hashmap_node *n;
 	struct hashmap *hm;
 	struct string *s;
+	struct hashmap_iterator *hit;
 	char *data, *bio_key, *bio_skey;
 	db_data_t d;
 
@@ -956,7 +960,8 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 		return -XFIREDB_ERR;
 
 	hm = container_get_data(c);
-	hashmap_clear_foreach(hm, n) {
+	hit = hashmap_new_iterator(hm);
+	while((n = hashmap_iterator_next(hit)) != NULL) {
 		s = container_of(n, struct string, node);
 		string_get(s, &data);
 		hook(n->key, data);
@@ -966,10 +971,12 @@ int xfiredb_hashmap_clear(char *key, void (*hook)(char *key, char *data))
 		xfiredb_sprintf(&bio_skey, "%s", n->key);
 		bio_queue_add(bio_key, bio_skey, NULL, HM_DEL);
 
+		hashmap_iterator_delete(hit);
 		hashmap_node_destroy(n);
 		string_destroy(s);
 		xfiredb_free(s);
 	}
+	hashmap_free_iterator(hit);
 
 	container_destroy(c);
 	xfiredb_free(c);

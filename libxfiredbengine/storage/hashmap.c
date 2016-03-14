@@ -32,74 +32,6 @@
 #include <xfiredb/mem.h>
 #include <xfiredb/error.h>
 
-#define HM_SEED 0x8FE3C9A1
-#define MURMUR_C1 0xcc9e2d51
-#define MURMUR_C2 0x1b873593
-#define MURMUR_R1 15
-#define MURMUR_R2 13
-#define MURMUR_MIX1 5
-#define MURMUR_MIX2 0xe6546b64
-
-/**
- * @brief Hash a dictionary key.
- * @param key Key to be hashed.
- * @param seed Hashing seed.
- * @note The seed should be set to HM_SEED in every
- *       case.
- *
- * This is an implementation if the murmur version 3 hash. See
- * https://gowalker.org/github.com/spaolacci/murmur3 for benchmark
- * results.
- */
-static u32 hashmap_hash(const char *key, u32 seed)
-{
-	u32 hash, nblocks, k1, k2, len;
-	const u32 *blocks;
-	const char *tail;
-	int i;
-
-	len = strlen(key);
-	hash = seed;
-	nblocks = len / 4;
-	blocks = (u32*)key;
-	k2 = 0;
-
-	for (i = 0; i < nblocks; i++) {
-		k1 = blocks[i];
-		k1 *= MURMUR_C1;
-		k1 = (k1 << MURMUR_R1) | (k1 >> (32 - MURMUR_R1));
-		k1 *= MURMUR_C2;
-
-		hash ^= k1;
-		hash = ((hash << MURMUR_R2) | (hash >> 
-				(32 - MURMUR_R2))) * MURMUR_MIX1 + MURMUR_MIX2;
-	}
-
-	tail = (const char*) (key + nblocks * 4);
-	switch (len & 3) {
-	case 3:
-		k2 ^= tail[2] << 16;
-	case 2:
-		k2 ^= tail[1] << 8;
-	case 1:
-		k2 ^= tail[0];
-
-		k2 *= MURMUR_C1;
-		k2 = (k2 << MURMUR_R2) | (k2 >> (32 - MURMUR_R1));
-		k2 *= MURMUR_C2;
-		hash ^= k2;
-	}
-
-	hash ^= len;
-	hash ^= (hash >> 16);
-	hash *= 0x85ebca6b;
-	hash ^= (hash >> 13);
-	hash *= 0xc2b2ae35;
-	hash ^= (hash >> 16);
-
-	return hash;
-}
-
 /**
  * @brief Allocate a new iterator.
  * @param map Hashmap to allocate a new iterator for.
@@ -110,7 +42,7 @@ struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map)
 	struct hashmap_iterator *it;
 
 	it = xfiredb_zalloc(sizeof(*it));
-	it->it = rb_new_iterator(&map->root);
+	it->it = skiplist_iterator_new(&map->list);
 	return it;
 }
 
@@ -121,12 +53,12 @@ struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map)
  */
 struct hashmap_node *hashmap_iterator_next(struct hashmap_iterator *it)
 {
-	struct rb_node *node;
+	struct skiplist_node *node;
 
 	if(!it || !it->it)
 		return NULL;
 
-	node = rb_iterator_next(it->it);
+	node = skiplist_iterator_next(it->it);
 
 	if(!node)
 		return NULL;
@@ -134,23 +66,12 @@ struct hashmap_node *hashmap_iterator_next(struct hashmap_iterator *it)
 	return container_of(node, struct hashmap_node, node);
 }
 
-/**
- * @brief Get the top node from the hashmap and remove it.
- * @param map Hashmap to remove from.
- * @return The removed hashmap entry.
- */
-struct hashmap_node *hashmap_clear_next(struct hashmap *map)
+struct hashmap_node *hashmap_iterator_delete(struct hashmap_iterator *it)
 {
-	struct hashmap_node *hnode;
-	struct rb_node *node = rb_get_root(&map->root);
+	struct skiplist_node *node;
 
-	if(!node)
-		return NULL;
-
-	hnode = container_of(node, struct hashmap_node, node);
-	hashmap_remove(map, hnode->key);
-
-	return hnode;
+	node = skiplist_iterator_delete(it->it);
+	return container_of(node, struct hashmap_node, node);
 }
 
 /**
@@ -159,19 +80,8 @@ struct hashmap_node *hashmap_clear_next(struct hashmap *map)
  */
 void hashmap_free_iterator(struct hashmap_iterator *it)
 {
-	rb_free_iterator(it->it);
+	skiplist_iterator_free(it->it);
 	xfiredb_free(it);
-}
-
-static bool hashmap_cmp_node(struct rb_node *node, const void *arg)
-{
-	const char *key = arg;
-	struct hashmap_node *n = container_of(node, struct hashmap_node, node);
-
-	if(!strcmp(n->key, key))
-		return true;
-
-	return false;
 }
 
 /**
@@ -180,9 +90,8 @@ static bool hashmap_cmp_node(struct rb_node *node, const void *arg)
  */
 void hashmap_init(struct hashmap *hm)
 {
-	rb_init_root(&hm->root);
+	skiplist_init(&hm->list);
 	atomic_init(&hm->num);
-	hm->root.cmp = hashmap_cmp_node;
 }
 
 /**
@@ -192,7 +101,7 @@ void hashmap_init(struct hashmap *hm)
 void hashmap_node_destroy(struct hashmap_node *n)
 {
 	xfiredb_free(n->key);
-	rb_node_destroy(&n->node);
+	skiplist_node_destroy(&n->node);
 }
 
 /**
@@ -203,15 +112,11 @@ void hashmap_node_destroy(struct hashmap_node *n)
  */
 int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n)
 {
-	u32 hash;
 	char *_key;
 
-	hash = hashmap_hash(key, HM_SEED);
-	rb_init_node(&n->node);
 	xfiredb_sprintf(&_key, "%s", key);
-	n->node.key = hash;
 	n->key = _key;
-	if(rb_insert(&hm->root, &n->node, true)) {
+	if(skiplist_insert(&hm->list, key, &n->node) == -XFIREDB_OK) {
 		atomic_inc(hm->num);
 		return -XFIREDB_OK;
 	}
@@ -228,14 +133,14 @@ int hashmap_add(struct hashmap *hm, char *key, struct hashmap_node *n)
  */
 struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key)
 {
-	struct rb_node *node;
-	u32 hash = hashmap_hash(key, HM_SEED);
+	struct skiplist_node *node;
 
-	node = rb_remove(&hm->root, hash, key);
-	if(!node)
+	node = skiplist_search(&hm->list, key);
+	if(skiplist_delete(&hm->list, key) == -XFIREDB_OK)
+		atomic_dec(hm->num);
+	else
 		return NULL;
 
-	atomic_dec(hm->num);
 	return container_of(node, struct hashmap_node, node);
 }
 
@@ -247,10 +152,9 @@ struct hashmap_node *hashmap_remove(struct hashmap *hm, char *key)
  */
 struct hashmap_node *hashmap_find(struct hashmap *hm, char *key)
 {
-	struct rb_node *node;
-	u32 hash = hashmap_hash(key, HM_SEED);
+	struct skiplist_node *node;
 
-	node = rb_find_duplicate(&hm->root, hash, key);
+	node = skiplist_search(&hm->list, key);
 	if(!node)
 		return NULL;
 
@@ -263,7 +167,7 @@ struct hashmap_node *hashmap_find(struct hashmap *hm, char *key)
  */
 void hashmap_destroy(struct hashmap *hm)
 {
-	rb_destroy_root(&hm->root);
+	skiplist_destroy(&hm->list);
 	atomic_destroy(&hm->num);
 }
 

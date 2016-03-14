@@ -291,8 +291,13 @@ void skiplist_node_destroy(struct skiplist_node *node)
 	if(!node)
 		return;
 
-	xfiredb_free(node->forward);
-	xfiredb_free(node->key);
+	if(node->forward)
+		xfiredb_free(node->forward);
+	if(node->key)
+		xfiredb_free(node->key);
+
+	node->forward = NULL;
+	node->key = NULL;
 }
 
 int skiplist_delete(struct skiplist *list, const char *key)
