@@ -19,7 +19,7 @@
 module XFireDB
   # Configuration class
   class Config
-    attr_reader :port, :config_port, :addr, :cluster,
+    attr_reader :port, :config_port, :addr, :cluster, :data_dir,
       :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
       :ssl, :ssl_cert, :ssl_key, :cluster_user, :cluster_auth, :pid_file
     attr_accessor :daemon, :secret
@@ -38,6 +38,7 @@ module XFireDB
     CONFIG_SSL_CERT = 'ssl-certificate'
     CONFIG_SSL_KEY = 'ssl-key'
     CONFIG_PID_FILE = 'pid-file'
+    CONFIG_DATA_DIR = 'data-dir'
 
     @port = nil
     @addr = nil
@@ -56,6 +57,7 @@ module XFireDB
     @secret = nil
     @cluser_auth = false
     @pid_file = nil
+    @data_dir = nil
 
     # Create a new config.
     #
@@ -134,8 +136,11 @@ module XFireDB
     def parse(opt, arg)
       case opt
         # Main config options
-      when CONFIG_PID_FILE
+      when CONFIG_DATA_DIR
+        @data_dir = arg
         @pid_file = arg
+        @log_file = File.expand_path("#{arg}/xfiredb.stdout")
+        @err_log_file = File.expand_path("#{arg}/xfiredb.stderr")
       when CONFIG_SSL_CERT
         @ssl_cert = File.expand_path(arg)
       when CONFIG_SSL_KEY
@@ -144,10 +149,6 @@ module XFireDB
         @ssl = true if arg.upcase == "TRUE"
       when CONFIG_AUTH_REQUIRED
         @auth = true if arg.upcase == "TRUE"
-      when CONFIG_LOG_FILE
-        @log_file = File.expand_path(arg)
-      when CONFIG_ERR_LOG_FILE
-        @err_log_file = File.expand_path(arg)
       when CONFIG_DB_FILE
         @db_file = File.expand_path(arg)
       when CONFIG_PERSIST_LEVEL
