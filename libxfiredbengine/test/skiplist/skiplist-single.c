@@ -55,7 +55,7 @@ static void test_skiplist(void)
 {
 	struct skiplist_node *node;
 	struct skiplist_iterator *it;
-	struct test_node *test;
+	s32 size = 4;
 
 	skiplist_insert(&list, "costarring", &a.node);
 	skiplist_insert(&list, "liquid", &b.node);
@@ -64,14 +64,11 @@ static void test_skiplist(void)
 
 	it = skiplist_iterator_new(&list);
 	while((node = skiplist_iterator_next(it)) != NULL) {
-		test = container_of(node, struct test_node, node);
-		printf("Int found: %i\n", test->i);
 		skiplist_iterator_delete(it);
+		assert(skiplist_size(&list) == --size);
 	}
 
 	skiplist_iterator_free(it);
-
-	skiplist_dump(stdout, &list);
 	skiplist_destroy(&list);
 }
 

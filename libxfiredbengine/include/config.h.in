@@ -18,7 +18,6 @@ struct config {
 };
 
 ${HAVE_DBG}
-${HAVE_RECURSION}
 ${HAVE_LINUX}
 ${HAVE_X64}
 ${HAVE_UNIX}

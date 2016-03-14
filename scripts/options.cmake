@@ -14,9 +14,6 @@ option (XFIREDB_DEBUG
 	"Set to true if debugging options should be enabled"
 	[false])
 
-option (RECURSION
-	"Set to true if search functions should use recursion."
-	true)
 
 set (RUBY_RBCONF "" CACHE STRING
 	"Ruby config file.")
@@ -30,11 +27,6 @@ set(HAVE_DBG "")
 if(XFIREDB_DEBUG)
 	set(HAVE_DBG "#define HAVE_DBG")
 endif(XFIREDB_DEBUG)
-
-set(HAVE_RECURSION "")
-if(RECURSION)
-	set(HAVE_RECURSION "#define HAVE_RECURSION")
-endif(RECURSION)
 
 set(HAVE_X64 "")
 if(X64)

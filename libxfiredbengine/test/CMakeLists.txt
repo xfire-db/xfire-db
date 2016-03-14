@@ -7,11 +7,8 @@ add_executable (xfiredb-unittest
 		dict/dict-database.c
 
 		skiplist/skiplist-single.c
-
-		rbtree/rb-single.c
-		rbtree/rb-concurrent.c
-		rbtree/hashmap.c
-		rbtree/set.c
+		skiplist/hashmap.c
+		skiplist/set.c
 
 		disk/disk-single.c
 

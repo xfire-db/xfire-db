@@ -29,7 +29,6 @@
 #include <xfiredb/os.h>
 #include <xfiredb/object.h>
 #include <xfiredb/list.h>
-#include <xfiredb/rbtree.h>
 #include <xfiredb/hashmap.h>
 
 /**

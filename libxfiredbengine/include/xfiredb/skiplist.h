@@ -24,6 +24,9 @@
 #ifndef __SKIPLIST_H__
 #define __SKIPLIST_H__
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
 #include <xfiredb/os.h>
@@ -94,6 +97,11 @@ static inline void skiplist_lock(struct skiplist *list)
 static inline void skiplist_unlock(struct skiplist *list)
 {
 	xfiredb_mutex_unlock(&list->lock);
+}
+
+static inline s32 skiplist_size(struct skiplist *list)
+{
+	return atomic_get(&list->size);
 }
 CDECL_END
 

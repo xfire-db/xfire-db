@@ -37,10 +37,8 @@ extern struct unit_test core_xfiredb_test;
 extern struct unit_test core_quotearg_test;
 extern struct unit_test core_sleep_test;
 
-extern struct unit_test rb_single_test;
-extern struct unit_test rb_concurrent_test;
-extern struct unit_test rb_set_test;
-extern struct unit_test rb_hashmap_test;
+extern struct unit_test skiplist_set_test;
+extern struct unit_test skiplist_hashmap_test;
 
 extern struct unit_test disk_single_test;
 
@@ -65,11 +63,8 @@ static struct unit_test *tests[] = {
 	&bio_test,
 	&bg_test,
 
-	&rb_single_test,
-	&rb_concurrent_test,
-	&rb_hashmap_test,
-	&rb_set_test,
-
+	&skiplist_hashmap_test,
+	&skiplist_set_test,
 	&skiplist_single_test,
 	NULL,
 };
@@ -124,14 +119,11 @@ static void help(const char *prog)
 		"  storage:dict:database\n" \
 		"\n" \
 		"  storage:skiplist:single\n" \
+		"  storage:skiplist:hashmap\n" \
+		"  storage:skiplist:set\n" \
 		"\n" \
 		"  storage:bio\n" \
 		"  storage:disk\n" \
-		"\n" \
-		"  storage:red-black:single\n" \
-		"  storage:red-black:concurrent\n" \
-		"  storage:red-black:hashmap\n" \
-		"  storage:red-black:set\n" \
 		"\n" \
 		"  os:bg\n" \
 		"\n" \

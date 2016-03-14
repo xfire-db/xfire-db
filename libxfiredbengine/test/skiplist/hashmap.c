@@ -99,8 +99,8 @@ static void test_hashmap(void)
 }
 
 static test_func_t test_func_array[] = {test_hashmap, NULL};
-struct unit_test rb_hashmap_test = {
-	.name = "storage:red-black:hashmap",
+struct unit_test skiplist_hashmap_test = {
+	.name = "storage:skiplist:hashmap",
 	.setup = setup,
 	.teardown = teardown,
 	.tests = test_func_array,
