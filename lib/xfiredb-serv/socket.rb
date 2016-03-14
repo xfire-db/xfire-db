@@ -48,7 +48,11 @@ module XFireDB
     # @return [TCPSocket] The created socket.
     def SocketFactory.create_socket(addr, port)
       config = XFireDB.config
-      socket = TCPSocket.new addr, port
+      begin
+        socket = TCPSocket.new addr, port
+      rescue Errno::ECONNREFUSED
+        return nil
+      end
 
       return socket unless config.ssl
       return XFireDB::SSLSocket.new(socket)
