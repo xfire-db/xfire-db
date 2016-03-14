@@ -24,6 +24,9 @@
 #ifndef __SKIPLIST_H__
 #define __SKIPLIST_H__
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
 #include <xfiredb/os.h>

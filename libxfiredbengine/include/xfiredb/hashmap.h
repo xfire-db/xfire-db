@@ -31,7 +31,6 @@
 #include <xfiredb/types.h>
 #include <xfiredb/object.h>
 #include <xfiredb/skiplist.h>
-#include <xfiredb/rbtree.h>
 
 /**
  * @brief Hashmap definition.

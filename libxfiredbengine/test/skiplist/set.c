@@ -79,8 +79,8 @@ void test_set(void)
 }
 
 static test_func_t test_func_array[] = {test_set, NULL};
-struct unit_test rb_set_test = {
-	.name = "storage:red-black:set",
+struct unit_test skiplist_set_test = {
+	.name = "storage:skiplist:set",
 	.setup = setup,
 	.teardown = teardown,
 	.tests = test_func_array,

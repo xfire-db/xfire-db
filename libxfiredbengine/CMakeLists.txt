@@ -23,7 +23,6 @@ add_library(xfiredbengine SHARED
 	storage/set.c
 	storage/hashmap.c
 	storage/bio.c
-	storage/rbtree.c
 	storage/list.c
 	storage/string.c
 	storage/container.c
