@@ -18,18 +18,12 @@ struct config {
 };
 
 ${HAVE_DBG}
-
 ${HAVE_RECURSION}
-
 ${HAVE_LINUX}
-
-${HAVE_PTHREAD}
-
 ${HAVE_X64}
-
-#if defined(HAVE_UNIX) || defined(HAVE_LINUX)
-#define HAVE_POSIX
-#endif
+${HAVE_UNIX}
+${HAVE_WINDOWS}
+${HAVE_PTHREAD}
 
 #define SQLITE_DB "${DATA_PATH}/xfire-dbg.db"
 

@@ -20,10 +20,6 @@ if(${UNIX})
 	endif("${isSystemDir}" STREQUAL "-1")
 endif(${UNIX})
 
-find_library(XFIREDB_PTHREAD_LIB
-	NAMES pthread winpthread
-	PATHS ${CMAKE_FIND_ROOT_PATH}/lib)
-
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 	set(XFIREDB_SQLITE_LIB sqlite3)
 endif("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")

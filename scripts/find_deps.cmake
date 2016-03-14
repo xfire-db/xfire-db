@@ -12,6 +12,16 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	MESSAGE( STATUS "Found libcrypto: ${CRYPTO_LIB}")
 endif()
 
+message(STATUS "Looking for pthread")
+find_library(XFIREDB_PTHREAD_LIB
+	NAMES pthread winpthread
+	PATHS ${CMAKE_FIND_ROOT_PATH}/lib)
+message(STATUS "found pthread: ${XFIREDB_PTHREAD_LIB}")
+if(NOT ${XFIREDB_PTHREAD_LIB} EQUAL NOTFOUND)
+	set(HAVE_PTHREAD "#define HAVE_PTHREAD")
+	set(XFIREDB_PTHREAD true)
+endif()
+
 CHECK_INCLUDE_FILES(stdlib.h STDLIB_HEADER)
 CHECK_INCLUDE_FILES(stdint.h STDINT_HEADER)
 CHECK_INCLUDE_FILES(stdio.h STDIO_HEADER)
