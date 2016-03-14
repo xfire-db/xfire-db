@@ -65,7 +65,7 @@ VALUE rb_hashmap_alloc(VALUE klass)
 
 	container_init(&container->c, CONTAINER_HASHMAP);
 	container->obj = Data_Wrap_Struct(klass, NULL, rb_hashmap_release, container);
-	container->intree = true;
+	container->intree = false;
 	container->type = klass;
 	container->obj_released = false;
 	container->release = rb_hashmap_release;
