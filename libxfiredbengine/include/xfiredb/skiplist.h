@@ -98,6 +98,11 @@ static inline void skiplist_unlock(struct skiplist *list)
 {
 	xfiredb_mutex_unlock(&list->lock);
 }
+
+static inline s32 skiplist_size(struct skiplist *list)
+{
+	return atomic_get(&list->size);
+}
 CDECL_END
 
 #endif

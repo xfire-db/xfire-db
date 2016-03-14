@@ -55,7 +55,7 @@ static void test_skiplist(void)
 {
 	struct skiplist_node *node;
 	struct skiplist_iterator *it;
-	int size = 4;
+	s32 size = 4;
 
 	skiplist_insert(&list, "costarring", &a.node);
 	skiplist_insert(&list, "liquid", &b.node);
@@ -65,7 +65,7 @@ static void test_skiplist(void)
 	it = skiplist_iterator_new(&list);
 	while((node = skiplist_iterator_next(it)) != NULL) {
 		skiplist_iterator_delete(it);
-		//assert(skiplist_size(&list) == --size);
+		assert(skiplist_size(&list) == --size);
 	}
 
 	skiplist_iterator_free(it);
