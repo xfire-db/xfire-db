@@ -18,10 +18,6 @@ option (XFIREDB_DEBUG
 	"Set to true if debugging options should be enabled"
 	[false])
 
-option (RECURSION
-	"Set to true if search functions should use recursion."
-	true)
-
 set (STACK_SIZE "2097152" CACHE STRING
 	"Default stack size.")	
 set (DATA_PATH "$ENV{HOME}/.xfire" CACHE STRING
@@ -36,9 +32,4 @@ set(HAVE_DBG "")
 if(XFIREDB_DEBUG)
 	set(HAVE_DBG "#define HAVE_DBG")
 endif(XFIREDB_DEBUG)
-
-set(HAVE_RECURSION "")
-if(RECURSION)
-	set(HAVE_RECURSION "#define HAVE_RECURSION")
-endif(RECURSION)
 
