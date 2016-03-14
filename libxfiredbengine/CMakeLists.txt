@@ -4,7 +4,7 @@ if(XFIREDB_PTHREAD)
 	)
 endif(XFIREDB_PTHREAD)
 
-include_directories(${XFIREDB_INCLUDE_DIR})
+include_directories(${XFIREDB_INCLUDE_DIR} ${XFIREDB_SQLITE_INCLUDE_DIR})
 
 set(XFIREDB_OS_FILES
 	${XFIREDB_OS_FILES}
@@ -42,10 +42,12 @@ add_library(xfiredbengine SHARED
 	quotearg.c)
 
 
-target_link_libraries(xfiredbengine LINK_PUBLIC ${SQLITE3_LIB})
+target_link_libraries(xfiredbengine LINK_PUBLIC xfiredb-sqlite3 ${XFIREDB_PTHREAD_LIB})
 
 install (TARGETS xfiredbengine
 	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
 	)
 
 if(XFIREDB_DEBUG)

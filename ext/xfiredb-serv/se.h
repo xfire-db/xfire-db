@@ -63,5 +63,8 @@ extern void rb_hashmap_remove(struct db_entry_container *c);
 
 /* list funcs */
 extern void rb_list_free(struct db_entry_container *container);
+
+/* digest funcs */
+extern void init_digest(void);
 #endif
 

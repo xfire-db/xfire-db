@@ -61,14 +61,17 @@ static struct string *dbg_get_string(const char *c)
 static void dbg_hm_clear(struct hashmap *map)
 {
 	struct hashmap_node *hnode;
+	struct hashmap_iterator *hit;
 	struct string *s;
 
-	for(hnode = hashmap_clear_next(map);
-			hnode; hnode = hashmap_clear_next(map)) {
+	hit = hashmap_new_iterator(map);
+	while((hnode = hashmap_iterator_next(hit)) != NULL) {
 		s = container_of(hnode, struct string, node);
+		hashmap_iterator_delete(hit);
 		hashmap_node_destroy(hnode);
 		string_destroy(s);
 	}
+	hashmap_free_iterator(hit);
 }
 
 static void dbg_hm_store(struct disk *d)

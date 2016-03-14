@@ -72,6 +72,7 @@ static void *job_processor(void *arg)
 	}
 
 	xfiredb_thread_exit(NULL);
+	return NULL;
 }
 
 /**

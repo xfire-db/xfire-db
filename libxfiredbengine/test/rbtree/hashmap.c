@@ -63,15 +63,19 @@ static void setup(struct unit_test *t)
 static void teardown(struct unit_test *t)
 {
 	struct hashmap_node *hnode;
+	struct hashmap_iterator *hit;
 	struct string *s;
 
-	for(hnode = hashmap_clear_next(&map);
-			hnode; hnode = hashmap_clear_next(&map)) {
+	hit = hashmap_new_iterator(&map);
+	while((hnode = hashmap_iterator_next(hit)) != NULL) {
 		s = container_of(hnode, struct string, node);
+		hashmap_iterator_delete(hit);
 		hashmap_node_destroy(hnode);
 		string_destroy(s);
 		free_count++;
 	}
+
+	hashmap_free_iterator(hit);
 	hashmap_destroy(&map);
 	assert(free_count == 4);
 }

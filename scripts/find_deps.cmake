@@ -1,33 +1,38 @@
-MESSAGE( STATUS "looking for libsqlite3")
-find_library(SQLITE3_LIB
-	NAMES sqlite3
-)
-MESSAGE( STATUS "Found SQLite3: " ${SQLITE3_LIB})
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	MESSAGE( STATUS "looking for libws_32")
+	find_library(WS32_LIB
+		NAMES ws2_32
+		HINTS ${CMAKE_FIND_ROOT_PATH}/lib)
+	MESSAGE( STATUS "Found libws_32: ${WS32_LIB}")
 
-MESSAGE( STATUS "looking for libssl")
-find_library(OPENSSL_LIB
-	NAMES ssl
-)
-MESSAGE( STATUS "Found openSSL: " ${OPENSSL_LIB})
+	MESSAGE( STATUS "looking for libcrypto")
+	find_library(CRYPTO_LIB
+		NAMES libcrypto.a crypto
+		HINTS ${CMAKE_FIND_ROOT_PATH}/lib)
+	MESSAGE( STATUS "Found libcrypto: ${CRYPTO_LIB}")
+endif()
 
-MESSAGE( STATUS "looking for libc")
-find_library(C_LIB
-	NAMES c
-)
-MESSAGE( STATUS "Found C runtime library: " ${C_LIB})
+message(STATUS "Looking for pthread")
+find_library(XFIREDB_PTHREAD_LIB
+	NAMES pthread winpthread
+	PATHS ${CMAKE_FIND_ROOT_PATH}/lib)
+message(STATUS "found pthread: ${XFIREDB_PTHREAD_LIB}")
+if(NOT ${XFIREDB_PTHREAD_LIB} EQUAL NOTFOUND)
+	set(HAVE_PTHREAD "#define HAVE_PTHREAD")
+	set(XFIREDB_PTHREAD true)
+endif()
 
-CHECK_INCLUDE_FILES(openssl/ssl.h SSL_HEADER)
-CHECK_INCLUDE_FILES(sqlite3.h SQLITE3_HEADER)
 CHECK_INCLUDE_FILES(stdlib.h STDLIB_HEADER)
 CHECK_INCLUDE_FILES(stdint.h STDINT_HEADER)
 CHECK_INCLUDE_FILES(stdio.h STDIO_HEADER)
 CHECK_INCLUDE_FILES(stdarg.h STDARG_HEADER)
 CHECK_INCLUDE_FILES(string.h STRING_HEADER)
 CHECK_INCLUDE_FILES(assert.h ASSERT_HEADER)
+CHECK_INCLUDE_FILES(unistd.h UNISTD_HEADER)
 
-IF(NOT SSL_HEADER)
-	message( FATAL_ERROR "openssl/ssl.h is not found" )
-ENDIF()
+IF(NOT UNISTD_HEADER)
+	message( FATAL_ERROR "unistd.h is not found" )
+endif()
 
 IF(NOT STRING_HEADER)
 	message( FATAL_ERROR "string.h is not found" )
@@ -47,9 +52,5 @@ ENDIF()
 
 IF(NOT STDIO_HEADER)
 	message( FATAL_ERROR "stdio.h is not found" )
-ENDIF()
-
-IF(NOT SQLITE3_HEADER)
-	message( FATAL_ERROR "sqlite3.h is not found" )
 ENDIF()
 

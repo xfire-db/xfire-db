@@ -25,3 +25,9 @@ add_executable (xfiredb-unittest
 
 target_link_libraries (xfiredb-unittest LINK_PUBLIC xfiredbengine)
 
+install (TARGETS xfiredb-unittest
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
+	)
+

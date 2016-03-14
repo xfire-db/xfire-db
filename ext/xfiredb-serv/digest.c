@@ -41,13 +41,14 @@ VALUE rb_digest_crc16(VALUE klass, VALUE str)
 }
 
 VALUE c_digest;
+extern VALUE c_xfiredb_mod;
 
 /*
  * Document-class: Digest
  *
  * Crypto class to bring crc16 support to ruby.
  */
-void Init_digest(void)
+void init_digest(void)
 {
 	c_digest = rb_define_class_under(c_xfiredb_mod, "Digest",
 					rb_cObject);

@@ -5,3 +5,8 @@ add_executable (xfiredb-query
 
 target_link_libraries (xfiredb-query LINK_PUBLIC xfiredb)
 
+install (TARGETS xfiredb-query
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
+	)

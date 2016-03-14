@@ -92,6 +92,7 @@ static void *test_thread_b(void *arg)
 		test_rb_insert(&root, idx);
 
 	xfiredb_thread_exit(NULL);
+	return NULL;
 }
 
 static void *test_thread_a(void *arg)
@@ -103,6 +104,7 @@ static void *test_thread_a(void *arg)
 
 	test_insert_duplicate(&root, 24, node_data3);
 	xfiredb_thread_exit(NULL);
+	return NULL;
 }
 
 static void *test_thread_c(void *arg)
@@ -114,6 +116,7 @@ static void *test_thread_c(void *arg)
 		rb_remove(&root, idx, (char*)node_data1);
 
 	xfiredb_thread_exit(NULL);
+	return NULL;
 }
 
 static void *test_thread_d(void *arg)
@@ -125,6 +128,7 @@ static void *test_thread_d(void *arg)
 		rb_remove(&root, idx, (char*)node_data1);
 
 	xfiredb_thread_exit(NULL);
+	return NULL;
 }
 
 static void rb_setup_tree(void)

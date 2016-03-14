@@ -46,6 +46,8 @@ void raw_skiplist_init(struct skiplist *l, double p)
 	if(!l)
 		return;
 
+	xfiredb_mutex_init(&l->lock);
+	atomic_init(&l->size);
 	node = xfiredb_zalloc(sizeof(*node));
 	node->key = NULL;
 	node->hash = SKIPLIST_MAX_SIZE;
@@ -57,7 +59,6 @@ void raw_skiplist_init(struct skiplist *l, double p)
 	l->header = node;
 	l->prob = p;
 	l->level = 1;
-	l->size = 0UL;
 }
 
 struct skiplist *skiplist_alloc(void)
@@ -83,6 +84,8 @@ void skiplist_destroy(struct skiplist *l)
 	if(!l || !l->header || !l->header->forward)
 		return;
 
+	atomic_destroy(&l->size);
+	xfiredb_mutex_destroy(&l->lock);
 	xfiredb_free(l->header->forward);
 	xfiredb_free(l->header);
 }
@@ -243,6 +246,7 @@ int skiplist_insert(struct skiplist *list, const char *key, struct skiplist_node
 	int i, level;
 
 	hash = skiplist_hash_key(key, SKIPLIST_SEED);
+	skiplist_lock(list);
 	carriage = list->header;
 	for(i = list->level; i >= 1; i--) {
 		while(carriage->forward[i]->hash < hash)
@@ -254,6 +258,7 @@ int skiplist_insert(struct skiplist *list, const char *key, struct skiplist_node
 	carriage = carriage->forward[1];
 
 	if(carriage->key && !strcmp(carriage->key, key)) {
+		skiplist_unlock(list);
 		return -XFIREDB_OK;
 	} else {
 		level = skiplist_rand_level(list, SKIPLIST_MAX_LEVELS);
@@ -276,6 +281,8 @@ int skiplist_insert(struct skiplist *list, const char *key, struct skiplist_node
 		}
 	}
 
+	atomic_inc(list->size);
+	skiplist_unlock(list);
 	return -XFIREDB_OK;
 }
 
@@ -284,8 +291,13 @@ void skiplist_node_destroy(struct skiplist_node *node)
 	if(!node)
 		return;
 
-	xfiredb_free(node->forward);
-	xfiredb_free(node->key);
+	if(node->forward)
+		xfiredb_free(node->forward);
+	if(node->key)
+		xfiredb_free(node->key);
+
+	node->forward = NULL;
+	node->key = NULL;
 }
 
 int skiplist_delete(struct skiplist *list, const char *key)
@@ -295,11 +307,16 @@ int skiplist_delete(struct skiplist *list, const char *key)
 	struct skiplist_node *update[SKIPLIST_MAX_LEVELS + 1];
 	struct skiplist_node *x = list->header;
 
+
+	skiplist_lock(list);
 	hash = skiplist_hash_key(key, SKIPLIST_SEED);
 	i = list->level;
 
 	for(; i >= 1; i--) {
-		while(x->forward[i]->hash < hash) {
+		while(x->forward[i]->hash <= hash) {
+			if(x->forward[i]->hash == hash &&
+					!strcmp(x->forward[i]->key, key))
+				break;
 			x = x->forward[i];
 		}
 
@@ -308,6 +325,11 @@ int skiplist_delete(struct skiplist *list, const char *key)
 
 	if(x->forward[1]->hash == hash) {
 		x = x->forward[1];
+
+		if(!x->key || strcmp(x->key, key)) {
+			skiplist_unlock(list);
+			return -XFIREDB_ERR;
+		}
 
 		for(i = 1; i <= list->level; i++) {
 			if(update[i]->forward[i] != x)
@@ -321,9 +343,12 @@ int skiplist_delete(struct skiplist *list, const char *key)
 				== list->header)
 			list->level--;
 
+		atomic_dec(list->size);
+		skiplist_unlock(list);
 		return -XFIREDB_OK;
 	}
 
+	skiplist_unlock(list);
 	return -XFIREDB_ERR;
 }
 
@@ -341,12 +366,14 @@ struct skiplist_iterator *skiplist_iterator_new(struct skiplist *l)
 
 struct skiplist_node *skiplist_iterator_next(struct skiplist_iterator *it)
 {
+	skiplist_lock(it->list);
 	it->prev = it->current;
 	it->current = it->current->forward[1];
 	
 	if(it->current == it->list->header)
 		it->current = NULL;
 
+	skiplist_unlock(it->list);
 	return it->current;
 }
 
@@ -357,7 +384,9 @@ struct skiplist_node *skiplist_iterator_delete(struct skiplist_iterator *it)
 	if(skiplist_delete(l, it->current->key) != -XFIREDB_OK)
 		return it->current;
 
+	skiplist_lock(l);
 	it->current = it->prev;
+	skiplist_unlock(l);
 	return it->current;
 }
 

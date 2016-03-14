@@ -119,18 +119,21 @@ void rb_hashmap_remove(struct db_entry_container *c)
 {
 	struct hashmap *map;
 	struct hashmap_node *node;
+	struct hashmap_iterator *it;
 	struct string *s;
 
 	map = container_get_data(&c->c);
-	
-	hashmap_clear_foreach(map, node) {
+	it = hashmap_new_iterator(map);
+	while((node = hashmap_iterator_next(it)) != NULL) {
 		if(c->key)
 			xfiredb_notice_disk(c->key, node->key, NULL, HM_DEL);
+
 		s = container_of(node, struct string, node);
-		hashmap_node_destroy(node);
+		hashmap_iterator_delete(it);
 		string_destroy(s);
 		xfiredb_free(s);
 	}
+	hashmap_free_iterator(it);
 }
 
 VALUE rb_hashmap_delete(VALUE self, VALUE key)

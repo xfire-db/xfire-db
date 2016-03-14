@@ -74,9 +74,9 @@ VALUE rb_se_get_loadstate(VALUE self)
 
 VALUE rb_se_load_key(VALUE self, VALUE _key)
 {
-	char *k = StringValueCStr(_key);
 	VALUE ary;
 	auto void load_hook(int argc, char **rows, char **cols);
+	char *k = StringValueCStr(_key);
 
 	void load_hook(int argc, char **rows, char **cols)
 	{
@@ -159,5 +159,6 @@ void Init_storage_engine(void)
 	init_set();
 	init_string();
 	init_log();
+	init_digest();
 }
 
