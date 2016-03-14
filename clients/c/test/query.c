@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -34,7 +35,11 @@ static void numeral_test(struct xfiredb_client *client)
 	r = xfiredb_query(client, query_add);
 	for(i = 0; r[i]; i++) {
 		if(xfiredb_result_type(r[i]) == XFIREDB_FIXNUM) {
-			printf("Number of set keys inserted: %li\n", xfiredb_result_to_int(r[i]));
+#ifdef HAVE_X64
+			printf("Number of set keys inserted: %li\n", (long)xfiredb_result_to_int(r[i]));
+#else
+			printf("Number of set keys inserted: %i\n", xfiredb_result_to_int(r[i]));
+#endif
 		} else {
 			printf("An error occurred");
 			if(xfiredb_result_type(r[i]) == XFIREDB_STATUS && xfiredb_result_status(r[i]) == XFIREDB_RESULT_MSG)

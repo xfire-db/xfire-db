@@ -16,12 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef HAVE_WINDOWS
+#include <termios.h>
+#endif
 #include <unistd.h>
 #include <getopt.h>
-#include <wordexp.h>
 
 #include <xfiredb/xfiredb.h>
 
@@ -40,11 +43,36 @@ static struct option long_opts[] = {
 	{"pass",  required_argument, 0, 'p'},
 	{"host",  required_argument, 0, 'H'},
 	{"port",  required_argument, 0, 'P'},
+#ifndef HAVE_WINDOWS
 	{"auth",    no_argument, 0, 'a'},
+#endif
 	{"ssl",    no_argument, 0, 's'},
 	{"version", no_argument, 0, 'v'},
 	{"help",    no_argument, 0, 'h'},
 };
+
+#ifndef HAVE_WINDOWS
+static ssize_t __cli_getpass(char **lineptr, size_t *n, FILE *stream)
+{
+	struct termios old, new;
+	int nread;
+
+	/* Turn echoing off and fail if we can't. */
+	if (tcgetattr (fileno (stream), &old) != 0)
+	return -1;
+	new = old;
+	new.c_lflag &= ~ECHO;
+	if(tcsetattr (fileno (stream), TCSAFLUSH, &new) != 0)
+		return -1;
+
+	/* Read the password. */
+	nread = getline (lineptr, n, stream);
+
+	/* Restore terminal. */
+	tcsetattr (fileno (stream), TCSAFLUSH, &old);
+	return nread;
+}
+#endif
 
 static void cli_version(void)
 {
@@ -56,6 +84,12 @@ static void cli_usage(const char *prog)
 	printf("Usage: %s -H <host> -P <port> -[upahs]\n", prog);
 }
 
+#ifndef HAVE_WINDOWS
+#define AUTH_HELP "   -a, --auth                  Read username/password from stdin.\n"
+#else
+#define AUTH_HELP
+#endif
+
 static void cli_help(const char *prog)
 {
 	cli_usage(prog);
@@ -63,7 +97,7 @@ static void cli_help(const char *prog)
 		"\n" \
 		"   -H, --host <hostname>       Server address.\n" \
 		"   -P, --port <port>           Server port.\n" \
-		"   -a, --auth                  Read username/password from stdin.\n" \
+		AUTH_HELP \
 		"   -u, --user <username>       Username to use during authentication.\n" \
 		"   -p, --pass <passowd>        Password to use during authentication.\n" \
 		"   -s, --ssl                   Connect using SSL.\n" \
@@ -108,7 +142,7 @@ static void cli_run(struct xfiredb_client *client)
 	int i = 1;
 
 	while(true) {
-		bzero(query, 4096);
+		memset(query, 0, 4096);
 		printf("xfiredb> ");
 		fgets(query, 4095, stdin);
 		query[strlen(query)-1] = '\0';
@@ -139,7 +173,11 @@ static void cli_run(struct xfiredb_client *client)
 				break;
 
 			case XFIREDB_FIXNUM:
-				printf("> (%ld)\n", xfiredb_result_to_int(c));
+#ifndef HAVE_X64
+				printf("> (%d)\n", xfiredb_result_to_int(c));
+#else
+				printf("> (%ld)\n", (long)xfiredb_result_to_int(c));
+#endif
 				break;
 
 			case XFIREDB_STATUS:
@@ -161,9 +199,11 @@ static void cli_run(struct xfiredb_client *client)
 	}
 }
 
+#ifndef HAVE_WINDOWS
 static void cli_getpass(char **user, char **pass)
 {
 	char buff[1024];
+	size_t n = 0;
 
 	printf("Username: ");
 	fgets(buff, 1023, stdin);
@@ -171,8 +211,11 @@ static void cli_getpass(char **user, char **pass)
 	*user = xfiredb_zalloc(strlen(buff) + 1);
 	strcpy(*user, buff);
 
-	*pass = getpass("Password: ");
+	printf("Password: ");
+	__cli_getpass(pass, &n, stdin);
+	fputc('\n', stdout);
 }
+#endif
 
 int main(int argc, char **argv)
 {
@@ -187,10 +230,12 @@ int main(int argc, char **argv)
 			break;
 
 		switch(option) {
+#ifndef HAVE_WINDOWS
 		case 'a':
 			cli_getpass(&user, &pass);
 			auth = true;
 			break;
+#endif
 		case 'p':
 			pass = optarg;
 			auth = true;

@@ -18,6 +18,10 @@ configure_file(
 	"${XFIREDB_INCLUDE_DIR}/config.h"
 	)
 
+configure_file(
+	"${XFIREDB_INCLUDE_DIR}/config.h.in"
+	"${XFIREDB_CLIENT_INCLUDE}/config.h"
+	)
 include(scripts/flags.cmake)
 include(scripts/link.cmake)
 include(scripts/ruby.cmake)
