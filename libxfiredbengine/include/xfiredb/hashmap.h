@@ -30,22 +30,15 @@
 #include <xfiredb/xfiredb.h>
 #include <xfiredb/types.h>
 #include <xfiredb/object.h>
+#include <xfiredb/skiplist.h>
 #include <xfiredb/rbtree.h>
-
-/**
- * @brief Clear a hashmap node iteratively.
- * @param __hm Hashmap to clear.
- * @param __n Node carriage.
- */
-#define hashmap_clear_foreach(__hm, __n) for(__n = hashmap_clear_next(__hm); \
-					     __n; __n = hashmap_clear_next(__hm))
 
 /**
  * @brief Hashmap definition.
  */
 struct hashmap {
 	struct object obj; //!< Base object.
-	struct rb_root root; //!< Red-black tree root.
+	struct skiplist list; //!< Skiplist backend.
 	atomic_t num; //!< Number of entry's in the hashmap.
 	void *privdata; //!< Private data.
 };
@@ -54,14 +47,14 @@ struct hashmap {
  * @brief Hashmap iterator data structure.
  */
 struct hashmap_iterator {
-	struct rb_iterator *it; //!< Red-black tree iterator.
+	struct skiplist_iterator *it; //!< Skiplist iterator.
 };
 
 /**
  * @brief hashmap node.
  */
 struct hashmap_node {
-	struct rb_node node; //!< Red-black tree node.
+	struct skiplist_node node; //!< Skiplist node.
 	char *key; //!< Hashmap node key.
 };
 
@@ -86,7 +79,7 @@ extern void hashmap_node_destroy(struct hashmap_node *n);
 extern struct hashmap_iterator *hashmap_new_iterator(struct hashmap *map);
 extern void hashmap_free_iterator(struct hashmap_iterator *it);
 extern struct hashmap_node *hashmap_iterator_next(struct hashmap_iterator *it);
-extern struct hashmap_node *hashmap_clear_next(struct hashmap *map);
+extern struct hashmap_node *hashmap_iterator_delete(struct hashmap_iterator *it);
 CDECL_END
 
 #endif

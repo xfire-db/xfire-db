@@ -58,7 +58,7 @@ static void test_skiplist(void)
 	struct test_node *test;
 
 	skiplist_insert(&list, "costarring", &a.node);
-	skiplist_insert(&list, "lliquid", &b.node);
+	skiplist_insert(&list, "liquid", &b.node);
 	skiplist_insert(&list, "key3", &c.node);
 	skiplist_insert(&list, "hulk", &d.node);
 

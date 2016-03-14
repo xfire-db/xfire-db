@@ -65,6 +65,7 @@ VALUE rb_list_alloc(VALUE klass)
 	container_init(&container->c, CONTAINER_LIST);
 	container->obj = Data_Wrap_Struct(klass, NULL, rb_list_release, container);
 	container->type = klass;
+	container->intree = true;
 	container->obj_released = container->intree = false;
 	container->release = rb_list_release;
 	return container->obj;
