@@ -16,10 +16,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-require 'xfiredb'
-require 'test/unit'
+require 'xfiredb-serv'
+require 'minitest/autorun'
 
-class TestStorageEngine < Test::Unit::TestCase
+class TestStorageEngine < Minitest::Test
   TEST_STRING_DATA = "Test string data"
   TEST_STRING_KEY  = "key-1"
 

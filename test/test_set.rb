@@ -16,10 +16,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-require 'xfiredb/storage_engine'
-require 'test/unit'
+require 'xfiredb-serv'
+require 'minitest/autorun'
 
-class TestStorageEngine < Test::Unit::TestCase
+class TestSet < Minitest::Test
   def setup
     @set = XFireDB::Set.new
 

@@ -15,3 +15,4 @@ gem 'bcrypt'
 # Ruby documentation
 gem 'yard'
 
+gem 'minitest'

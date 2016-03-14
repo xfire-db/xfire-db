@@ -16,10 +16,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-require 'xfiredb'
-require 'test/unit'
+require 'xfiredb-serv'
+require 'minitest/autorun'
 
-class TestStorageEngine < Test::Unit::TestCase
+class TestStorageEngine < Minitest::Test
   def setup
     puts ""
     @engine = XFireDB::Engine.new
@@ -27,7 +27,7 @@ class TestStorageEngine < Test::Unit::TestCase
   end
 
   def teardown
-    @engine.exit
+    @engine.exit_soft
   end
 
   def test_stress
