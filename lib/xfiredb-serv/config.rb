@@ -18,6 +18,9 @@
 
 module XFireDB
   # Configuration class
+  #
+  # This class is responsible for ready the yaml-like configuration file and
+  # parsing it into ruby variable's.
   class Config
     attr_reader :port, :config_port, :addr, :cluster, :data_dir,
       :debug, :log_file, :err_log_file, :db_file, :persist_level, :auth, :problems,
