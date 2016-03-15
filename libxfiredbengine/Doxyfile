@@ -781,9 +781,9 @@ INPUT                  = . \
                          ../Documentation/thread.txt \
                          ../Documentation/os.txt \
                          ../Documentation/mem.txt \
-                         ../Documentation/rbtree.txt \
                          ../Documentation/list.txt \
                          ../Documentation/dict.txt \
+                         ../Documentation/skiplist.txt \
                          ../Documentation/storage.txt \
                          ../Documentation/string.txt
 
