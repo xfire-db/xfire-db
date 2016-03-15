@@ -90,6 +90,9 @@ module XFireDB
             stream.puts e
             stream.close
             next
+          rescue Errno::ECONNRESET
+            stream.close
+            next
           rescue Exception => e
             if e.is_a? BCrypt::Errors::InvalidHash
               stream.puts "Access denied for #{ip}".length + 1
