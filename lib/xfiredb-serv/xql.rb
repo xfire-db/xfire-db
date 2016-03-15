@@ -50,8 +50,12 @@ module XFireDB
     def XQL.parse(query)
       cmdary = query.tokenize
       cmd = cmdary.shift
-      cmd.upcase!
-      return XQLCommand.new(cmd, cmdary, query)
+      unless cmd.nil?
+        cmd.upcase!
+        return XQLCommand.new(cmd, cmdary, query)
+      else
+        return nil
+      end
     end
   end
 end

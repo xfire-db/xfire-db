@@ -70,6 +70,7 @@ static ssize_t __cli_getpass(char **lineptr, size_t *n, FILE *stream)
 
 	/* Restore terminal. */
 	tcsetattr (fileno (stream), TCSAFLUSH, &old);
+	(*lineptr)[strlen(*lineptr)-1] = '\0';
 	return nread;
 }
 #endif
@@ -220,7 +221,7 @@ static void cli_getpass(char **user, char **pass)
 int main(int argc, char **argv)
 {
 	int option, opt_idx = 0, port = 0;
-	int auth, ssl;
+	int auth, ssl = false;
 	char *user = NULL, *pass = NULL, *host = NULL;
 	struct xfiredb_client *client = NULL;
 

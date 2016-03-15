@@ -64,7 +64,7 @@ module XFireDB
               XFireDB::Log.connecting_client(ip, auth ? auth.args[0] : nil)
               loop do
                 client.read
-                break if client.quit_recv
+                break if client.quit_recv or client.failed
 
                 v = cluster.query(client)
                 if v.is_a? Array
@@ -101,7 +101,7 @@ module XFireDB
 
             puts e
             puts e.backtrace
-            steram.puts "Query failed".length + 1
+            stream.puts "Query failed".length + 1
             stream.puts "Query failed"
             stream.close
             next

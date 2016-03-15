@@ -228,14 +228,14 @@ int xfiredb_auth_client(struct xfiredb_client *client, const char *username, con
 {
 	char *query;
 	char tmp[1024];
-	int num = 0;
+	int i = 0;
 
+	memset(tmp, 0, sizeof(tmp));
 	xfiredb_sprintf(&query, "AUTH %s %s\n", username, password);
 
 	if(client->flags & XFIREDB_SSL) {
 		SSL_write(client->ssl->ssl, query, strlen(query));
-		num = SSL_read(client->ssl->ssl, tmp, sizeof(tmp));
-		tmp[num] = '\0';
+		SSL_read(client->ssl->ssl, tmp, sizeof(tmp));
 
 		if(strcmp(tmp, "OK\n")) {
 			xfiredb_free(query);
@@ -246,8 +246,11 @@ int xfiredb_auth_client(struct xfiredb_client *client, const char *username, con
 			SSL_write(client->ssl->ssl, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
 	} else {
 		write(client->socket, query, strlen(query));
-		num = read(client->socket, tmp, sizeof(tmp));
-		tmp[num] = '\0';
+		for(;; i++) {
+			read(client->socket, &tmp[i], 1);
+			if(tmp[i] == '\n')
+				break;
+		}
 
 		if(strcmp(tmp, "OK\n")) {
 			xfiredb_free(query);
