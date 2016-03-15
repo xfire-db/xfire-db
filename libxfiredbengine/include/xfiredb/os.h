@@ -189,12 +189,6 @@ typedef struct atomic64 {
  */
 #define atomic64_dec(__a) atomic64_sub(&__a, 1LL)
 
-#ifdef __GNUC__
-#define barrier() __sync_synchronize()
-#else
-#define barrier() asm volatile("" ::: "memory")
-#endif
-
 CDECL
 /**
  * @brief Destroy a mutex.
