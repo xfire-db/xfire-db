@@ -100,7 +100,7 @@ static void cli_help(const char *prog)
 		"   -P, --port <port>           Server port.\n" \
 		AUTH_HELP \
 		"   -u, --user <username>       Username to use during authentication.\n" \
-		"   -p, --pass <passowd>        Password to use during authentication.\n" \
+		"   -p, --pass <password>       Password to use during authentication.\n" \
 		"   -s, --ssl                   Connect using SSL.\n" \
 		"   -v, --verion                Print version information.\n" \
 		"   -h, --help                  Display this help text.\n");

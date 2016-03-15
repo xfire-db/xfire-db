@@ -21,6 +21,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef __unix__
+#include <sys/socket.h>
+#include <sys/types.h>
+#else
+#include <winsock2.h>
+#endif
+
 #include <xfiredb/xfiredb.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -45,7 +52,7 @@ again:
 		if(ssl)
 			num = SSL_read(client->ssl->ssl, &c, 1);
 		else
-			num = read(client->socket, &c, 1);
+			num = recv(client->socket, &c, 1, 0);
 
 		if(num <= 0 || c == '\n')
 			goto done;
@@ -89,7 +96,7 @@ static struct xfiredb_result **__query(struct xfiredb_client *client, const char
 
 	xfiredb_sprintf(&query2, "%s\n", query);
 	len = strlen(query2);
-	num = write(client->socket, query2, len);
+	num = send(client->socket, query2, len, 0);
 	xfiredb_free(query2);
 
 	if(num <= 0L)
@@ -104,7 +111,7 @@ static struct xfiredb_result **__query(struct xfiredb_client *client, const char
 	for(i = 0; i < len; i++) {
 		size = atoi(sizes[i]);
 		res[i]->data.ptr = xfiredb_zalloc(size);
-		num = read(client->socket, res[i]->data.ptr, size);
+		num = recv(client->socket, res[i]->data.ptr, size, 0);
 		res[i]->data.ptr[num-1] = '\0';
 		xfiredb_free(sizes[i]);
 	}
