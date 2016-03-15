@@ -24,16 +24,30 @@ require 'xfiredb/version'
 require 'xfiredb/client'
 require 'xfiredb/result'
 
+# XFireDB client module.
 module XFireDB
+  # SSL connection flag.
   SSL    = 0x1
+  # Authentication required flag.
   AUTH   = 0x2
+  # Command stream flag.
   STREAM = 0x4
 
   class << self
+    # Create a new client.
+    # @return [Client] A new client object.
     def new
       Client.new
     end
 
+    # Connect to an XFireDB server
+    #
+    # @param [String] host Server host.
+    # @param [Fixnum] port Server port.
+    # @param [Fixnum] flags Connection flags.
+    # @param [String] user Username.
+    # @param [String] pass Password.
+    # @return [Client] A client object.
     def connect(host, port, flags = nil, user = nil, pass = nil)
       client = Client.new
       client.connect(host, port, flags, user, pass)

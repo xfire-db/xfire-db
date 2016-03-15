@@ -17,7 +17,12 @@
 #
 
 module XFireDB
+  # Socket helper class
   class Socket
+    # Connect a socket.
+    # @param [String] addr Server address.
+    # @param [Fixnum] port Server port.
+    # @param [Boolean] ssl Set to true to enable SSL.
     def self.connect(addr, port, ssl)
       sock = TCPSocket.new addr, port
 
@@ -26,9 +31,12 @@ module XFireDB
     end
   end
 
+  # Connect SSL version of the TCPSocket class.
   class SSLSocket < OpenSSL::SSL::SSLSocket
     @sock = nil
 
+    # Create a new SSL socket.
+    # @param [TCPSocket] sock Base socket.
     def initialize(sock)
       super(sock)
 

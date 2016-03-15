@@ -1,0 +1,4 @@
+-o ../../Documentation/gen/xfiredb-ruby
+--main README.md
+
+lib/
