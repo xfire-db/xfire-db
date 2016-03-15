@@ -52,13 +52,9 @@ struct object {
  * @name Object flags
  * @{
  */
-#define OBJECT_INTREE_FLAG          0
-#define OBJECT_EXPIRED_FLAG         1
+#define OBJECT_INTREE_FLAG          0 //!< Object in-tree flag.
+#define OBJECT_EXPIRED_FLAG         1 //!< Object expired flag.
 /** @} */
-
-#define raw_xfiredb_obj_to(__obj, __type, __field) \
-	container_of(__obj, __type, __field)
-#define xfiredb_obj_to(__obj, __type) raw_xfiredb_obj_to(__obj, __type, obj)
 
 CDECL
 extern struct object *object_alloc(void);
@@ -70,6 +66,10 @@ extern int object_set_expiry(struct object *obj, time_t exp);
 extern void object_destroy(struct object *obj);
 extern void object_free(struct object *obj);
 
+/**
+ * @brief Lock a given object.
+ * @param obj Object to lock.
+ */
 static inline void object_lock(struct object *obj)
 {
 	if(!obj)
@@ -78,6 +78,10 @@ static inline void object_lock(struct object *obj)
 	xfiredb_spin_lock(&obj->lock);
 }
 
+/**
+ * @brief Unlock an object.
+ * @param obj Object to unlock.
+ */
 static inline void object_unlock(struct object *obj)
 {
 	if(!obj)
