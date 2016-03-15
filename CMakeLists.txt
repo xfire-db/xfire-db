@@ -41,7 +41,7 @@ INSTALL(DIRECTORY lib/xfiredb-serv
 INSTALL(PROGRAMS bin/xfiredb
 	DESTINATION bin)
 
-if(XFIREDB_CLIENT)
-	add_subdirectory(${XFIREDB_CLIENT_PATH})
-endif(XFIREDB_CLIENT)
+if(XFIREDB_CLIENTS)
+	add_subdirectory(${XFIREDB_CLIENTS_PATH})
+endif(XFIREDB_CLIENTS)
 
