@@ -52,6 +52,9 @@ static struct unit_test *tests[] = {
 	&dict_concurrent_test,
 	&dict_database_test,
 	&dict_iterator_test,
+	&skiplist_hashmap_test,
+	&skiplist_set_test,
+	&skiplist_single_test,
 
 	&core_bitops_test,
 	&core_xfiredb_test,
@@ -62,10 +65,6 @@ static struct unit_test *tests[] = {
 
 	&bio_test,
 	&bg_test,
-
-	&skiplist_hashmap_test,
-	&skiplist_set_test,
-	&skiplist_single_test,
 	NULL,
 };
 
@@ -102,6 +101,14 @@ static void usage(const char *prog)
 	printf("Usage: %s -t <test>\n", prog);
 }
 
+static void print_available_tests(void)
+{
+	int idx;
+
+	for(idx = 0; tests[idx]; idx++)
+		printf("  %s\n", tests[idx]->name);
+}
+
 static void help(const char *prog)
 {
 	usage(prog);
@@ -112,25 +119,8 @@ static void help(const char *prog)
 		"   -h, --help              Display this help text\n" \
 		"\n" \
 		"Available tests are:\n" \
-		"\n" \
-		"  storage:dict:single\n" \
-		"  storage:dict:concurrent\n" \
-		"  storage:dict:iterator\n" \
-		"  storage:dict:database\n" \
-		"\n" \
-		"  storage:skiplist:single\n" \
-		"  storage:skiplist:hashmap\n" \
-		"  storage:skiplist:set\n" \
-		"\n" \
-		"  storage:bio\n" \
-		"  storage:disk\n" \
-		"\n" \
-		"  os:bg\n" \
-		"\n" \
-		"  core:quotearg\n" \
-		"  core:xfiredb\n" \
-		"  core:sleep\n"   \
-		"  core:bitops\n");
+		"\n");
+	print_available_tests();
 }
 
 static struct option long_opts[] = {
