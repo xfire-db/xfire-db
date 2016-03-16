@@ -298,7 +298,7 @@ int xfiredb_auth_client(struct xfiredb_client *client, const char *username, con
 			SSL_write(client->ssl->ssl, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
 	} else {
 		send(client->socket, query, strlen(query), 0);
-		for(;; i++) {
+		for(; i < sizeof(tmp); i++) {
 			recv(client->socket, &tmp[i], 1, 0);
 			if(tmp[i] == '\n')
 				break;
