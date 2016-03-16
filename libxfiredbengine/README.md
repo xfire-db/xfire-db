@@ -11,7 +11,7 @@ There are several main storage models:
 
 	* Dictionary's
 	* Database's
-	* Red-black tree's
+	* Skiplists
 	* Hashmaps
 	* Sets
 	* Lists
