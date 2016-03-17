@@ -544,8 +544,8 @@ static void *dict_rehash_worker(void *arg)
 {
 	struct dict *d = arg;
 
-	xfiredb_mutex_lock(&d->lock);
 	while(true) {
+		xfiredb_mutex_lock(&d->lock);
 		if(!__dict_is_rehashing(d) && d->status != DICT_STATUS_FREE)
 			xfiredb_cond_wait(&d->rehash_condi, &d->lock);
 
@@ -553,9 +553,9 @@ static void *dict_rehash_worker(void *arg)
 			break;
 
 		dict_rehash_ms(d, 2);
+		xfiredb_mutex_unlock(&d->lock);
 	}
 
-	xfiredb_mutex_unlock(&d->lock);
 	xfiredb_thread_exit(NULL);
 	return NULL;
 }
