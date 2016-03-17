@@ -122,12 +122,14 @@ module XFireDB
     def map_ref(key, *args)
       map = Hash.new
       hkeys = args.join(' ')
+      i = 0
       self.query("MREF #{key} #{hkeys}") {|result|
         if result.success?
           map[args[i]] = result.data
         else
           map[args[i]] = nil
         end
+        i += 1
       }
 
       map
@@ -152,6 +154,47 @@ module XFireDB
         num = result.data if result.success?
       }
       num
+    end
+
+    def set_include?(key, set_key)
+      included = false
+      self.query("SINCLUDE #{key} \"#{set_key}\"") {|result|
+        included = result.data if result.success?
+      }
+      included
+    end
+
+    def set_add(key, *args)
+      args = array_add_quotes(args)
+      keys = args.join ' '
+      num = 0
+      self.query("SADD #{key} #{keys}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
+
+    def set_delete(key, *args)
+      args = array_add_quotes(args)
+      keys = args.join ' '
+      num = 0
+      self.query("SDEL #{key} #{keys}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
+
+    def set_clear(key)
+      self.delete(key)
+    end
+
+    private
+    def array_add_quotes(ary)
+      return unless ary.kind_of? Array
+      ary.collect! {|element|
+        "\"#{element}\""
+      }
+      ary
     end
   end
 end

@@ -18,6 +18,7 @@
 
 require 'socket'
 require 'openssl'
+require 'set'
 
 require 'xfiredb/socket'
 require 'xfiredb/version'
