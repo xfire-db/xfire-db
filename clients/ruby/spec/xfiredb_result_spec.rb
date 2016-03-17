@@ -52,14 +52,19 @@ describe XFireDB do
   it 'can process a nil return' do
     v1 = "nil"
     v2 = "-nil"
+    v3 = "-OK"
 
     a1 = XFireDB::Result.new(v1)
     a2 = XFireDB::Result.new(v2)
+    a3 = XFireDB::Result.new(v3)
+
     a1.process
     a2.process
+    a3.process
 
     expect(a1.null?).to be true
     expect(a2.null?).to be true
+    expect(a3.null?).to be false
   end
 end
 

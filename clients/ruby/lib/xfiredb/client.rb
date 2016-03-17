@@ -69,12 +69,9 @@ module XFireDB
       reply.chomp! if reply
       num = reply.scan(/\ /).count + 1
 
-      puts num
-
       num.times do
         data = @socket.gets
         data.chomp! if data
-        puts data
         res = XFireDB::Result.new data
         res.process
         yield res
@@ -101,6 +98,33 @@ module XFireDB
     # Check if the client is using SSL.
     def ssl?
       @ssl
+    end
+
+    # -- String commands --- #
+
+    def get(key)
+      str = nil
+      self.query("GET #{key}") {|result|
+        str = result.data unless result.null?
+      }
+
+      str
+    end
+
+    def set(key, data)
+      success = false
+      self.query("SET #{key} \"#{data}\"") { |result|
+        success = true if result.success?
+      }
+      success
+    end
+
+    def delete(key)
+      success = false
+      self.query("DELETE #{key}") {|result|
+        success = true if result.success?
+      }
+      success
     end
   end
 end
