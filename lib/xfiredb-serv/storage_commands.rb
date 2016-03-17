@@ -509,7 +509,7 @@ module XFireDB
 
       list = XFireDB.db[key]
       return "-nil" unless list.is_a? XFireDB::List
-      return "%" + list.length
+      return "%" + list.length.to_s
     end
   end
 
