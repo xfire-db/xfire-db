@@ -66,7 +66,7 @@ describe XFireDB do
       expect(client.list_push('test-list', entry)).to be true
     end
 
-    #expect(client.list_size('test-list')).to be 3
+    expect(client.list_size('test-list')).to be 3
     expect(client.list_ref('test-list', '0..-1')).to match_array(data)
     expect(client.list_set('test-list', 1, 'List data 3')).to be true
     expect(client.list_pop('test-list', '0..1')).to match_array(["List data 1", "List data 3"])
