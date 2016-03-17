@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 project (XFireDB)
-SET(PROJECT_VERSION 1.0.0)
+SET(PROJECT_VERSION 1.1.0)
 SET(API_VERSION 1.0)
 
 cmake_policy(SET CMP0007 NEW)

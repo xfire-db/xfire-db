@@ -55,7 +55,7 @@ require 'xfiredb-serv/xql'
 # @author Michel Megens
 # @since 0.0.1
 module XFireDB
-  VERSION = '1.0.0'
+  VERSION = '1.1.0'
 
   @@config = nil
   @@users = nil
