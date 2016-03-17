@@ -21,7 +21,7 @@ module XFireDB
   # Object representation of connecting clients
   class Client
     attr_accessor :stream, :cluster, :user
-    attr_reader :request, :keep, :quit_recv, :cluster_bus
+    attr_reader :request, :keep, :quit_recv, :cluster_bus, :failed
 
     @request = nil
     @stream = nil
@@ -30,6 +30,7 @@ module XFireDB
     @keep = false
     @quit_recv = false
     @cluster_bus = false
+    @failed = false
 
     # Initialize a new client.
     #
@@ -137,6 +138,7 @@ module XFireDB
       end
 
       @request = XFireDB::XQL.parse(data)
+      @failed = true if @request.nil?
       @request.src_ip = ip
       @request.src_port = port
     end

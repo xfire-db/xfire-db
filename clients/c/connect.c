@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
@@ -29,6 +30,7 @@
 #include <netinet/in.h>
 #else
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
 
 #include <xfiredb/xfiredb.h>
@@ -54,6 +56,46 @@ void xfiredb_init(void)
 	initialised = 1;
 }
 
+#ifdef HAVE_WINDOWS
+static int winsock_init(void)
+{
+	WSADATA wsdata;
+	int rc;
+
+	rc = WSAStartup(MAKEWORD(2,2), &wsdata);
+	if(rc)
+		fprintf(stderr, "Winsock startup failed: %d\n", rc);
+
+	return !!rc;
+}
+
+static int ws_init = 0;
+
+static void wsa_host_error(void)
+{
+	DWORD err;
+
+	err = WSAGetLastError();
+	switch(err) {
+	case WSAHOST_NOT_FOUND:
+		fprintf(stderr, "Host not found!\n");
+		break;
+
+	case WSANO_DATA:
+		fprintf(stderr, "No data record found!\n");
+		break;
+
+	default:
+		fprintf(stderr, "DNS error (%d)\n", (int)err);
+		break;
+	}
+}
+#else
+#define wsa_host_error()
+#define winsock_init() 0
+static int ws_init = 1;
+#endif
+
 static SSL_CTX *xfiredb_ssl_init(void)
 {
 	const SSL_METHOD *method;
@@ -77,8 +119,10 @@ static int hostname_to_ip(const char *host, char *ip)
 	int i = 0;
 
 	he = gethostbyname(host);
-	if(!he)
+	if(!he) {
+		wsa_host_error();
 		return -XFIREDB_ERR;
+	}
 
 	addr_list = (struct in_addr**) he->h_addr_list;
 	for(; addr_list[i]; i++) {
@@ -189,7 +233,15 @@ static struct xfiredb_client *__xfiredb_connect(const char *hostname, int port, 
 struct xfiredb_client *xfiredb_connect(const char *host, int port, long flags)
 {
 	struct xfiredb_client *client;
-	char tmp[16];
+	char tmp[64];
+
+	if(!ws_init) {
+		if(!winsock_init())
+			ws_init = 1;
+		else
+			return NULL;
+	}
+
 
 	if((flags & XFIREDB_SOCK_RESOLV) != 0L) {
 		if(hostname_to_ip(host, tmp) != -XFIREDB_OK)
@@ -210,7 +262,7 @@ struct xfiredb_client *xfiredb_connect(const char *host, int port, long flags)
 		if(flags & XFIREDB_SSL)
 			SSL_write(client->ssl->ssl, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
 		else
-			write(client->socket, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
+			send(client->socket, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND), 0);
 	}
 
 	return client;
@@ -228,14 +280,14 @@ int xfiredb_auth_client(struct xfiredb_client *client, const char *username, con
 {
 	char *query;
 	char tmp[1024];
-	int num = 0;
+	int i = 0;
 
+	memset(tmp, 0, sizeof(tmp)-1);
 	xfiredb_sprintf(&query, "AUTH %s %s\n", username, password);
 
 	if(client->flags & XFIREDB_SSL) {
 		SSL_write(client->ssl->ssl, query, strlen(query));
-		num = SSL_read(client->ssl->ssl, tmp, sizeof(tmp));
-		tmp[num] = '\0';
+		SSL_read(client->ssl->ssl, tmp, sizeof(tmp));
 
 		if(strcmp(tmp, "OK\n")) {
 			xfiredb_free(query);
@@ -245,9 +297,13 @@ int xfiredb_auth_client(struct xfiredb_client *client, const char *username, con
 		if(client->flags & XFIREDB_SOCK_STREAM)
 			SSL_write(client->ssl->ssl, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
 	} else {
-		write(client->socket, query, strlen(query));
-		num = read(client->socket, tmp, sizeof(tmp));
-		tmp[num] = '\0';
+		send(client->socket, query, strlen(query), 0);
+		for(; i < sizeof(tmp); i++) {
+			recv(client->socket, &tmp[i], 1, 0);
+			if(tmp[i] == '\n')
+				break;
+		}
+
 
 		if(strcmp(tmp, "OK\n")) {
 			xfiredb_free(query);
@@ -255,7 +311,7 @@ int xfiredb_auth_client(struct xfiredb_client *client, const char *username, con
 		}
 
 		if(client->flags & XFIREDB_SOCK_STREAM)
-			write(client->socket, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND));
+			send(client->socket, XFIREDB_STREAM_COMMAND, SIZE_OF_BUF(XFIREDB_STREAM_COMMAND), 0);
 	}
 
 	xfiredb_free(query);

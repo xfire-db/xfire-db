@@ -64,6 +64,16 @@ module XFireDB
       self.stop(@db)
     end
 
+    # Only delete all keys from the database to plug memory leaks. Backend
+    # systems are not stopped. This is useful for unit tests that do not
+    # start the systems in the first place.
+    def exit_soft
+      self.set_loadstate(false)
+      @db.each do |key, value|
+        @db.delete(key)
+      end
+    end
+
     private
     # Load a database entry from file.
     def load_entry(key, hash, type, data)

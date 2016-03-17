@@ -17,21 +17,31 @@
 #
 
 module XFireDB
+  # Query result class
   class Result
     attr_reader :data, :status
 
+    # Status OK
     OK = 0x1
+    # Status SUCCESS
     SUCCESS = 0x2
+    # Status NULL
     NULL = 0x4
+    # Status MESSAGE
     MSG = 0x8
 
+    # Query success status codes
     ACK = XFireDB::Result::OK | XFireDB::Result::SUCCESS
 
+    # Create a new result object
+    #
+    # @param [String] dat Raw query data.
     def initialize(dat)
       @data = dat
       @status = nil
     end
 
+    # Process the data.
     def process
       case @data[0,1]
       when '+' # String reply
@@ -52,15 +62,18 @@ module XFireDB
       end
     end
 
+    # Check whether the query was succesfull or not.
     def success?
       @status & XFireDB::Result::SUCCESS == XFireDB::Result::SUCCESS
     end
 
+    # Check if the result is NULL.
     def null?
       @status & XFireDB::Result::NULL == XFireDB::Result::NULL
     end
 
     private
+    # Process status codes.
     def process_default
       @data.slice!(0) if @data[0,1] == '-'
 

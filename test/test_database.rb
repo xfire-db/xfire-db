@@ -16,10 +16,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-require 'xfiredb/storage_engine'
-require 'test/unit'
+require 'xfiredb-serv'
+require 'minitest/autorun'
 
-class TestStorageEngine < Test::Unit::TestCase
+class TestDatabase < Minitest::Test
   def setup
     puts ""
     @db = XFireDB::Database.new
@@ -53,11 +53,6 @@ class TestStorageEngine < Test::Unit::TestCase
     @db["key4"] = list
 
     tmp = @db["key4"]
-
-    @db.each do |key, value|
-      puts "Data type of #{key} is #{value.class}"
-    end
-
     @db.delete("key4")
     assert_equal(3, @db.size, "Database size failed")
   end

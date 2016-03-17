@@ -22,3 +22,6 @@ install (TARGETS xfiredb
 	ARCHIVE DESTINATION lib
 	RUNTIME DESTINATION bin
 	)
+
+INSTALL_FILES(/include/xfiredb
+	FILES "include/xfiredb/xfiredb.h")

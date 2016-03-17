@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 project (XFireDB)
-SET(PROJECT_VERSION 0.0.1)
+SET(PROJECT_VERSION 1.0.0)
 SET(API_VERSION 1.0)
 
 cmake_policy(SET CMP0007 NEW)
@@ -41,7 +41,7 @@ INSTALL(DIRECTORY lib/xfiredb-serv
 INSTALL(PROGRAMS bin/xfiredb
 	DESTINATION bin)
 
-if(XFIREDB_CLIENT)
-	add_subdirectory(${XFIREDB_CLIENT_PATH})
-endif(XFIREDB_CLIENT)
+if(XFIREDB_CLIENTS)
+	add_subdirectory(${XFIREDB_CLIENTS_PATH})
+endif(XFIREDB_CLIENTS)
 

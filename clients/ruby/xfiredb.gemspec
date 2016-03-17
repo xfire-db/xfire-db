@@ -11,7 +11,8 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{XFireDB connector}
   spec.description   = %q{XFireDB ruby client library}
-  spec.homepage      = "xfiredb.bietje.net"
+  spec.homepage      = "http://xfiredb.bietje.net"
+  spec.files         = ["lib/xfiredb.rb", "lib/xfiredb/client.rb", "lib/xfiredb/result.rb", "lib/xfiredb/socket.rb", "lib/xfiredb/version.rb"]
 
   spec.require_paths = ["lib"]
 

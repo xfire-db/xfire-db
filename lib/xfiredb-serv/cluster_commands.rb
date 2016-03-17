@@ -260,6 +260,7 @@ module XFireDB
       id = cluster_get_id
       secret = XFireDB.db['xfiredb']['secret']
       sock = XFireDB::SocketFactory.create_socket ip, port
+      return "Connection refused" if sock.nil?
       sock.puts "AUTH"
       sock.puts "#{id} #{secret} #{local_ip} #{local_port}"
       sock.puts "#{uname} #{pw}"

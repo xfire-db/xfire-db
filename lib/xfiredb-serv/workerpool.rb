@@ -64,7 +64,7 @@ module XFireDB
               XFireDB::Log.connecting_client(ip, auth ? auth.args[0] : nil)
               loop do
                 client.read
-                break if client.quit_recv
+                break if client.quit_recv or client.failed
 
                 v = cluster.query(client)
                 if v.is_a? Array
@@ -72,6 +72,9 @@ module XFireDB
                   v.each do |val|
                     stream.puts val
                   end
+                elsif v.is_a? Hash
+                  stream.puts v.to_s.length + 1
+                  stream.puts v.to_s
                 else
                   stream.puts v.length + 1
                   stream.puts v
@@ -90,6 +93,9 @@ module XFireDB
             stream.puts e
             stream.close
             next
+          rescue Errno::ECONNRESET
+            stream.close
+            next
           rescue Exception => e
             if e.is_a? BCrypt::Errors::InvalidHash
               stream.puts "Access denied for #{ip}".length + 1
@@ -101,7 +107,7 @@ module XFireDB
 
             puts e
             puts e.backtrace
-            steram.puts "Query failed".length + 1
+            stream.puts "Query failed".length + 1
             stream.puts "Query failed"
             stream.close
             next

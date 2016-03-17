@@ -32,6 +32,10 @@
 #include <xfiredb/mem.h>
 #include <xfiredb/bitops.h>
 
+/**
+ * @brief Allocate a new object.
+ * @return The allocated object.
+ */
 struct object *object_alloc(void)
 {
 	struct object *obj;
@@ -41,6 +45,10 @@ struct object *object_alloc(void)
 	return obj;
 }
 
+/**
+ * @brief Initialise a new object.
+ * @param obj Object to initialise.
+ */
 void object_init(struct object *obj)
 {
 	if(!obj)
@@ -52,6 +60,11 @@ void object_init(struct object *obj)
 	obj->flags = 0UL;
 }
 
+/**
+ * @brief Check if a given object has expired.
+ * @param obj Object to check.
+ * @return true if the object expired, false otherwise.
+ */
 bool object_has_expired(struct object *obj)
 {
 	time_t now;
@@ -74,6 +87,12 @@ bool object_has_expired(struct object *obj)
 	return rv;
 }
 
+/**
+ * @brief Set the expiry date for an object.
+ * @param obj Object to set an expiry for.
+ * @param exp Expiry time stamp.
+ * @return -XFIREDB_OK on success, -XFIREDB_ERR otherwise.
+ */
 int object_set_expiry(struct object *obj, time_t exp)
 {
 	time_t now;
@@ -93,11 +112,19 @@ int object_set_expiry(struct object *obj, time_t exp)
 	return -XFIREDB_OK;
 }
 
+/**
+ * @brief Destroy an object.
+ * @param obj Object to be destroyed.
+ */
 void object_destroy(struct object *obj)
 {
 	xfiredb_spinlock_destroy(&obj->lock);
 }
 
+/**
+ * @brief Free an object.
+ * @param obj Object to free.
+ */
 void object_free(struct object *obj)
 {
 	if(!obj)

@@ -6,7 +6,7 @@ option (XFIREDB_SERVER
 	"Set to to true if the XFire server should be build and installed"
 	true)
 
-option (XFIREDB_CLIENT
+option (XFIREDB_CLIENTS
 	"Set to true if the XFire client library's should be built and installed"
 	true)
 
