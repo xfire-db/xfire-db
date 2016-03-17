@@ -17,13 +17,23 @@
 #
 
 module XFireDB
+  # Representation of the connecting client.
   class Client
+    # Create a new client.
     def initialize
       @connected = false
       @ssl = false
       @authenticated = false
     end
 
+    # Connect to an XFireDB server
+    #
+    # @param [String] host Server host.
+    # @param [Fixnum] port Server port.
+    # @param [Fixnum] flags Connection flags.
+    # @param [String] user Username.
+    # @param [String] pass Password.
+    # @return [Boolean] True if the connection was succesful, false otherwise.
     def connect(host, port, flags = nil, user = nil, pass = nil)
       @socket = XFireDB::Socket.connect(host, port, flags & XFireDB::SSL)
       @ssl = true if @socket.class == XFireDB::SSLSocket
@@ -48,6 +58,9 @@ module XFireDB
       return true
     end
 
+    # Query a client.
+    # @param [String] q Query to send to the server.
+    # @return [true]
     def query(q)
       return false unless @connected
 
@@ -70,6 +83,7 @@ module XFireDB
       true
     end
 
+    # Close a connection.
     def close
       @connected = false
       @authenticated = false
@@ -79,10 +93,12 @@ module XFireDB
       @socket.close
     end
 
+    # Check if a client is connected.
     def connected?
       @connected
     end
 
+    # Check if the client is using SSL.
     def ssl?
       @ssl
     end

@@ -1,5 +1,0 @@
-/**
- * @defgroup rbtree Red-Black tree API
- * @ingroup storage
- * @brief Red-black tree interface.
- */

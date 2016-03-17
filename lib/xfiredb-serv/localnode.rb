@@ -207,7 +207,7 @@ module XFireDB
           rescue Errno::EBADF
             break
           rescue OpenSSL::SSL::SSLError
-            next
+            retry
           end
         end
 

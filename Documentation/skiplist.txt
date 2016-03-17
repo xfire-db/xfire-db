@@ -1,0 +1,9 @@
+/**
+ * @defgroup skiplist Skiplist API
+ * @ingroup storage
+ * @brief Skiplist user API.
+ *
+ * Skiplists are a probabilistic data structure, that attempt to
+ * perform like a self balancing tree (a red-black tree, for example). However,
+ * the internal workings of a skiplist are several magnitude's simpler.
+ */

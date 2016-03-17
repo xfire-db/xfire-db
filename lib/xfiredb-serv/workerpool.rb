@@ -72,6 +72,9 @@ module XFireDB
                   v.each do |val|
                     stream.puts val
                   end
+                elsif v.is_a? Hash
+                  stream.puts v.to_s.length + 1
+                  stream.puts v.to_s
                 else
                   stream.puts v.length + 1
                   stream.puts v
