@@ -114,7 +114,7 @@ module XFireDB
     def set(key, data)
       success = false
       self.query("SET #{key} \"#{data}\"") { |result|
-        success = true if result.success?
+        success = result.success?
       }
       success
     end
@@ -122,9 +122,147 @@ module XFireDB
     def delete(key)
       success = false
       self.query("DELETE #{key}") {|result|
-        success = true if result.success?
+        success = result.success?
       }
       success
+    end
+
+    def map_add(key, hkey, data)
+      success = false
+      self.query("MADD #{key} #{hkey} \"#{data}\"") {|result|
+        success = result.success?
+      }
+      success
+    end
+
+    def map_ref(key, *args)
+      map = Hash.new
+      hkeys = args.join(' ')
+      i = 0
+      self.query("MREF #{key} #{hkeys}") {|result|
+        if result.success?
+          map[args[i]] = result.data
+        else
+          map[args[i]] = nil
+        end
+        i += 1
+      }
+
+      map
+    end
+
+    def map_clear(key)
+      self.delete(key)
+    end
+
+    def map_size(key)
+      size = 0
+      self.query("MSIZE #{key}") {|result|
+        size = result.data if result.success?
+      }
+      size
+    end
+
+    def map_delete(key, *args)
+      num = 0
+      hkeys = args.join ' '
+      self.query("MDEL #{key} #{hkeys}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
+
+    def set_include?(key, set_key)
+      included = false
+      self.query("SINCLUDE #{key} \"#{set_key}\"") {|result|
+        included = result.data if result.success?
+      }
+      included
+    end
+
+    def set_add(key, *args)
+      args = array_add_quotes(args)
+      keys = args.join ' '
+      num = 0
+      self.query("SADD #{key} #{keys}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
+
+    def set_delete(key, *args)
+      args = array_add_quotes(args)
+      keys = args.join ' '
+      num = 0
+      self.query("SDEL #{key} #{keys}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
+
+    def set_clear(key)
+      self.delete(key)
+    end
+
+    def list_push(key, data)
+      success = false
+      self.query("LPUSH #{key} \"#{data}\"") {|result|
+        success = result.success?
+      }
+      success
+    end
+
+    def list_ref(key, idx)
+      ary = Array.new
+      self.query("LREF #{key} #{idx}") {|result|
+        if result.success?
+          ary.push result.data
+        else
+          ary.push nil
+        end
+      }
+      ary
+    end
+
+    def list_pop(key, idx)
+      ary = Array.new
+      self.query("LPOP #{key} #{idx}") {|result|
+        if result.success?
+          ary.push result.data
+        else
+          ary.push nil
+        end
+      }
+      ary
+    end
+
+    def list_set(key, idx, data)
+      success = false
+      self.query("LSET #{key} #{idx} \"#{data}\"") {|result|
+        success = result.success?
+      }
+      success
+    end
+
+    def list_size(key)
+      num = 0
+      self.query("LSIZE #{key}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
+
+    def list_clear(key)
+      self.delete(key)
+    end
+
+    private
+    def array_add_quotes(ary)
+      return unless ary.kind_of? Array
+      ary.collect! {|element|
+        "\"#{element}\""
+      }
+      ary
     end
   end
 end
