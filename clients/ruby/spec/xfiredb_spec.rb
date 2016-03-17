@@ -39,7 +39,8 @@ describe XFireDB do
     expect(hash['hkey1']).to eq 'Test data 1'
     expect(hash['hkey2']).to eq 'Test data 2'
 
-    expect(client.map_delete('test-map', 'hkey1', 'hkey2')). to eq 2
+    expect(client.map_delete('test-map', 'hkey1', 'hkey2')).to eq 2
+    client.close
   end
 
   it 'is able to handle sets' do
@@ -51,6 +52,7 @@ describe XFireDB do
     expect(client.set_include?('test-set', 'set key 1')).to be true
     expect(client.set_delete('test-set', 'set key 2')).to eq 1
     expect(client.set_clear('test-set')).to be true
+    client.close
   end
 end
 
