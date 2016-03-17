@@ -102,6 +102,57 @@ module XFireDB
     def ssl?
       @ssl
     end
+
+    def delete(key)
+      success = false
+      self.query("DELETE #{key}") {|result|
+        success = result.success?
+      }
+      success
+    end
+
+    def map_add(key, hkey, data)
+      success = false
+      self.query("MADD #{key} #{hkey} \"#{data}\"") {|result|
+        success = result.success?
+      }
+      success
+    end
+
+    def map_ref(key, *args)
+      map = Hash.new
+      hkeys = args.join(' ')
+      self.query("MREF #{key} #{hkeys}") {|result|
+        if result.success?
+          map[args[i]] = result.data
+        else
+          map[args[i]] = nil
+        end
+      }
+
+      map
+    end
+
+    def map_clear(key)
+      self.delete(key)
+    end
+
+    def map_size(key)
+      size = 0
+      self.query("MSIZE #{key}") {|result|
+        size = result.data if result.success?
+      }
+      size
+    end
+
+    def map_delete(key, *args)
+      num = 0
+      hkeys = args.join ' '
+      self.query("MDEL #{key} #{hkeys}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
   end
 end
 
