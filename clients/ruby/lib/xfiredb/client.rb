@@ -102,6 +102,9 @@ module XFireDB
 
     # -- String commands --- #
 
+    # Lookup a string key.
+    # @param [String] key Key to lookup.
+    # @return [String] The value of key. nil is returned if the key doesn't exist.
     def get(key)
       str = nil
       self.query("GET #{key}") {|result|
@@ -111,6 +114,10 @@ module XFireDB
       str
     end
 
+    # Set a key to a string value.
+    # @param [String] key Key to set.
+    # @param [String] data Data to set the key to.
+    # @return [Boolean] True on success, false otherwise.
     def set(key, data)
       success = false
       self.query("SET #{key} \"#{data}\"") { |result|
@@ -119,6 +126,9 @@ module XFireDB
       success
     end
 
+    # Delete a key.
+    # @param [String] key Key to delete.
+    # @return [Boolean] True on success, false otherwise.
     def delete(key)
       success = false
       self.query("DELETE #{key}") {|result|
@@ -127,6 +137,11 @@ module XFireDB
       success
     end
 
+    # Add a hashmap node to a hashmap.
+    # @param [String] key Hashmap to add a key to.
+    # @param [String] hkey Hashmap key to add.
+    # @param [String] data Data to store under hkey.
+    # @return [Boolean] True on success, false otherwise.
     def map_add(key, hkey, data)
       success = false
       self.query("MADD #{key} #{hkey} \"#{data}\"") {|result|
@@ -135,6 +150,18 @@ module XFireDB
       success
     end
 
+    # Reference a hashmap.
+    # @param [String] key Hashmap to lookup.
+    # @param [String] args List of hashmap keys to lookup.
+    # @return [Hash] Hashmap of the lookup keys.
+    #
+    # @example map_ref
+    #   map_ref('test-map', 'key1', 'key2', 'key3')
+    # 
+    # @example returned data
+    #   key1 => Key1 data
+    #   key2 => nil # This key didn't exist in 'test-map'
+    #   key3 => Key3 data
     def map_ref(key, *args)
       map = Hash.new
       hkeys = args.join(' ')
@@ -151,10 +178,16 @@ module XFireDB
       map
     end
 
+    # Clear a hashmap.
+    # @param [String] key Hashmap to clear.
+    # @return [Boolean] True on success, false otherwise.
     def map_clear(key)
       self.delete(key)
     end
 
+    # Get the size of a hashmap.
+    # @param [String] key Hashmap to get the size of.
+    # @return [Fixnum] Number of hashmap entry's in the hashmap.
     def map_size(key)
       size = 0
       self.query("MSIZE #{key}") {|result|
@@ -163,6 +196,14 @@ module XFireDB
       size
     end
 
+    # Delete a number of keys from a hashmap.
+    # @param [String] key Hashmap to delete from.
+    # @param [String] args List of keys to delete.
+    # @return [Fixnum] Number of keys deleted.
+    #
+    # map_delete('test-map', 'key1', 'key2', 'key3') will
+    # attempt to delete the keys key1, key2 and key3 from the
+    # hashmap stored at 'test-map'.
     def map_delete(key, *args)
       num = 0
       hkeys = args.join ' '
@@ -172,6 +213,10 @@ module XFireDB
       num
     end
 
+    # Check if a key is included in a set.
+    # @param [String] key Set to look into.
+    # @param [String] set_key The set will be checked for this key.
+    # @return [Boolean] True if set_key exists, false otherwise.
     def set_include?(key, set_key)
       included = false
       self.query("SINCLUDE #{key} \"#{set_key}\"") {|result|
@@ -180,6 +225,12 @@ module XFireDB
       included
     end
 
+    # Add one or more keys to a set.
+    # @param [String] key Set to add the keys to.
+    # @param [String] args Keys which have to be added.
+    # @return [Fixnum] Number of keys added.
+    # @example set_add
+    #   set_add('test-set', 'set key 1', 'set key 2', 'set key 3')
     def set_add(key, *args)
       args = array_add_quotes(args)
       keys = args.join ' '
@@ -190,6 +241,10 @@ module XFireDB
       num
     end
 
+    # Delete one or more keys from a set.
+    # @param [String] key Set to delete from.
+    # @param [String] args Keys to delete from the set.
+    # @return [Fixnum] Number of keys deleted.
     def set_delete(key, *args)
       args = array_add_quotes(args)
       keys = args.join ' '
@@ -200,10 +255,17 @@ module XFireDB
       num
     end
 
+    # Clear out an entire set.
+    # @param [String] key Set to delete.
+    # @return [Boolean] True on success, false otherwise.
     def set_clear(key)
       self.delete(key)
     end
 
+    # Add data to a list.
+    # @param [String] key List to push into.
+    # @param [String] data Data to push into the list.
+    # @return [Boolean] True on success, false otherwise.
     def list_push(key, data)
       success = false
       self.query("LPUSH #{key} \"#{data}\"") {|result|
@@ -212,6 +274,15 @@ module XFireDB
       success
     end
 
+    # Reference a list by index or range.
+    # @param [String] key List to reference.
+    # @param [String] idx Index or range.
+    # @return [Array] Array of the results.
+    #
+    # @example by index
+    #   list_ref('test-list', 1)
+    # @example by range
+    #   list_ref('test-list', '0..-1')
     def list_ref(key, idx)
       ary = Array.new
       self.query("LREF #{key} #{idx}") {|result|
@@ -224,6 +295,15 @@ module XFireDB
       ary
     end
 
+    # Pop elements from a list by index or range.
+    # @param [String] key List to reference.
+    # @param [String] idx Index or range.
+    # @return [Array] Array of the results.
+    #
+    # @example by index
+    #   list_pop('test-list', 1)
+    # @example by range
+    #   list_pop('test-list', '0..-1')
     def list_pop(key, idx)
       ary = Array.new
       self.query("LPOP #{key} #{idx}") {|result|
@@ -236,6 +316,11 @@ module XFireDB
       ary
     end
 
+    # Set the data in a list at a specific index.
+    # @param [String] key List to reference.
+    # @param [Fixnum] idx Index to edit.
+    # @param [String] data Data to set.
+    # @note The index has to exist before you are able to use list_set on it.
     def list_set(key, idx, data)
       success = false
       self.query("LSET #{key} #{idx} \"#{data}\"") {|result|
@@ -244,6 +329,9 @@ module XFireDB
       success
     end
 
+    # Get the size of a list (number of elements).
+    # @param [String] key List to get the size of.
+    # @return [Fixnum] Number of elements in the list.
     def list_size(key)
       num = 0
       self.query("LSIZE #{key}") {|result|
@@ -252,6 +340,9 @@ module XFireDB
       num
     end
 
+    # Clear out an entire list.
+    # @param [String] key List to delete.
+    # @return [Boolean] True on success, false otherwise.
     def list_clear(key)
       self.delete(key)
     end
