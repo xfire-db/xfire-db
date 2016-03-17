@@ -188,6 +188,58 @@ module XFireDB
       self.delete(key)
     end
 
+    def list_push(key, data)
+      success = false
+      self.query("LPUSH #{key} \"#{data}\"") {|result|
+        success = result.success?
+      }
+      success
+    end
+
+    def list_ref(key, idx)
+      ary = Array.new
+      self.query("LREF #{key} #{idx}") {|result|
+        if result.success?
+          ary.push result.data
+        else
+          ary.push nil
+        end
+      }
+      ary
+    end
+
+    def list_pop(key, idx)
+      ary = Array.new
+      self.query("LPOP #{key} #{idx}") {|result|
+        if result.success?
+          ary.push result.data
+        else
+          ary.push nil
+        end
+      }
+      ary
+    end
+
+    def list_set(key, idx, data)
+      success = false
+      self.query("LSET #{key} #{idx} \"#{data}\"") {|result|
+        success = result.success?
+      }
+      success
+    end
+
+    def list_size(key)
+      num = 0
+      self.query("LSIZE #{key}") {|result|
+        num = result.data if result.success?
+      }
+      num
+    end
+
+    def list_clear(key)
+      self.delete(key)
+    end
+
     private
     def array_add_quotes(ary)
       return unless ary.kind_of? Array

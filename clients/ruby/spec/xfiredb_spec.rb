@@ -54,5 +54,22 @@ describe XFireDB do
     expect(client.set_clear('test-set')).to be true
     client.close
   end
+
+  it 'is able to handle lists' do
+    data = ["List data 1", "List data 2", "List data 3"]
+    client = XFireDB.connect('localhost', 7000,
+                        XFireDB::SSL | XFireDB::AUTH | XFireDB::STREAM,
+                          'root', 'root')
+    data.each do |entry|
+      expect(client.list_push('test-list', entry)).to be true
+    end
+
+    expect(client.list_size('test-list')).to be 3
+    expect(client.list_ref('test-list', '0..-1')).to match_array(data)
+    expect(client.list_set('test-list', 1, 'List data 3')).to be true
+    expect(client.list_pop('test-list', '0..1')).to match_array(["List data 1", "List data 3"])
+    expect(client.list_clear('test-list')).to be true
+    client.close
+  end
 end
 

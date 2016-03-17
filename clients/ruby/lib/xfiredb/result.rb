@@ -81,6 +81,7 @@ module XFireDB
         @status = ACK
       elsif @data == "nil"
         @status = NULL
+        @data = nil
       else
         @status = MSG
       end
